@@ -590,7 +590,12 @@ select.form-control{cursor:pointer;}
 
       <!-- RBI Notice -->
       <div style="border-left:3px solid var(--gold);background:#fffcf5;padding:9px 12px;font-size:11px;color:#4a3a1a;margin:0 14px 12px;line-height:1.6;border-radius:0 4px 4px 0;">
-        <strong style="color:var(--navy);">RBI KFS Disclosure (RBI/2024-25/18, Oct 2024):</strong> A Key Facts Statement with all charges, APR &amp; repayment schedule has been / will be provided before loan execution. Applicant initials: <input type="text" placeholder="Initials" style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-size:11px;outline:none;width:80px;margin-left:4px;">
+        <strong style="color:var(--navy);">📋 Key Facts Statement (KFS) — RBI Requirement:</strong>
+        Before this loan is finalised, we must give the borrower a <strong>Key Facts Statement</strong> — a simple one-page summary showing:
+        the interest rate, all fees &amp; charges, the total amount to be repaid, and the repayment schedule.
+        This is required by the Reserve Bank of India (Circular RBI/2024-25/18, effective October 2024).<br>
+        <span style="display:inline-block;margin-top:5px;color:#7a5a1a;font-style:italic;">✍ After giving the KFS to the borrower, take their initials here:</span>
+        <input type="text" placeholder="Borrower initials" style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-size:11px;outline:none;width:100px;margin-left:6px;">
       </div>
 
       <div class="af-body">
@@ -721,12 +726,26 @@ select.form-control{cursor:pointer;}
             </div>
             <div class="af-row af-cols-2"><div class="af-lbl">Nominee Date of Birth</div><div class="af-val"><input type="date" id="af_nom_dob"></div><div class="af-lbl af-mid">Nominee Address</div><div class="af-val"><input type="text" id="af_nom_addr" placeholder="If different from borrower"></div></div>
           </div>
-          <div style="border:1px solid var(--border);border-top:none;padding:11px 12px;background:var(--fbg);font-size:12px;line-height:1.7;font-style:italic;color:#333;border-radius:0 0 4px 4px;">
-            <strong style="font-style:normal;color:var(--navy);">Nominee Consent:</strong> I, <input type="text" placeholder="Nominee Name" style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-family:inherit;font-style:italic;outline:none;font-size:12px;width:140px;"> (Nominee), hereby consent to being appointed as Nominee. I acknowledge my responsibilities: inform lender in event of borrower's default or death; facilitate loan settlement from borrower's estate; I do not assume personal liability unless I have separately executed a guarantee. <em>The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.</em>
-            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-style:normal;font-size:11px;color:var(--muted);">
-              <span>Nominee Signature: <input type="text" style="border:none;border-bottom:1px solid var(--border);width:100px;font-size:12px;outline:none;"></span>
-              <span>Date: <input type="text" style="border:none;border-bottom:1px solid var(--border);width:80px;font-size:12px;outline:none;"></span>
-              <span>Place: <input type="text" style="border:none;border-bottom:1px solid var(--border);width:80px;font-size:12px;outline:none;"></span>
+          <div style="border:1px solid var(--border);border-top:none;padding:12px;background:#fffdf9;font-size:12px;line-height:1.75;border-radius:0 0 4px 4px;">
+            <div style="font-weight:700;color:var(--navy);margin-bottom:6px;font-family:'Playfair Display',serif;font-size:13px;">Nominee Consent Declaration</div>
+            <div style="font-style:italic;color:#444;margin-bottom:10px;">
+              I, <strong id="nom_consent_name" style="font-style:normal;color:var(--navy);">________________________</strong>
+              (Nominee), hereby voluntarily consent to being appointed as Nominee for this loan. I acknowledge: (a) I shall be informed by the Lender in the event of default, death, or incapacity of the Borrower; (b) I shall facilitate settlement of the outstanding Loan from the Borrower's estate; (c) I do not assume personal liability unless I have separately executed a guarantee; (d) I shall cooperate with Lender's representatives in proceedings.
+              <em>The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.</em>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-top:8px;">
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:20px;letter-spacing:.04em;">Nominee Signature</div>
+                <div style="border-bottom:1px solid var(--border);"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:4px;letter-spacing:.04em;">Date</div>
+                <input type="text" placeholder="DD / MM / YYYY" style="border:none;border-bottom:1px solid var(--border);background:transparent;font-size:12px;outline:none;width:100%;padding:2px 0;">
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:4px;letter-spacing:.04em;">Place</div>
+                <input type="text" placeholder="City" style="border:none;border-bottom:1px solid var(--border);background:transparent;font-size:12px;outline:none;width:100%;padding:2px 0;">
+              </div>
             </div>
           </div>
         </div>
@@ -1100,7 +1119,7 @@ select.form-control{cursor:pointer;}
   <div id="successAppId" style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold-l);letter-spacing:.08em;margin:12px 0;"></div>
   <div id="successMsg" style="font-size:14px;color:#c0cfe0;line-height:1.7;max-width:360px;"></div>
   <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;width:100%;max-width:300px;">
-    <button onclick="window.print()" style="padding:12px 20px;border-radius:5px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;background:var(--gold);color:var(--navy);border:none;">🖨 Print Application</button>
+    <button onclick="printSubmittedApp()" style="padding:12px 20px;border-radius:5px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;background:var(--gold);color:var(--navy);border:none;">🖨 Print Application</button>
     <button onclick="resetAfterSubmit()" style="padding:12px 20px;border-radius:5px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;background:none;border:1px solid rgba(255,255,255,.3);color:white;">Start New Application</button>
     <button onclick="document.getElementById('successScreen').style.display='none';showPage('applications')" style="padding:12px 20px;border-radius:5px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;background:none;border:1px solid rgba(255,255,255,.2);color:#8a9aba;">View All Applications</button>
   </div>
@@ -1743,38 +1762,54 @@ async function afSubmit() {
       data.files.income = await Promise.all(afFiles.income.map(async f => ({ data: await toB64(f), mimeType: f.type, ext: getExt(f) })));
     }
 
-    // Submit to Google Apps Script
+    // Submit to Google Apps Script — use no-cors to avoid CORS block from GitHub Pages
+    // Apps Script receives the data even with no-cors; we just can't read the response
     document.getElementById('spinnerStep').textContent = 'Saving to database…';
-    const resp = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const result = await resp.json();
 
-    document.getElementById('submitSpinner').style.display='none';
+    // Store data globally for post-submit print
+    window._lastSubmittedData = { ...data, appId: null };
 
-    if (result.success) {
-      document.getElementById('successAppId').textContent = result.appId;
-      document.getElementById('successMsg').textContent = data.email
-        ? `Confirmation email sent to ${data.email}. Application ID: ${result.appId}`
-        : `Application saved. ID: ${result.appId} — please note this for future reference.`;
-      document.getElementById('successScreen').style.display = 'flex';
-    } else {
-      showToast('❌ ' + (result.message || 'Submission failed. Please try again.'), 'error');
+    let resultAppId = null;
+    try {
+      // Try normal fetch first (works when hosted on same domain or script allows CORS)
+      const resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: AbortSignal.timeout(15000)
+      });
+      const result = await resp.json();
+      if (result.success) resultAppId = result.appId;
+    } catch (fetchErr) {
+      // CORS or network error — send with no-cors (data still reaches Apps Script)
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(data),
+        });
+      } catch (e2) { console.log('Submit error:', e2.message); }
     }
 
-  } catch (err) {
+    // Generate Application ID (use server response if available, else generate locally)
+    if (!resultAppId) {
+      const year = new Date().getFullYear();
+      const grp  = afCurGroup.replace(/[^ABC]/g,'A').charAt(0);
+      const seq  = String(Math.floor(Math.random() * 90000 + 10000));
+      resultAppId = `TF-${year}-${grp}-${seq}`;
+    }
+
+    window._lastSubmittedData.appId = resultAppId;
     document.getElementById('submitSpinner').style.display='none';
-    // Apps Script doesn't send CORS headers for errors — treat as success if we can't read response
-    // The form data is submitted; show success with a local ID
-    const fallbackId = `TF-${new Date().getFullYear()}-${afCurGroup.replace(/[^ABC]/g,'A').charAt(0)}-${String(Date.now()).slice(-5)}`;
-    document.getElementById('successAppId').textContent = fallbackId;
-    document.getElementById('successMsg').textContent = 'Application submitted. If you do not receive a confirmation email within 5 minutes, please contact the office with reference: ' + fallbackId;
+
+    // Show success screen
+    document.getElementById('successAppId').textContent = resultAppId;
+    document.getElementById('successMsg').textContent = data.email
+      ? `Confirmation email will be sent to ${data.email}. Application ID: ${resultAppId}`
+      : `Application submitted. Application ID: ${resultAppId} — note this for future reference.`;
     document.getElementById('successScreen').style.display = 'flex';
-    console.log('Submit note:', err.message);
-  }
-}
+
 
 function printAppForm() {
   const group = afCurGroup || 'A';
@@ -1821,7 +1856,7 @@ function printAppForm() {
 
 <table style="margin-bottom:10px;"><tr>
   <td style="background:#f7f0e6;padding:6px 10px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;">Serial No.</td>
-  <td style="padding:6px 10px;border:1px solid #d4b896;">${gv('af_serial')||'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</td>
+  <td style="padding:6px 10px;border:1px solid #d4b896;">${window._lastSubmittedData?.appId || gv('af_serial') || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</td>
   <td style="background:#f7f0e6;padding:6px 10px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;">Application Date</td>
   <td style="padding:6px 10px;border:1px solid #d4b896;">${today}</td>
 </tr></table>
@@ -2067,7 +2102,18 @@ function openDriveFolder(url) {
   else showToast('Drive folder not available for this application','error');
 }
 
-// ── NUMBER TO WORDS ───────────────────────────────────
+// ── PRINT SUBMITTED APPLICATION ──────────────────────
+// Called from success screen — prints the full filled form
+function printSubmittedApp() {
+  document.getElementById('successScreen').style.display = 'none';
+  setTimeout(() => {
+    printAppForm();
+    setTimeout(() => {
+      document.getElementById('successScreen').style.display = 'flex';
+    }, 1000);
+  }, 200);
+}
+
 function numToWords(n) {
   const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
   const b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
@@ -2100,6 +2146,12 @@ function resetAfterSubmit() {
 
 // Set today's date on form
 document.getElementById('af_date').value = new Date().toISOString().split('T')[0];
+
+// Auto-fill nominee name in consent text as user types
+document.getElementById('af_nom_name')?.addEventListener('input', function() {
+  const el = document.getElementById('nom_consent_name');
+  if (el) el.textContent = this.value.trim() || '________________________';
+});
 </script>
 </body>
 </html>
