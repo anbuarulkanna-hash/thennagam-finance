@@ -657,7 +657,7 @@ tr:hover td{background:var(--cream-d);}
   <div id="success-id" style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--gold-l);letter-spacing:.08em;margin:10px 0;"></div>
   <div id="success-msg" style="font-size:13px;color:#c0cfe0;line-height:1.7;max-width:340px;"></div>
   <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;width:100%;max-width:280px;">
-    <button onclick="window.print()" style="padding:11px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:var(--gold);color:var(--navy);border:none;">🖨 Print Application</button>
+    <button onclick="printAppForm()" style="padding:11px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:var(--gold);color:var(--navy);border:none;">🖨 Print Application</button>
     <button onclick="resetForm()" style="padding:11px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:none;border:1px solid rgba(255,255,255,.3);color:white;">Start New Application</button>
     <button onclick="closeSuccess()" style="padding:11px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:none;border:1px solid rgba(255,255,255,.15);color:#8a9aba;">View All Applications</button>
   </div>
@@ -668,6 +668,111 @@ tr:hover td{background:var(--cream-d);}
 // CONFIGURATION — LIVE
 // ══════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8oGWzXkWAjD8FF_4k9vKScjiYbeo78mmqEw1EgTrFZfi8LHwVlGGZs4ay1_l/exec';
+
+// ══════════════════════════════════════════════
+// LOCAL STORAGE — APPLICATION DATA
+// ══════════════════════════════════════════════
+function getApps() { try { return JSON.parse(localStorage.getItem('tf_applications') || '[]'); } catch(e) { return []; } }
+function saveApps(arr) { localStorage.setItem('tf_applications', JSON.stringify(arr)); }
+
+function saveAppLocally(appId, data) {
+  const apps = getApps();
+  apps.unshift({
+    id: appId,
+    date: new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'}),
+    fullName: data.fullName || '',
+    mobile: data.mobile || '',
+    loanGroup: data.loanGroup || '',
+    loanAmount: data.loanAmount || '',
+    status: 'Submitted',
+    officer: '',
+    raw: data
+  });
+  saveApps(apps);
+}
+
+const STATUS_COLORS = {
+  'Submitted':'#1a3a8f','Under Review':'#92400e','Field Verified':'#065f46',
+  'Approved':'#14532d','Rejected':'#991b1b','Disbursed':'#5b21b6','Closed':'#374151'
+};
+
+function renderAppsTable(filterStatus, filterGroup, filterSearch) {
+  const apps = getApps();
+  const tbody = document.getElementById('apps-table-body');
+  const countEl = document.getElementById('apps-count');
+  if (!tbody) return;
+
+  let filtered = apps.filter(a => {
+    if (filterStatus && filterStatus !== 'All Status' && a.status !== filterStatus) return false;
+    if (filterGroup && filterGroup !== 'All Groups' && a.loanGroup !== filterGroup) return false;
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      if (!( (a.fullName||'').toLowerCase().includes(q) ||
+             (a.mobile||'').includes(q) ||
+             (a.id||'').toLowerCase().includes(q) ||
+             (a.raw && (a.raw.aadhaarNo||'').includes(q)) )) return false;
+    }
+    return true;
+  });
+
+  if (countEl) countEl.textContent = ' — ' + filtered.length + ' record' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);font-style:italic;">No applications yet</td></tr>';
+    return;
+  }
+
+  const statusBadge = s => {
+    const bg = STATUS_COLORS[s] || '#374151';
+    return `<span style="background:${bg};color:white;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">${s}</span>`;
+  };
+
+  tbody.innerHTML = filtered.map(a => `
+    <tr style="cursor:pointer;" onclick="viewApp('${a.id}')">
+      <td><strong>${a.id}</strong></td>
+      <td>${a.date}</td>
+      <td>${a.fullName}</td>
+      <td>${a.mobile}</td>
+      <td>${a.loanGroup}</td>
+      <td style="text-align:right;">₹${Number(a.loanAmount||0).toLocaleString('en-IN')}</td>
+      <td>${statusBadge(a.status)}</td>
+      <td>${a.officer || '—'}</td>
+      <td onclick="event.stopPropagation()">
+        <select onchange="updateAppStatus('${a.id}', this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:white;">
+          ${['Submitted','Under Review','Field Verified','Approved','Rejected','Disbursed','Closed'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+function updateAppStatus(appId, newStatus) {
+  const apps = getApps();
+  const app = apps.find(a => a.id === appId);
+  if (app) { app.status = newStatus; saveApps(apps); renderAppsTable(); showToast('Status updated → ' + newStatus, 'success'); }
+}
+
+function viewApp(appId) {
+  const app = getApps().find(a => a.id === appId);
+  if (!app) return;
+  const r = app.raw || {};
+  alert([
+    'Application ID: ' + app.id,
+    'Name: ' + app.fullName,
+    'Mobile: ' + app.mobile,
+    'Group: ' + app.loanGroup,
+    'Amount: ₹' + Number(app.loanAmount||0).toLocaleString('en-IN'),
+    'Status: ' + app.status,
+    '─────────────────',
+    'Aadhaar: ' + (r.aadhaarNo||'—'),
+    'PAN: ' + (r.panNo||'—'),
+    'DOB: ' + (r.dob||'—'),
+    'Address: ' + (r.address||'—') + ', ' + (r.district||'') + ' – ' + (r.pinCode||''),
+    'Bank: ' + (r.bankName||'—') + ' | IFSC: ' + (r.ifsc||'—'),
+    'Account: ' + (r.accountNo||'—'),
+    'Purpose: ' + (r.purpose||'—'),
+    'Nominee: ' + (r.nomineeName||'—') + ' (' + (r.nomineeRelation||'—') + ')'
+  ].join('\n'));
+}
 
 // ══════════════════════════════════════════════
 // USERS — ADD MORE STAFF HERE
@@ -708,6 +813,7 @@ function doLogin() {
   document.getElementById('col-date').value = new Date().toISOString().split('T')[0];
   showPage('dashboard');
   showToast('Welcome, ' + user.name + '!', 'success');
+  loadAppsFromSheet();
 }
 
 function doLogout() {
@@ -741,6 +847,8 @@ function showPage(id) {
   navItems.forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active'); });
   document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
   window.scrollTo(0, 0);
+  if (id === 'applications') renderAppsTable();
+  if (id === 'dashboard') renderDashboardApps();
 }
 
 // ══════════════════════════════════════════════
@@ -893,20 +1001,36 @@ async function afSubmit() {
     if (afFiles.pan)    { document.getElementById('spinner-step').textContent = 'Uploading PAN…'; data.files.pan = { data: await toB64(afFiles.pan), mimeType: afFiles.pan.type, ext: ext(afFiles.pan) }; }
 
     document.getElementById('spinner-step').textContent = 'Saving to database…';
-    const resp = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-    const result = await resp.json();
+
+    // Apps Script CORS fix: omit Content-Type header (avoids preflight OPTIONS block)
+    const resp = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify(data)
+    });
+    const text = await resp.text();
+    let result;
+    try { result = JSON.parse(text); } catch(pe) { result = { success: false, message: 'Server parse error: ' + text.slice(0,120) }; }
     document.getElementById('submit-spinner').style.display = 'none';
 
     if (result.success) {
-      showSuccess(result.appId, data.email ? 'Confirmation email sent to ' + data.email + '. Application ID: ' + result.appId : 'Application saved. ID: ' + result.appId);
+      saveAppLocally(result.appId, data);
+      showSuccess(result.appId, data.email
+        ? 'Confirmation email sent to ' + data.email + '. Application ID: ' + result.appId
+        : 'Application saved. ID: ' + result.appId);
     } else {
-      showToast('❌ ' + (result.message || 'Submission failed'), 'error');
+      // Save locally even on server error so no data is lost
+      const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
+      saveAppLocally(fbId, data);
+      showToast('⚠ Server error — saved locally. Check sheet manually.', 'error');
+      showSuccess(fbId, 'Application submitted locally. Reference ID: ' + fbId + '. Contact office to confirm.');
     }
   } catch (err) {
     document.getElementById('submit-spinner').style.display = 'none';
     const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
+    saveAppLocally(fbId, data);
     showSuccess(fbId, 'Application submitted. Reference ID: ' + fbId + '. If you do not receive email confirmation, contact the office.');
-    console.log('Submit note:', err.message);
+    console.log('Submit error:', err.message);
   }
 }
 
@@ -982,6 +1106,103 @@ function generateSanctionLetter(a) {
 <div style="margin-top:18px;padding:9px 12px;background:#f7f0e6;border:1px solid #d4b896;border-left:3px solid #c9932a;font-size:10px;color:#555;"><strong>Borrower Acknowledgement:</strong> I have received this Sanction Letter on ______________ and understood all terms. The terms were translated and interpreted to me in my native language.<br>Signature:________________________ Date:_______________</div>
 </body></html>`;
   const w = window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 600);
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD — RECENT APPLICATIONS
+// ══════════════════════════════════════════════
+function renderDashboardApps() {
+  const apps = getApps().slice(0, 8);
+  const tbody = document.getElementById('recent-apps-body');
+  if (!tbody) return;
+  if (apps.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic;">No applications yet — submit your first loan application</td></tr>';
+    return;
+  }
+  const STATUS_COLORS = { 'Submitted':'#1a3a8f','Under Review':'#92400e','Field Verified':'#065f46','Approved':'#14532d','Rejected':'#991b1b','Disbursed':'#5b21b6','Closed':'#374151' };
+  tbody.innerHTML = apps.map(a => `
+    <tr style="cursor:pointer;" onclick="viewApp('${a.id}')">
+      <td><strong>${a.id}</strong></td>
+      <td>${a.fullName}</td>
+      <td>${a.loanGroup}</td>
+      <td style="text-align:right;">₹${Number(a.loanAmount||0).toLocaleString('en-IN')}</td>
+      <td><span style="background:${STATUS_COLORS[a.status]||'#374151'};color:white;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">${a.status}</span></td>
+      <td><button onclick="event.stopPropagation();showPage('applications')" style="font-size:11px;background:none;border:1px solid var(--border);border-radius:4px;padding:2px 7px;cursor:pointer;">View</button></td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// FILTER / SEARCH — APPLICATIONS PAGE
+// ══════════════════════════════════════════════
+function applyAppFilters() {
+  const bar = document.querySelector('#page-applications .filters-bar');
+  if (!bar) return;
+  const selects = bar.querySelectorAll('select');
+  const inputs  = bar.querySelectorAll('input');
+  const status  = selects[0]?.value;
+  const group   = selects[1]?.value;
+  const search  = inputs[2]?.value?.trim();
+  renderAppsTable(status, group, search);
+}
+
+// Wire up filter Search button click
+document.addEventListener('DOMContentLoaded', () => {
+  const bar = document.querySelector('#page-applications .filters-bar');
+  if (bar) {
+    bar.querySelector('button')?.addEventListener('click', applyAppFilters);
+    bar.querySelectorAll('input')[2]?.addEventListener('keydown', e => { if (e.key === 'Enter') applyAppFilters(); });
+  }
+});
+
+// ══════════════════════════════════════════════
+// LOAD APPLICATIONS FROM GOOGLE SHEET (on login)
+// ══════════════════════════════════════════════
+async function loadAppsFromSheet() {
+  try {
+    const resp = await fetch(SCRIPT_URL + '?action=list', { method: 'GET', redirect: 'follow' });
+    const text = await resp.text();
+    let result;
+    try { result = JSON.parse(text); } catch(e) { return; }
+    if (!result.success || !Array.isArray(result.rows)) return;
+
+    // result.rows = array of objects from the sheet
+    const existing = getApps();
+    const existingIds = new Set(existing.map(a => a.id));
+
+    let added = 0;
+    result.rows.forEach(row => {
+      if (!row.appId || existingIds.has(row.appId)) return;
+      existing.push({
+        id:          row.appId,
+        date:        row.date || '',
+        fullName:    row.fullName || '',
+        mobile:      row.mobile || '',
+        loanGroup:   row.loanGroup || '',
+        loanAmount:  row.loanAmount || '',
+        status:      row.status || 'Pending',
+        officer:     row.officer || '',
+        raw:         row
+      });
+      added++;
+    });
+
+    if (added > 0) {
+      // Sort newest first by id
+      existing.sort((a, b) => b.id.localeCompare(a.id));
+      saveApps(existing);
+      showToast('✅ Loaded ' + added + ' application(s) from server', 'success');
+      renderAppsTable();
+      renderDashboardApps();
+    }
+  } catch(e) {
+    console.log('Sheet load error:', e.message);
+  }
+}
+
+// Manual refresh button support
+function refreshApps() {
+  showToast('Syncing with server…', 'info');
+  loadAppsFromSheet();
 }
 </script>
 </body>
