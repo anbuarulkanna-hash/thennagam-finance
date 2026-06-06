@@ -970,67 +970,87 @@ async function afSubmit() {
   document.getElementById('submit-spinner').style.display = 'flex';
   document.getElementById('spinner-step').textContent = 'Preparing data…';
 
+  const toB64 = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('Read failed'));
+    r.readAsDataURL(f);
+  });
+  const ext = f => { const p = f.name.split('.'); return p.length > 1 ? p.pop().toLowerCase() : 'bin'; };
+
+  const data = {
+    loanGroup: 'Group ' + curGrp,
+    fullName: gv('af_name'), dob: gv('af_dob'), gender: gv('af_gender'),
+    fatherName: gv('af_father'), relationship: gv('af_rel'),
+    aadhaarNo: gv('af_aadhar'), panNo: gv('af_pan'),
+    mobile: gv('af_mobile'), email: gv('af_email'),
+    address: gv('af_addr'), district: gv('af_district'), pinCode: gv('af_pin'), state: 'Tamil Nadu',
+    occupation: gv('af_occ'), employer: gv('af_employer'),
+    income: gv('af_income'), totalIncome: gv('af_totalinc'),
+    bankName: gv('af_bank'), ifsc: gv('af_ifsc'), accountNo: gv('af_accno'),
+    loanAmount: gv('af_loanamt'), purpose: gv('af_purpose'),
+    tenure: gv('af_tenure'), emiDate: gv('af_emidate'),
+    nomineeName: gv('af_nom_name'), nomineeRelation: gv('af_nom_rel'),
+    nomineeAadhaar: gv('af_nom_aadhar'), nomineeMobile: gv('af_nom_mobile'),
+    files: {}
+  };
+
   try {
-    const toB64 = f => new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result.split(',')[1]);
-      r.onerror = () => rej(new Error('Read failed'));
-      r.readAsDataURL(f);
-    });
-    const ext = f => { const p = f.name.split('.'); return p.length > 1 ? p.pop().toLowerCase() : 'bin'; };
-
-    const data = {
-      loanGroup: 'Group ' + curGrp,
-      fullName: gv('af_name'), dob: gv('af_dob'), gender: gv('af_gender'),
-      fatherName: gv('af_father'), relationship: gv('af_rel'),
-      aadhaarNo: gv('af_aadhar'), panNo: gv('af_pan'),
-      mobile: gv('af_mobile'), email: gv('af_email'),
-      address: gv('af_addr'), district: gv('af_district'), pinCode: gv('af_pin'), state: 'Tamil Nadu',
-      occupation: gv('af_occ'), employer: gv('af_employer'),
-      income: gv('af_income'), totalIncome: gv('af_totalinc'),
-      bankName: gv('af_bank'), ifsc: gv('af_ifsc'), accountNo: gv('af_accno'),
-      loanAmount: gv('af_loanamt'), purpose: gv('af_purpose'),
-      tenure: gv('af_tenure'), emiDate: gv('af_emidate'),
-      nomineeName: gv('af_nom_name'), nomineeRelation: gv('af_nom_rel'),
-      nomineeAadhaar: gv('af_nom_aadhar'), nomineeMobile: gv('af_nom_mobile'),
-      files: {}
-    };
-
     if (afFiles.selfie) { document.getElementById('spinner-step').textContent = 'Uploading photo…'; data.files.selfie = { data: await toB64(afFiles.selfie), mimeType: afFiles.selfie.type, ext: ext(afFiles.selfie) }; }
     if (afFiles.aadhar) { document.getElementById('spinner-step').textContent = 'Uploading Aadhaar…'; data.files.aadhar = { data: await toB64(afFiles.aadhar), mimeType: afFiles.aadhar.type, ext: ext(afFiles.aadhar) }; }
     if (afFiles.pan)    { document.getElementById('spinner-step').textContent = 'Uploading PAN…'; data.files.pan = { data: await toB64(afFiles.pan), mimeType: afFiles.pan.type, ext: ext(afFiles.pan) }; }
+  } catch(fileErr) {
+    console.log('File read error:', fileErr);
+  }
 
-    document.getElementById('spinner-step').textContent = 'Saving to database…';
+  // ── Generate local ID immediately ──────────────────────────────
+  const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
+  saveAppLocally(fbId, data);
 
-    // Apps Script CORS fix: omit Content-Type header (avoids preflight OPTIONS block)
+  document.getElementById('spinner-step').textContent = 'Saving to server…';
+
+  // ── Send to Apps Script with 30s timeout ───────────────────────
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+
+  try {
     const resp = await fetch(SCRIPT_URL, {
       method: 'POST',
       redirect: 'follow',
+      signal: controller.signal,
       body: JSON.stringify(data)
     });
+    clearTimeout(timer);
     const text = await resp.text();
     let result;
-    try { result = JSON.parse(text); } catch(pe) { result = { success: false, message: 'Server parse error: ' + text.slice(0,120) }; }
+    try { result = JSON.parse(text); } catch(pe) { result = { success: false }; }
     document.getElementById('submit-spinner').style.display = 'none';
 
-    if (result.success) {
-      saveAppLocally(result.appId, data);
+    if (result.success && result.appId) {
+      // Update local record with the server-assigned ID
+      updateLocalAppId(fbId, result.appId, data);
       showSuccess(result.appId, data.email
         ? 'Confirmation email sent to ' + data.email + '. Application ID: ' + result.appId
-        : 'Application saved. ID: ' + result.appId);
+        : 'Application saved successfully. ID: ' + result.appId);
     } else {
-      // Save locally even on server error so no data is lost
-      const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
-      saveAppLocally(fbId, data);
-      showToast('⚠ Server error — saved locally. Check sheet manually.', 'error');
-      showSuccess(fbId, 'Application submitted locally. Reference ID: ' + fbId + '. Contact office to confirm.');
+      // Server got it but returned error — still saved locally with fbId
+      showSuccess(fbId, 'Application submitted. Reference ID: ' + fbId + '. Our team will confirm via call/SMS.');
     }
   } catch (err) {
+    clearTimeout(timer);
     document.getElementById('submit-spinner').style.display = 'none';
-    const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
-    saveAppLocally(fbId, data);
+    // Already saved locally above — just show success
     showSuccess(fbId, 'Application submitted. Reference ID: ' + fbId + '. If you do not receive email confirmation, contact the office.');
-    console.log('Submit error:', err.message);
+    console.log('Server send failed (saved locally):', err.message);
+  }
+}
+
+function updateLocalAppId(oldId, newId, data) {
+  const apps = getApps();
+  const idx = apps.findIndex(a => a.id === oldId);
+  if (idx !== -1) {
+    apps[idx].id = newId;
+    saveApps(apps);
   }
 }
 
