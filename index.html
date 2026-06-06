@@ -737,10 +737,12 @@ function renderAppsTable(filterStatus, filterGroup, filterSearch) {
       <td style="text-align:right;">₹${Number(a.loanAmount||0).toLocaleString('en-IN')}</td>
       <td>${statusBadge(a.status)}</td>
       <td>${a.officer || '—'}</td>
-      <td onclick="event.stopPropagation()">
-        <select onchange="updateAppStatus('${a.id}', this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:white;">
+      <td onclick="event.stopPropagation()" style="white-space:nowrap;">
+        <select onchange="updateAppStatus('${a.id}', this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:white;display:block;width:100%;margin-bottom:4px;">
           ${['Submitted','Under Review','Field Verified','Approved','Rejected','Disbursed','Closed'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}
         </select>
+        <button onclick="printStoredApp('${a.id}')" style="font-size:10px;padding:2px 7px;margin-right:3px;background:#0a1628;color:#e8b84b;border:none;border-radius:3px;cursor:pointer;">App</button>
+        <button onclick="printFullPacket('${a.id}')" style="font-size:10px;padding:2px 7px;background:#14532d;color:white;border:none;border-radius:3px;cursor:pointer;">Full Packet</button>
       </td>
     </tr>`).join('');
 }
@@ -849,6 +851,7 @@ function showPage(id) {
   window.scrollTo(0, 0);
   if (id === 'applications') renderAppsTable();
   if (id === 'dashboard') renderDashboardApps();
+  if (id === 'pipeline') renderPipeline();
 }
 
 // ══════════════════════════════════════════════
@@ -1164,6 +1167,376 @@ document.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════════════
 // LOAD APPLICATIONS FROM GOOGLE SHEET (on login)
 // ══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// PIPELINE VIEW
+// ═══════════════════════════════════════════════
+function renderPipeline() {
+  const apps = getApps();
+  const colMap = {
+    'Submitted':'pipe-submitted','Under Review':'pipe-review',
+    'Field Verified':'pipe-verified','Approved':'pipe-approved',
+    'Disbursed':'pipe-disbursed','Rejected':'pipe-rejected','Closed':'pipe-rejected'
+  };
+  Object.values(colMap).forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML=''; });
+  if (!apps.length) {
+    const el = document.getElementById('pipe-submitted');
+    if(el) el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px;font-style:italic;">No applications yet</div>';
+    return;
+  }
+  apps.forEach(a => {
+    const colId = colMap[a.status] || 'pipe-submitted';
+    const col = document.getElementById(colId); if(!col) return;
+    const card = document.createElement('div'); card.className='pipe-card';
+    card.innerHTML = `<div style="font-size:11px;font-weight:700;color:#0a1628;">${a.id}</div>
+      <div style="font-size:12px;margin:2px 0;">${a.fullName}</div>
+      <div style="font-size:11px;color:var(--muted);">${a.loanGroup} | &#8377;${Number(a.loanAmount||0).toLocaleString('en-IN')}</div>
+      <div style="font-size:10px;color:var(--muted);">${a.mobile}</div>`;
+    card.onclick = () => viewApp(a.id);
+    col.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// PRINT APPLICATION (from stored data)
+// ═══════════════════════════════════════════════
+function printStoredApp(appId) {
+  const app = getApps().find(a => a.id===appId);
+  if(!app){ showToast('Not found','error'); return; }
+  const r=app.raw||{};
+  const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const g=(app.loanGroup||'Group A').replace('Group ','').trim();
+  const GBL={A:'GROUP A LOAN — SMALL LOAN (UP TO Rs.50,000)',B:'GROUP B LOAN — MEDIUM LOAN (Rs.50,001 - Rs.3,00,000)',C:'GROUP C LOAN — LARGE LOAN (ABOVE Rs.3,00,001)'};
+  const f2=(l1,v1,l2,v2)=>`<tr><td class="lbl">${l1}</td><td class="val">${v1||'&nbsp;'}</td><td class="lbl">${l2}</td><td class="val">${v2||'&nbsp;'}</td></tr>`;
+  const f1=(l,v)=>`<tr><td class="lbl">${l}</td><td class="val" colspan="3">${v||'&nbsp;'}</td></tr>`;
+  const sec=t=>`<tr><td colspan="4" class="sec">${t}</td></tr>`;
+  const css=`@page{size:A4;margin:11mm 13mm;}body{font-family:'Times New Roman',Georgia,serif;font-size:12px;color:#1a1a2e;}
+table{width:100%;border-collapse:collapse;margin-bottom:8px;}h1{font-size:16px;text-align:center;text-decoration:underline;text-transform:uppercase;margin:6px 0 2px;}
+.lbl{background:#f7f0e6;padding:5px 8px;font-size:10px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:130px;}
+.val{padding:5px 8px;border:1px solid #d4b896;font-size:12px;}.sec{background:#0a1628;color:#e8b84b;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border:1px solid #0a1628;}
+@media print{button{display:none!important;}}`;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Application - ${appId}</title><style>${css}</style></head><body>
+<button onclick="window.print()" style="position:fixed;top:10px;right:10px;background:#0a1628;color:#e8b84b;border:none;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;border-radius:4px;z-index:999;">Print / PDF</button>
+<div style="text-align:center;border-bottom:3px solid #0a1628;padding-bottom:8px;margin-bottom:6px;">
+  <div style="font-size:18px;font-weight:900;text-transform:uppercase;color:#0a1628;">Thennagam Finance Private Limited</div>
+  <div style="font-size:9px;color:#555;">CIN: U64990TN2025PTC179499 | 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205</div>
+  <div style="height:1px;background:#c9932a;margin:4px auto;width:70%;"></div>
+  <div style="display:inline-block;margin-top:4px;padding:2px 10px;background:#0a1628;color:#e8b84b;font-size:9px;font-weight:700;text-transform:uppercase;">${GBL[g]||GBL['A']}</div>
+</div>
+<h1>Loan Application Form</h1>
+<p style="text-align:center;font-size:9px;color:#555;margin-bottom:6px;">Application ID: <strong>${appId}</strong> | Date: ${app.date||today}</p>
+<table>${sec('1 - Borrower Personal Details')}
+${f1('Full Name (as per Aadhaar)',r.fullName||app.fullName)}
+${f2('Date of Birth',r.dob,'Gender',r.gender)}
+${f2("Father's / Spouse's Name",r.fatherName,'Relationship',r.relationship)}
+${f2('Aadhaar Number',r.aadhaarNo,'PAN Number',r.panNo)}
+${f2('Mobile Number',r.mobile||app.mobile,'Email',r.email)}
+${f1('Current Address',r.address)}
+${f2('District',r.district,'Pin Code',r.pinCode)}
+${sec('2 - Employment & Income')}
+${f2('Occupation',r.occupation,'Employer / Business',r.employer)}
+${f2('Monthly Net Income (Rs.)',r.income,'Total Income (Rs.)',r.totalIncome)}
+${sec('3 - Bank Account Details')}
+${f2('Bank Name',r.bankName,'IFSC Code',r.ifsc)}
+${f2('Account Number',r.accountNo,'Account Type',r.accountType)}
+${sec('4 - Loan Requirement')}
+${f2('Loan Amount (Rs.)',Number(r.loanAmount||app.loanAmount||0).toLocaleString('en-IN'),'Purpose of Loan',r.purpose)}
+${f2('Preferred Tenure',r.tenure,'Preferred EMI Date',r.emiDate)}
+${sec('5 - Nominee Details')}
+${f2('Nominee Full Name',r.nomineeName,'Relationship',r.nomineeRelation)}
+${f2('Nominee Aadhaar No.',r.nomineeAadhaar,'Nominee Mobile',r.nomineeMobile)}
+${sec('6 - Declaration')}
+<tr><td colspan="4" style="padding:7px 8px;border:1px solid #d4b896;font-size:10px;line-height:1.7;">I/We declare that all information provided is true and correct. I authorise Thennagam Finance Pvt. Ltd. to verify information. I have received and understood the Key Facts Statement (RBI/2024-25/18). Terms were explained in my native language. Providing false information is an offence.</td></tr>
+</table>
+<table><tr>
+  <td style="border:1px solid #d4b896;padding:7px;width:33%;"><div style="font-size:9px;font-weight:700;color:#0a1628;margin-bottom:2px;">BORROWER SIGNATURE</div><div style="height:36px;border-bottom:1px solid #888;margin-bottom:4px;"></div><div style="font-size:8px;color:#555;">Name: ${r.fullName||''}&nbsp;&nbsp;Date:__________</div></td>
+  <td style="border:1px solid #d4b896;padding:7px;width:33%;"><div style="font-size:9px;font-weight:700;color:#0a1628;margin-bottom:2px;">NOMINEE SIGNATURE</div><div style="height:36px;border-bottom:1px solid #888;margin-bottom:4px;"></div><div style="font-size:8px;color:#555;">Name: ${r.nomineeName||''}&nbsp;&nbsp;Date:__________</div></td>
+  <td style="border:1px solid #d4b896;padding:7px;"><div style="font-size:9px;font-weight:700;color:#0a1628;margin-bottom:2px;">AUTHORISED SIGNATORY</div><div style="height:36px;border-bottom:1px solid #888;margin-bottom:4px;"></div><div style="font-size:8px;color:#555;">Name:______________&nbsp;&nbsp;Date:__________ Place: Thanjavur</div></td>
+</tr></table>
+<div style="margin-top:8px;border-top:2px dashed #d4b896;padding-top:5px;">
+  <div style="font-size:8px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:4px;">For Office Use Only</div>
+  <table><tr>
+    <td style="padding:5px 7px;border:1px solid #d4b896;"><div style="font-size:8px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:12px;">Received By</div></td>
+    <td style="padding:5px 7px;border:1px solid #d4b896;"><div style="font-size:8px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:12px;">Branch</div></td>
+    <td style="padding:5px 7px;border:1px solid #d4b896;"><div style="font-size:8px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:12px;">Verification</div></td>
+    <td style="padding:5px 7px;border:1px solid #d4b896;"><div style="font-size:8px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:12px;">Decision / Date</div></td>
+  </tr></table>
+</div></body></html>`;
+  const w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(()=>w.print(),600);
+}
+
+// ═══════════════════════════════════════════════
+// PRINT FULL PACKET (App + Sanction + Schedule + T&C)
+// ═══════════════════════════════════════════════
+function printFullPacket(appId) {
+  const app=getApps().find(a=>a.id===appId);
+  if(!app){ showToast('Not found','error'); return; }
+  const r=app.raw||{};
+  const toWords=n=>{n=parseInt(n)||0;const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];if(!n)return'Zero';if(n<20)return a[n];if(n<100)return b[Math.floor(n/10)]+(n%10?' '+a[n%10]:'');if(n<1000)return a[Math.floor(n/100)]+' Hundred'+(n%100?' '+toWords(n%100):'');if(n<100000)return toWords(Math.floor(n/1000))+' Thousand'+(n%1000?' '+toWords(n%1000):'');if(n<10000000)return toWords(Math.floor(n/100000))+' Lakh'+(n%100000?' '+toWords(n%100000):'');return toWords(Math.floor(n/10000000))+' Crore'+(n%10000000?' '+toWords(n%10000000):'');};
+  const principal=parseInt(r.loanAmount||app.loanAmount)||0;
+  const tenureMonths=parseInt((r.tenure||'12').toString())||12;
+  const g=(app.loanGroup||'Group A').replace('Group ','').trim();
+  const flatRate=g==='A'?24:g==='B'?21:18;
+  const totalInterest=Math.round(principal*flatRate/100*tenureMonths/12);
+  const totalPayable=principal+totalInterest;
+  const emi=Math.round(totalPayable/tenureMonths);
+  const emiDay=parseInt(r.emiDate)||5;
+  const name=r.fullName||app.fullName||'________________________';
+  const father=r.fatherName||'________________________';
+  const addr=(r.address||'')+(r.district?', '+r.district:'')+(r.pinCode?' - '+r.pinCode:'');
+  const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  const todayS=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // Build repayment schedule rows
+  let schedRows=''; let bal=principal; let cum=0;
+  for(let i=1;i<=tenureMonths;i++){
+    const d=new Date(); d.setMonth(d.getMonth()+i); d.setDate(emiDay);
+    const due=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    const intP=Math.round(principal*flatRate/100/12);
+    const prinP=emi-intP; bal=Math.max(0,bal-prinP); cum+=emi;
+    schedRows+=`<tr><td style="text-align:center;padding:2px 5px;border:1px solid #ccc;">${i}</td>
+      <td style="padding:2px 5px;border:1px solid #ccc;">${due}</td>
+      <td style="padding:2px 5px;border:1px solid #ccc;text-align:right;">${bal+prinP>0?bal+prinP:0}</td>
+      <td style="padding:2px 5px;border:1px solid #ccc;text-align:right;">${prinP}</td>
+      <td style="padding:2px 5px;border:1px solid #ccc;text-align:right;">${intP}</td>
+      <td style="padding:2px 5px;border:1px solid #ccc;text-align:right;">${emi}</td>
+      <td style="padding:2px 5px;border:1px solid #ccc;text-align:right;">${bal}</td>
+    </tr>`;
+  }
+
+  // Selfie image if available
+  const selfieHtml = (r.files&&r.files.selfie&&r.files.selfie.data)
+    ? `<img src="data:${r.files.selfie.mimeType||'image/jpeg'};base64,${r.files.selfie.data}" style="width:72px;height:90px;object-fit:cover;border:1px solid #ccc;" />`
+    : `<div style="width:72px;height:90px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Photo</div>`;
+
+  const HDR=`<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2.5px solid #0a1628;padding-bottom:5px;margin-bottom:6px;">
+    <div>
+      <div style="font-size:13px;font-weight:900;text-transform:uppercase;color:#0a1628;letter-spacing:.03em;">Thennagam Finance Private Limited</div>
+      <div style="font-size:8px;color:#444;">CIN: U64990TN2025PTC179499 | RBI Reg. No. B-14.00700</div>
+      <div style="font-size:8px;color:#444;">26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205</div>
+    </div>
+    <div style="font-size:8px;color:#0a1628;font-weight:700;text-align:right;">GROUP A LOAN</div>
+  </div>`;
+
+  const css=`@page{size:A4;margin:9mm 11mm;}
+  body{font-family:'Times New Roman',Georgia,serif;font-size:9.5px;color:#111;line-height:1.45;}
+  h2{font-size:11px;text-align:center;text-transform:uppercase;text-decoration:underline;letter-spacing:.06em;margin:5px 0 4px;color:#0a1628;}
+  h3{font-size:9px;text-transform:uppercase;color:#0a1628;border-bottom:1px solid #bbb;padding-bottom:1px;margin:7px 0 4px;letter-spacing:.04em;font-weight:700;}
+  table{width:100%;border-collapse:collapse;margin:4px 0;font-size:9px;}
+  th{background:#0a1628;color:#e8b84b;padding:3px 6px;font-size:8.5px;text-align:left;font-weight:700;}
+  .lbl{background:#f3ede0;padding:3px 6px;font-size:8.5px;font-weight:700;color:#0a1628;border:1px solid #ccc;}
+  .val{padding:3px 6px;border:1px solid #ccc;font-size:9px;}
+  .sec{background:#0a1628;color:#e8b84b;font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border:1px solid #0a1628;}
+  .pb{page-break-before:always;}
+  ul{margin:2px 0 2px 14px;padding:0;} li{margin-bottom:2px;font-size:9px;}
+  .sig-box{border:1px solid #ccc;padding:5px 7px;font-size:8px;}
+  .sig-line{height:28px;border-bottom:1px solid #888;margin-bottom:3px;}
+  p{margin:3px 0;font-size:9.5px;}
+  @media print{button{display:none!important;}.pb{page-break-before:always;}}`;
+
+  // Signature row helper
+  const sigRow=(a,b,c)=>`<table style="margin-top:10px;"><tr>
+    <td class="sig-box" style="width:33%;"><div class="sig-line"></div><div style="font-weight:700;">${a}</div><div>Name: ${a==='Borrower Signature'?name:'_______________'}</div><div>Date: _______________ &nbsp; Place: _______________</div></td>
+    <td style="width:2%;"></td>
+    <td class="sig-box" style="width:33%;"><div class="sig-line"></div><div style="font-weight:700;">${b}</div><div>Name: ${b==='Nominee Signature'?(r.nomineeName||'_______________'):'_______________'}</div><div>Date: _______________ &nbsp; Place: _______________</div></td>
+    <td style="width:2%;"></td>
+    <td class="sig-box" style="width:30%;"><div class="sig-line"></div><div style="font-weight:700;">${c}</div><div>Name: _______________</div><div>Date: _______________ &nbsp; Place: Thanjavur</div></td>
+  </tr></table>`;
+
+  // ── PAGE 1: LOAN APPLICATION ──────────────────────────────────
+  const pg1=`${HDR}
+<h2>Loan Application Form &mdash; Group A (Up to Rs.50,000)</h2>
+<table style="margin-bottom:5px;">
+  <tr>
+    <td style="width:78%;vertical-align:top;">
+      <table style="width:100%;">
+        <tr><td class="lbl" style="width:110px;">Full Name</td><td class="val" colspan="3"><strong>${name}</strong></td></tr>
+        <tr><td class="lbl">Date of Birth</td><td class="val">${r.dob||''}</td><td class="lbl">Gender</td><td class="val">${r.gender||''}</td></tr>
+        <tr><td class="lbl">Father/Spouse</td><td class="val">${father}</td><td class="lbl">Relationship</td><td class="val">${r.relationship||''}</td></tr>
+        <tr><td class="lbl">Aadhaar No.</td><td class="val">${r.aadhaarNo||''}</td><td class="lbl">PAN No.</td><td class="val">${r.panNo||''}</td></tr>
+        <tr><td class="lbl">Mobile</td><td class="val">${r.mobile||app.mobile||''}</td><td class="lbl">Email</td><td class="val">${r.email||''}</td></tr>
+        <tr><td class="lbl">Address</td><td class="val" colspan="3">${r.address||''}</td></tr>
+        <tr><td class="lbl">District</td><td class="val">${r.district||''}</td><td class="lbl">Pin Code</td><td class="val">${r.pinCode||''}</td></tr>
+      </table>
+    </td>
+    <td style="width:2%;"></td>
+    <td style="width:20%;vertical-align:top;text-align:center;">${selfieHtml}<div style="font-size:7.5px;color:#666;margin-top:3px;">Applicant Photo</div></td>
+  </tr>
+</table>
+<table>
+  <tr><td colspan="4" class="sec">Employment &amp; Income</td></tr>
+  <tr><td class="lbl" style="width:110px;">Occupation</td><td class="val">${r.occupation||''}</td><td class="lbl">Employer</td><td class="val">${r.employer||''}</td></tr>
+  <tr><td class="lbl">Monthly Income</td><td class="val">Rs. ${r.income||''}</td><td class="lbl">Total Income</td><td class="val">Rs. ${r.totalIncome||''}</td></tr>
+  <tr><td colspan="4" class="sec">Bank Account Details</td></tr>
+  <tr><td class="lbl">Bank Name</td><td class="val">${r.bankName||''}</td><td class="lbl">IFSC Code</td><td class="val">${r.ifsc||''}</td></tr>
+  <tr><td class="lbl">Account Number</td><td class="val" colspan="3">${r.accountNo||''}</td></tr>
+  <tr><td colspan="4" class="sec">Loan Requirement</td></tr>
+  <tr><td class="lbl">Loan Amount (Rs.)</td><td class="val"><strong>Rs. ${principal.toLocaleString('en-IN')}</strong></td><td class="lbl">Purpose</td><td class="val">${r.purpose||''}</td></tr>
+  <tr><td class="lbl">Tenure</td><td class="val">${r.tenure||''} months</td><td class="lbl">EMI Date</td><td class="val">${emiDay}th of every month</td></tr>
+  <tr><td colspan="4" class="sec">Nominee Details</td></tr>
+  <tr><td class="lbl">Nominee Name</td><td class="val">${r.nomineeName||''}</td><td class="lbl">Relationship</td><td class="val">${r.nomineeRelation||''}</td></tr>
+  <tr><td class="lbl">Nominee Aadhaar</td><td class="val">${r.nomineeAadhaar||''}</td><td class="lbl">Nominee Mobile</td><td class="val">${r.nomineeMobile||''}</td></tr>
+  <tr><td colspan="4" class="sec">Declaration</td></tr>
+  <tr><td colspan="4" style="padding:4px 6px;border:1px solid #ccc;font-size:8.5px;">I/We declare that all information is true and correct. I authorise Thennagam Finance Pvt. Ltd. to verify from any source. I have received and understood the KFS (RBI/2024-25/18). Terms explained in native language. Providing false information is an offence.</td></tr>
+</table>
+${sigRow('Borrower Signature','Nominee Signature','Authorised Signatory (Lender)')}`;
+
+  // ── PAGE 2: SANCTION LETTER ───────────────────────────────────
+  const pg2=`<div class="pb"></div>${HDR}
+<h2>Loan Sanction Letter &mdash; Schedule &ldquo;A&rdquo;</h2>
+<p>To,<br><strong>${name}</strong>, S/o | D/o | W/o: ${father}<br>Address: ${addr}<br>Mobile: ${r.mobile||app.mobile||''} &nbsp;&nbsp; Email: ${r.email||''}</p>
+<p>Dear Borrower,</p>
+<p>This Loan Sanction Letter is issued in reference to your Loan Application dated <strong>${todayS}</strong>. We are pleased to inform you that your application has been <strong>approved</strong> for <strong>GROUP A LOAN (Small Loan &mdash; Up to Rs.50,000)</strong>, subject to the following terms:</p>
+<table>
+  <tr><th style="width:30px;">#</th><th>Particulars</th><th>Details</th></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">1</td><td style="padding:2px 5px;border:1px solid #ccc;">Loan Group</td><td style="padding:2px 5px;border:1px solid #ccc;">GROUP A LOAN &mdash; Small Loan &mdash; Up to Rs.50,000</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">2</td><td style="padding:2px 5px;border:1px solid #ccc;">Loan Sanctioned Amount</td><td style="padding:2px 5px;border:1px solid #ccc;"><strong>Rs. ${principal.toLocaleString('en-IN')}/- (${toWords(principal)} Rupees only)</strong></td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">3</td><td style="padding:2px 5px;border:1px solid #ccc;">Loan Date</td><td style="padding:2px 5px;border:1px solid #ccc;">${todayS}</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">4</td><td style="padding:2px 5px;border:1px solid #ccc;">Rate of Interest (Flat p.a.)</td><td style="padding:2px 5px;border:1px solid #ccc;"><strong>${flatRate}% per annum (${(flatRate/12).toFixed(2)}% per month)</strong></td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">5</td><td style="padding:2px 5px;border:1px solid #ccc;">Loan Tenure</td><td style="padding:2px 5px;border:1px solid #ccc;">${tenureMonths} months</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">6</td><td style="padding:2px 5px;border:1px solid #ccc;">Processing Fee + GST @18%</td><td style="padding:2px 5px;border:1px solid #ccc;">Rs. ___________</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">7</td><td style="padding:2px 5px;border:1px solid #ccc;">Documentation / Legal Charges</td><td style="padding:2px 5px;border:1px solid #ccc;">Rs. ___________</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">8</td><td style="padding:2px 5px;border:1px solid #ccc;">Stamp Duty (TN Stamp Act, 2018)</td><td style="padding:2px 5px;border:1px solid #ccc;">Actuals (borne by Borrower)</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">9</td><td style="padding:2px 5px;border:1px solid #ccc;">EMI Amount</td><td style="padding:2px 5px;border:1px solid #ccc;"><strong>Rs. ${emi.toLocaleString('en-IN')}/-</strong></td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">10</td><td style="padding:2px 5px;border:1px solid #ccc;">Number of Instalments</td><td style="padding:2px 5px;border:1px solid #ccc;">${tenureMonths}</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">11</td><td style="padding:2px 5px;border:1px solid #ccc;">Instalment Due Date</td><td style="padding:2px 5px;border:1px solid #ccc;">${emiDay}th of every month</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">12</td><td style="padding:2px 5px;border:1px solid #ccc;">Instalment Frequency</td><td style="padding:2px 5px;border:1px solid #ccc;">Monthly</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">13</td><td style="padding:2px 5px;border:1px solid #ccc;">Net Disbursal Amount</td><td style="padding:2px 5px;border:1px solid #ccc;">Rs. ___________ (after deductions)</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">14</td><td style="padding:2px 5px;border:1px solid #ccc;">Penal Charge (Late Payment)</td><td style="padding:2px 5px;border:1px solid #ccc;">Max 2% p.m. on overdue instalment &mdash; no compounding (RBI, Jan 2024)</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">15</td><td style="padding:2px 5px;border:1px solid #ccc;">ECS / Bounce Charge</td><td style="padding:2px 5px;border:1px solid #ccc;">Rs. 590/- incl. GST per dishonour event</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">16</td><td style="padding:2px 5px;border:1px solid #ccc;">Prepayment Charge</td><td style="padding:2px 5px;border:1px solid #ccc;">NIL (RBI Directions, July 2025)</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">17</td><td style="padding:2px 5px;border:1px solid #ccc;">Annual Percentage Rate (APR)</td><td style="padding:2px 5px;border:1px solid #ccc;">_______% per annum (all-inclusive)</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;text-align:center;">18</td><td style="padding:2px 5px;border:1px solid #ccc;">Cooling Off Period</td><td style="padding:2px 5px;border:1px solid #ccc;">3 days (tenure &gt; 7 days); 1 day (tenure &le; 7 days)</td></tr>
+</table>
+<h3>Terms &amp; Conditions</h3>
+<ul>
+  <li>Loan disbursement made to bank account provided in the Loan Agreement.</li>
+  <li>Processing fees (incl. GST @18% under CGST Act, 2017) deducted from Loan Amount before disbursal.</li>
+  <li>Penal charges for late payment levied on overdue instalment only, NOT compounded &mdash; RBI Circular, January 1, 2024.</li>
+  <li>Interest rate: <strong>${flatRate}% p.a. (flat)</strong>. Rate may vary based on credit score, income, tenure, and risk assessment.</li>
+  <li>Borrower may pre-pay without penalty &mdash; RBI Prepayment Directions, July 2025.</li>
+  <li>Stamp duty under Indian Stamp Act, 1899 and Tamil Nadu Stamp Act, 2018 borne by Borrower at actuals.</li>
+  <li>Terms translated and interpreted to Borrower in native language. Borrower has fully internalised rights and liabilities.</li>
+  <li>Once disbursed, Loan cannot be withdrawn or reversed.</li>
+  <li>KFS as per RBI Circular RBI/2024-25/18 (April 15, 2024) provided and acknowledged by Borrower before execution.</li>
+</ul>
+<p>Yours faithfully,<br><strong>For THENNAGAM FINANCE PRIVATE LIMITED</strong></p>
+${sigRow('Borrower Signature','Nominee Signature','Authorised Signatory (Lender)')}`;
+
+  // ── PAGE 3: LOAN AGREEMENT (condensed) ───────────────────────
+  const pg3=`<div class="pb"></div>${HDR}
+<h2>Loan Agreement &mdash; Group A (Small Loan)</h2>
+<p>This Loan Agreement is made at Thanjavur on <strong>${today}</strong> between <strong>THENNAGAM FINANCE PRIVATE LIMITED</strong> (CIN: U64990TN2025PTC179499, RBI Reg. No. B-14.00700) &mdash; the &ldquo;Lender&rdquo; &mdash; and <strong>${name}</strong>, S/o | D/o | W/o ${father}, residing at ${addr} &mdash; the &ldquo;Borrower&rdquo;.</p>
+<h3>A. Definitions</h3>
+<ul>
+  <li><strong>Applicable Law:</strong> RBI Act 1934; Indian Contract Act 1872; NI Act 1881; IBC 2016; BNS 2023; Tamil Nadu State enactments.</li>
+  <li><strong>KFS:</strong> Key Facts Statement per RBI Circular RBI/2024-25/18 dated April 15, 2024, disclosing all costs, APR, and repayment schedule.</li>
+  <li><strong>Penal Charge:</strong> Charge for default &mdash; NOT penal interest compounding on outstanding balance (RBI Circular, Jan 1, 2024).</li>
+  <li><strong>Mandate:</strong> Standing instruction to debit borrower&rsquo;s account via NACH/ECS/UPI for loan repayment.</li>
+</ul>
+<h3>B. Loan Amount &amp; Disbursal</h3>
+<ul>
+  <li>Loan amount as per Sanction Letter: <strong>Rs. ${principal.toLocaleString('en-IN')}/-</strong>. Disbursal by NEFT/IMPS to Borrower&rsquo;s registered bank account. No cash above Rs.20,000/-.</li>
+  <li>Bank: ${r.bankName||'_______________'} &nbsp; A/c No.: ${r.accountNo||'_______________'} &nbsp; IFSC: ${r.ifsc||'_______________'}</li>
+  <li>Lender may recall entire Loan if any information is found false or Borrower defaults.</li>
+</ul>
+<h3>C. Rate of Interest</h3>
+<ul>
+  <li>Interest at <strong>${flatRate}% per annum flat basis</strong>. Rate fixed for tenure as stated in KFS. Interest accrues from effective date until full repayment.</li>
+</ul>
+<h3>D. Fees, Charges &amp; APR</h3>
+<table><tr><th>Charge</th><th>Rate / Amount</th><th>Basis</th></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;">Processing Fee</td><td style="padding:2px 5px;border:1px solid #ccc;">Up to 2% + GST @18%</td><td style="padding:2px 5px;border:1px solid #ccc;">Board-approved; CGST Act 2017</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;">Documentation/Legal</td><td style="padding:2px 5px;border:1px solid #ccc;">Max Rs.5,000 + GST</td><td style="padding:2px 5px;border:1px solid #ccc;">Stamp Act 1899; TN Stamp Act 2018</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;">Penal Charge</td><td style="padding:2px 5px;border:1px solid #ccc;">Max 2% p.m. on overdue only; no compounding</td><td style="padding:2px 5px;border:1px solid #ccc;">RBI Fair Lending, Jan 2024</td></tr>
+  <tr style="background:#f7f0e6;"><td style="padding:2px 5px;border:1px solid #ccc;">ECS/Cheque Bounce</td><td style="padding:2px 5px;border:1px solid #ccc;">Rs.590/- incl. GST per event</td><td style="padding:2px 5px;border:1px solid #ccc;">RBI Fair Lending Practice</td></tr>
+  <tr><td style="padding:2px 5px;border:1px solid #ccc;">Prepayment Charge</td><td style="padding:2px 5px;border:1px solid #ccc;">NIL</td><td style="padding:2px 5px;border:1px solid #ccc;">RBI Prepayment Directions, July 2025</td></tr>
+</table>
+<h3>E. Repayment</h3>
+<ul>
+  <li>Borrower to repay in <strong>${tenureMonths} monthly instalments of Rs.${emi.toLocaleString('en-IN')}/-</strong> each, due on ${emiDay}th of every month via NACH/ECS/UPI.</li>
+  <li>NACH mandate shall remain valid until full repayment. Sufficient balance must be maintained on due date.</li>
+  <li>Payment order: penal charges &rarr; overdue instalments &rarr; interest &rarr; principal. Payments only to Lender&rsquo;s official accounts.</li>
+</ul>
+<h3>F. Pre-payment</h3>
+<ul><li>30 days&rsquo; prior written notice required. No foreclosure penalty for individual Group A borrowers &mdash; RBI Directions, July 2025.</li></ul>
+<h3>G. Demand Promissory Note</h3>
+<ul><li>Borrower executing DPN authorises Lender to negotiate it under NI Act 1881. Borrower waives presentment and notice of dishonour.</li></ul>
+<h3>H &ndash; P. Other Conditions (Summary)</h3>
+<ul>
+  <li><strong>Communications:</strong> Phone, email, SMS, WhatsApp communications valid under IT Act 2000 and binding as evidence under Bharatiya Sakshya Adhiniyam 2023. Lender may contact Borrower 07:00 AM &ndash; 07:00 PM, Mon&ndash;Sun.</li>
+  <li><strong>Assignment:</strong> Lender may transfer/securitise rights without Borrower&rsquo;s consent (SARFAESI Act 2002). Borrower may not assign rights without Lender&rsquo;s written consent.</li>
+  <li><strong>Default Events:</strong> Misrepresentation; illegal use of Loan; failure to pay any instalment; insolvency; criminal prosecution; any event jeopardising recovery.</li>
+  <li><strong>Remedies on Default:</strong> Lender may recall entire outstanding balance; exercise lien/set-off; report to credit bureaus (CIBIL, Experian, CRIF, Equifax); initiate legal proceedings.</li>
+  <li><strong>Nominee:</strong> Nominee is informed on Borrower&rsquo;s default/death but does not assume personal liability unless separate guarantee executed.</li>
+  <li><strong>Use of Loan:</strong> Strictly for stated purpose only. No illegal, speculative, or gambling use. Any supply dispute does not entitle Borrower to withhold repayment.</li>
+  <li><strong>Cooling Off Period:</strong> 3 days (tenure &gt;7 days) / 1 day (tenure &le;7 days) &mdash; Borrower may exit by returning full principal with proportionate interest.</li>
+  <li><strong>Severability:</strong> If any provision becomes unenforceable, remaining provisions remain valid.</li>
+  <li><strong>Dispute Resolution:</strong> Sole arbitrator appointed by Lender under Arbitration &amp; Conciliation Act 1996. Proceedings at Thanjavur in English. Courts at Thanjavur have exclusive jurisdiction.</li>
+  <li><strong>Grievance:</strong> Grievance Officer, Thennagam Finance Pvt. Ltd., 26/1 Thanjai Main Road, Thanjavur &ndash; 614205. Acknowledged within 2 working days, resolved within 30 days. Unresolved: RBI Ombudsman at cms.rbi.org.in / 14448.</li>
+</ul>
+<h3>R. Acceptance</h3>
+<p>Borrower confirms having read, understood, and agreed to this entire Agreement, all charges in the KFS, and all applicable terms. Terms translated and interpreted in native language.</p>
+${sigRow('Borrower Signature','Nominee Signature','Authorised Signatory (Lender)')}`;
+
+  // ── PAGE 4: DPN + LETTER OF CONTINUITY ───────────────────────
+  const pg4=`<div class="pb"></div>${HDR}
+<h2>Demand Promissory Note</h2>
+<p>On demand, I/We, <strong>${name}</strong>, S/o | D/o | W/o: <strong>${father}</strong>, residing at ${addr}, (the &ldquo;Borrower&rdquo;) unconditionally promise to pay <strong>M/s THENNAGAM FINANCE PRIVATE LIMITED</strong>, 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur &ndash; 614205, the sum of <strong>Rs. ${principal.toLocaleString('en-IN')}/- (${toWords(principal)} Rupees only)</strong>, for value received, together with interest at the agreed rate, overdue charges, costs, and all expenses payable by the Borrower under the Loan Documents.</p>
+<p>This DPN is executed pursuant to the Negotiable Instruments Act, 1881, and is enforceable under the laws of India.</p>
+<p><em>Terms translated and interpreted to me in my native language. I have fully internalised the rights and liabilities herein.</em></p>
+<p>Loan Application Number: <strong>${appId}</strong> &nbsp;&nbsp;&nbsp; Date: ${todayS} &nbsp;&nbsp;&nbsp; Place: Thanjavur</p>
+<p style="font-size:8px;color:#555;border:1px dashed #aaa;padding:4px;margin-top:4px;">Revenue Stamp affixed and signed across by the Borrower as required under the Indian Stamp Act, 1899.</p>
+${sigRow('Borrower Signature','Nominee Signature','Authorised Signatory (Lender)')}
+
+<div style="border-top:2px dashed #0a1628;margin-top:18px;padding-top:10px;">${HDR}
+<h2>Letter of Continuity</h2>
+<p>To,<br><strong>THENNAGAM FINANCE PRIVATE LIMITED</strong><br>26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu &ndash; 614205</p>
+<p>Dear Sir/Madam,</p>
+<p>I, <strong>${name}</strong>, enclose herewith a duly executed Demand Promissory Note dated <strong>${todayS}</strong> for <strong>Rs. ${principal.toLocaleString('en-IN')}/- (${toWords(principal)} Rupees only)</strong> executed by me, which is given to you as <strong>continuing security</strong> for the repayment of the Loan presently outstanding in my name, and also for the repayment of any further amounts of penalty, interest, and any re-loan facility that I may avail hereafter from you.</p>
+<p>The said Demand Promissory Note shall serve as continuing security for repayment of the ultimate balance and all amounts remaining unpaid, including interest, overdue charges, costs, and expenses. I shall remain liable on the said DPN notwithstanding any payments made from time to time.</p>
+<p><em>Terms translated and interpreted to me in my native language. I have fully internalised the rights and liabilities herein.</em></p>
+<p>Loan Application Number: <strong>${appId}</strong> &nbsp;&nbsp;&nbsp; Date: ${todayS}</p>
+${sigRow('Borrower Signature','Nominee Signature','Authorised Signatory (Lender)')}</div>`;
+
+  // ── PAGE 5: REPAYMENT SCHEDULE ────────────────────────────────
+  const pg5=`<div class="pb"></div>${HDR}
+<h2>Loan Disbursement &amp; Repayment Schedule &mdash; Schedule &ldquo;B&rdquo;</h2>
+<p>Loan Ref. No.: <strong>${appId}</strong> &nbsp;&nbsp;&nbsp; Borrower: <strong>${name}</strong> &nbsp;&nbsp;&nbsp; Address: ${addr}<br>Mobile: ${r.mobile||app.mobile||''} &nbsp;&nbsp; Email: ${r.email||''}</p>
+<table style="margin:4px 0;border:1px solid #ccc;">
+  <tr><td class="lbl" style="width:35%;">Rate of Interest (Flat p.a.)</td><td class="val"><strong>${flatRate}% p.a. (${(flatRate/12).toFixed(2)}% per month)</strong></td><td class="lbl">APR</td><td class="val">_______% p.a. (all-inclusive)</td></tr>
+  <tr><td class="lbl">Processing Fee + GST</td><td class="val">Rs. ___________/-</td><td class="lbl">Stamp Duty</td><td class="val">Rs. ___________/- (actuals)</td></tr>
+  <tr><td class="lbl">Penal Charge</td><td class="val">Max 2% p.m. overdue only; no compounding</td><td class="lbl">ECS Bounce</td><td class="val">Rs.590/- incl. GST</td></tr>
+  <tr><td class="lbl">Net Disbursement Amount</td><td class="val"><strong>Rs. ___________ (after deductions)</strong></td><td class="lbl">Disbursement Date</td><td class="val">___________</td></tr>
+  <tr><td class="lbl">Disbursement Bank A/c</td><td class="val" colspan="3">Bank: ${r.bankName||'___'} &nbsp; A/c: ${r.accountNo||'___'} &nbsp; IFSC: ${r.ifsc||'___'}</td></tr>
+  <tr><td class="lbl">No. of Instalments / EMI</td><td class="val" colspan="3"><strong>${tenureMonths} instalments of Rs. ${emi.toLocaleString('en-IN')}/- per month</strong></td></tr>
+</table>
+<p style="font-size:8.5px;font-weight:700;margin:5px 0 2px;">Repayment Schedule (as per KFS &mdash; RBI Circular, Oct 2024):</p>
+<table><thead><tr>
+  <th style="text-align:center;width:20px;">#</th><th>Due Date</th><th style="text-align:right;">Opening (Rs.)</th>
+  <th style="text-align:right;">Principal (Rs.)</th><th style="text-align:right;">Interest (Rs.)</th>
+  <th style="text-align:right;">EMI (Rs.)</th><th style="text-align:right;">Closing (Rs.)</th>
+</tr></thead><tbody>${schedRows}</tbody>
+<tfoot><tr style="background:#0a1628;color:#e8b84b;font-weight:700;">
+  <td colspan="2" style="padding:3px 5px;">TOTAL</td>
+  <td style="padding:3px 5px;text-align:right;"></td>
+  <td style="padding:3px 5px;text-align:right;">Rs.${principal.toLocaleString('en-IN')}</td>
+  <td style="padding:3px 5px;text-align:right;">Rs.${totalInterest.toLocaleString('en-IN')}</td>
+  <td style="padding:3px 5px;text-align:right;">Rs.${totalPayable.toLocaleString('en-IN')}</td>
+  <td style="padding:3px 5px;text-align:right;">Nil</td>
+</tr></tfoot></table>
+<p style="font-size:8px;color:#444;margin-top:4px;"><em>Note: (1) Penal charges levied separately on overdue instalment only &mdash; no compounding (RBI, Jan 2024). (2) This constitutes the amortisation schedule as required under RBI KFS Circular, April 15, 2024. (3) The applicable rate of interest may vary &mdash; final rate confirmed in KFS.</em></p>
+<p style="margin-top:6px;"><strong>I/We have read, understood, and agreed to the above Loan Disbursement and Repayment Schedule. Terms translated and interpreted in native language.</strong></p>
+${sigRow('Borrower Signature','Nominee Signature','Authorised Signatory (Lender)')}`;
+
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Loan Packet - ${appId}</title><style>${css}</style></head><body>
+<button onclick="window.print()" style="position:fixed;top:8px;right:8px;background:#0a1628;color:#e8b84b;border:none;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;z-index:9999;">Print / Save PDF</button>
+${pg1}${pg2}${pg3}${pg4}${pg5}</body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),900);
+}
+
+
 async function loadAppsFromSheet() {
   try {
     const resp = await fetch(SCRIPT_URL + '?action=list', { method: 'GET', redirect: 'follow' });
