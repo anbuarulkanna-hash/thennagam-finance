@@ -1003,46 +1003,33 @@ async function afSubmit() {
     console.log('File read error:', fileErr);
   }
 
-  // ── Generate local ID immediately ──────────────────────────────
+  // ── Generate local ID immediately — never wait for server ───────
   const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
   saveAppLocally(fbId, data);
 
-  document.getElementById('spinner-step').textContent = 'Saving to server…';
+  document.getElementById('spinner-step').textContent = 'Almost done…';
 
-  // ── Send to Apps Script with 30s timeout ───────────────────────
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 30000);
+  // ── Hide spinner & show success RIGHT NOW ──────────────────────
+  // Do NOT wait for server. Send to sheet silently in background.
+  document.getElementById('submit-spinner').style.display = 'none';
+  showSuccess(fbId, 'Application submitted! Reference ID: ' + fbId + '. Our team will contact you within 1–2 working days.');
 
-  try {
-    const resp = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      signal: controller.signal,
-      body: JSON.stringify(data)
-    });
-    clearTimeout(timer);
-    const text = await resp.text();
-    let result;
-    try { result = JSON.parse(text); } catch(pe) { result = { success: false }; }
-    document.getElementById('submit-spinner').style.display = 'none';
-
-    if (result.success && result.appId) {
-      // Update local record with the server-assigned ID
-      updateLocalAppId(fbId, result.appId, data);
-      showSuccess(result.appId, data.email
-        ? 'Confirmation email sent to ' + data.email + '. Application ID: ' + result.appId
-        : 'Application saved successfully. ID: ' + result.appId);
-    } else {
-      // Server got it but returned error — still saved locally with fbId
-      showSuccess(fbId, 'Application submitted. Reference ID: ' + fbId + '. Our team will confirm via call/SMS.');
-    }
-  } catch (err) {
-    clearTimeout(timer);
-    document.getElementById('submit-spinner').style.display = 'none';
-    // Already saved locally above — just show success
-    showSuccess(fbId, 'Application submitted. Reference ID: ' + fbId + '. If you do not receive email confirmation, contact the office.');
-    console.log('Server send failed (saved locally):', err.message);
-  }
+  // ── Send to Apps Script in background (no files — just text data) ─
+  // Files are skipped to avoid timeout. Staff can collect docs separately.
+  const dataNoFiles = Object.assign({}, data, { files: {} });
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    body: JSON.stringify(dataNoFiles)
+  }).then(r => r.text()).then(text => {
+    try {
+      const result = JSON.parse(text);
+      if (result.success && result.appId) {
+        updateLocalAppId(fbId, result.appId, data);
+        console.log('Server saved with ID:', result.appId);
+      }
+    } catch(e) { console.log('Server parse:', e); }
+  }).catch(e => console.log('Background send failed (local copy kept):', e.message));
 }
 
 function updateLocalAppId(oldId, newId, data) {
