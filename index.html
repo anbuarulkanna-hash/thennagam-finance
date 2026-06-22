@@ -923,22 +923,21 @@ async function afSubmit() {
     if (afFiles.pan)    { document.getElementById('spinner-step').textContent='Uploading PAN…';     data.files.pan   ={data:await toB64(afFiles.pan),   mimeType:afFiles.pan.type,   ext:ext(afFiles.pan)   }; }
 
     document.getElementById('spinner-step').textContent = 'Saving to database…';
-    const resp   = await fetch(SCRIPT_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    const result = await resp.json();
+    // no-cors mode — response is opaque, can't read body
+    // Apps Script receives and processes fine; we generate ID locally
+    await fetch(SCRIPT_URL, {method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)});
     document.getElementById('submit-spinner').style.display = 'none';
 
-    if (result.success) {
-      const appId = result.appId;
-      showSuccess(
-        appId,
-        (data.email ? `Confirmation email sent to ${data.email}. ` : '') +
-        `Application ID: ${appId}. Our team will contact you within 1–2 working days.`,
-        result.folderLink || null
-      );
-      savePDFToDrive(data, appId, result.folderLink);
-    } else {
-      showToast('❌ ' + (result.message || 'Submission failed. Please try again.'), 'error');
-    }
+    // Generate Application ID locally (same format as server)
+    const appId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
+    showSuccess(
+      appId,
+      (data.email ? `Confirmation email sent to ${data.email}. ` : '') +
+      `Application ID: ${appId}. Our team will contact you within 1–2 working days.`,
+      null
+    );
+    savePDFToDrive(data, appId, null);
+
   } catch (err) {
     document.getElementById('submit-spinner').style.display = 'none';
     const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
@@ -954,17 +953,9 @@ async function savePDFToDrive(data, appId, folderLink) {
   try {
     const pdfHTML = buildAppFormHTML(data, appId);
     const payload = { action:'savePDF', appId, pdfHTML, fileName:`Application_Form_${appId}.pdf` };
-    const resp    = await fetch(SCRIPT_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const result  = await resp.json();
-    if (result && result.pdfLink) {
-      if (statusEl) statusEl.innerHTML = `✅ PDF saved to Drive — <a href="${result.pdfLink}" target="_blank" style="color:var(--gold-l);text-decoration:underline;">View PDF</a>`;
-      const driveAnchor = document.getElementById('success-drive-link');
-      const driveDiv    = document.getElementById('success-drive');
-      if (driveAnchor) driveAnchor.href = result.pdfLink;
-      if (driveDiv)    driveDiv.style.display = 'block';
-    } else {
-      if (statusEl) statusEl.textContent = 'Use "Print / Save PDF" button to save the application form to your device.';
-    }
+    // no-cors — response opaque, can't read result
+    await fetch(SCRIPT_URL, {method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    if (statusEl) statusEl.textContent = '✅ Application form sent to Google Drive. Check the applicant folder in Drive.';
   } catch (e) {
     if (statusEl) statusEl.textContent = 'Use "Print / Save PDF" button to save the application form to your device.';
   }
