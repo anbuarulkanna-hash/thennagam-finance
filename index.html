@@ -336,23 +336,51 @@ function showPage(page){
   $('success-screen').style.display='none';
 }
 
-// ── LOAD FROM SHEET ────────────────────────────────────────────
-async function loadApplicationsFromSheet(){
+// ── LOAD FROM SHEET via JSONP (bypasses CORS for GET requests) ──
+function loadApplicationsFromSheet(){
+  // 1) Show localStorage data immediately
   try {
-    const url = SCRIPT_URL + '?action=getApplications';
-    const resp = await fetch(url);
-    const result = await resp.json();
-    if(result.success && result.applications){
-      S.applications = result.applications;
+    const local = localStorage.getItem('tf_applications');
+    if(local){
+      const parsed = JSON.parse(local);
+      if(parsed.length >= S.applications.length){
+        S.applications = parsed;
+        updateBadges();
+        if(S.page==='dashboard') showPage('dashboard');
+        if(S.page==='applications') showPage('applications');
+      }
+    }
+  } catch(e){}
+
+  // 2) Fetch latest from Google Sheet using JSONP (no CORS block)
+  const cbName = 'tfCB_' + Date.now();
+  const script = document.createElement('script');
+  const timer = setTimeout(()=>{
+    try{ delete window[cbName]; script.remove(); }catch(e){}
+  }, 10000);
+
+  window[cbName] = function(result){
+    clearTimeout(timer);
+    try{ delete window[cbName]; script.remove(); }catch(e){}
+    if(result && result.success && Array.isArray(result.applications)){
+      const sheetApps = result.applications;
+      // Keep local-only entries (not yet synced to sheet)
+      const localOnly = S.applications.filter(la=>{
+        const lid = la['Application ID']||la.appId||'';
+        return lid && !sheetApps.find(sa=>(sa['Application ID']||sa.appId||'')===lid);
+      });
+      S.applications = [...sheetApps, ...localOnly];
+      localStorage.setItem('tf_applications', JSON.stringify(S.applications));
       updateBadges();
       if(S.page==='dashboard') showPage('dashboard');
       if(S.page==='applications') showPage('applications');
+      showToast('✅ Synced '+sheetApps.length+' records from Google Sheet','success');
     }
-  } catch(e){
-    // If fetch fails, use localStorage fallback
-    const local = localStorage.getItem('tf_applications');
-    if(local) S.applications = JSON.parse(local);
-  }
+  };
+
+  script.onerror = ()=>{ clearTimeout(timer); showToast('Sheet sync failed — showing local data','info'); };
+  script.src = SCRIPT_URL + '?action=getApplications&callback=' + cbName;
+  document.head.appendChild(script);
 }
 
 function updateBadges(){
@@ -824,28 +852,49 @@ function viewApp(appId){
   const app = S.applications.find(a=>(a['Application ID']||a.appId)===appId);
   if(!app){showToast('Not found','error');return;}
   $('view-modal').dataset.appid=appId;
-  function row(l,v){return`<tr><td style="font-weight:600;color:var(--navy);width:40%;padding:7px 10px">${l}</td><td style="padding:7px 10px">${v||'—'}</td></tr>`;}
-  $('view-modal-body').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:.88rem">
-    ${row('Application ID',app['Application ID']||app.appId)}
-    ${row('Group','<span class="badge b-'+(app['Group']||'a').toLowerCase()+'">'+(app['Group']||'')+'</span>')}
-    ${row('Status','<span class="badge '+stBadge(app['Status']||app.status)+'">'+(app['Status']||'NEW')+'</span>')}
-    ${row('Applicant Name',app['Applicant Name']||app.name)}
-    ${row('Mobile',app['Mobile']||app.mobile)}
-    ${row('Email',app['Email']||app.email)}
-    ${row('Address',app['Address']||app.address)}
-    ${row('Aadhaar No',app['Aadhaar No']||app.aadharNo)}
-    ${row('PAN No',app['PAN No']||app.panNo)}
-    ${row('Loan Amount','₹'+Number(app['Loan Amount']||app.loanAmount||0).toLocaleString('en-IN'))}
-    ${row('Loan Purpose',app['Loan Purpose']||app.loanPurpose)}
-    ${row('Tenure',app['Tenure (months)']?app['Tenure (months)']+' months':'')}
-    ${row('Nominee Name',app['Nominee Name']||app.nomineeName)}
-    ${row('Submission Date',app['Submission Date']||app.date)}
-    ${app['Drive Folder']?row('Drive Folder','<a href="'+app['Drive Folder']+'" target="_blank">📁 Open in Drive</a>'):''}
+  function row(l,v){return`<tr><td style="font-weight:600;color:var(--navy);width:40%;padding:7px 10px;border-bottom:1px solid var(--border)">${l}</td><td style="padding:7px 10px;border-bottom:1px solid var(--border)">${v||'—'}</td></tr>`;}
+
+  // Normalise field names (handles both sheet-format and local-format)
+  const fv = (...keys) => { for(const k of keys){ const v=app[k]; if(v)return v; } return ''; };
+
+  $('view-modal-body').innerHTML=`
+  <div style="background:var(--cream-d);border-radius:var(--rs);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+    <div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--navy)">${fv('Applicant Name','name')}</div>
+      <div style="font-size:.82rem;color:var(--muted)">${fv('Application ID','appId')} &nbsp;•&nbsp; Group ${fv('Group','group')} &nbsp;•&nbsp; <span class="badge ${stBadge(fv('Status','status'))}">${fv('Status','status')||'NEW'}</span></div>
+    </div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+    ${row('Application ID', fv('Application ID','appId'))}
+    ${row('Applicant Name', fv('Applicant Name','name'))}
+    ${row('Mobile',         fv('Mobile','mobile'))}
+    ${row('Email',          fv('Email','email'))}
+    ${row('Date of Birth',  fv('Date of Birth','dob'))}
+    ${row('Gender',         fv('Gender','gender'))}
+    ${row('Father/Husband', fv('Father/Husband Name','fatherName'))}
+    ${row('Address',        fv('Address','address'))}
+    ${row('City',           fv('City','city'))}
+    ${row('Aadhaar No',     fv('Aadhaar No','aadharNo'))}
+    ${row('PAN No',         fv('PAN No','panNo'))}
+    ${row('Occupation',     fv('Occupation','occupation'))}
+    ${row('Monthly Income', fv('Monthly Income','income') ? '₹'+Number(fv('Monthly Income','income')).toLocaleString('en-IN') : '')}
+    ${row('Loan Amount',    '₹'+Number(fv('Loan Amount','loanAmount')||0).toLocaleString('en-IN'))}
+    ${row('Loan Purpose',   fv('Loan Purpose','loanPurpose'))}
+    ${row('Tenure',         fv('Tenure (months)','loanTenure') ? fv('Tenure (months)','loanTenure')+' months' : '')}
+    ${row('Nominee Name',   fv('Nominee Name','nomineeName'))}
+    ${row('Nominee Relation', fv('Nominee Relation','nomineeRel'))}
+    ${row('Nominee Phone',  fv('Nominee Phone','nomineePhone'))}
+    ${row('Submission Date',fv('Submission Date','date'))}
+    ${row('Status',         '<span class="badge '+stBadge(fv('Status','status'))+'">'+fv('Status','status')+'</span>')}
+    ${fv('Drive Folder') ? row('Drive Folder','<a href="'+fv('Drive Folder')+'" target="_blank" style="color:var(--navy)">📁 Open Files in Drive</a>') : ''}
+    ${fv('PDF Link') ? row('Application PDF','<a href="'+fv('PDF Link')+'" target="_blank" style="color:var(--navy)">📄 Open PDF in Drive</a>') : ''}
   </table>
-  <div style="margin-top:16px">
-    <label style="font-size:.82rem;font-weight:600;color:var(--navy)">Update Status:</label>
-    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-      ${['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(s=>`<button class="btn btn-sm ${stBadge(s).replace('b-','btn-').replace('new','outline').replace('review','outline').replace('approved','green').replace('disbursed','primary').replace('rejected','red')}" onclick="updateStatus('${appId}','${s}')">${s}</button>`).join('')}
+  <div style="margin-top:16px;padding:12px;background:var(--cream);border-radius:var(--rs)">
+    <div style="font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:8px">Update Status:</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(s=>`
+        <button class="btn btn-sm" style="background:${s===fv('Status','status')?'var(--navy)':'var(--cream-d)'};color:${s===fv('Status','status')?'var(--gold-l)':'var(--text)'};border:1.5px solid var(--border)"
+          onclick="updateStatus('${appId}','${s}')">${s}</button>`).join('')}
     </div>
   </div>`;
   openModal('view-modal');
