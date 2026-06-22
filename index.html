@@ -7,148 +7,160 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#1a237e;--navy2:#283593;--gold:#c9a84c;--gold-l:#f5d78b;
-  --cream:#fdf8f0;--cream-d:#f0e8d8;--border:#ddd4be;
-  --muted:#6b6860;--red:#c62828;--green:#2e7d32;
-  --text:#1a1917;--surface:#fff;--r:10px;--rs:6px;--sw:240px;
+  --navy:#1a237e;--navy2:#283593;--navy-l:#e8eaf6;
+  --gold:#c9a84c;--gold-l:#f5d78b;
+  --cream:#fdf8f0;--cream-d:#f0e8d8;--border:#e0d8cc;
+  --muted:#6b6860;--text:#1c1917;--surface:#fff;
+  --red:#c62828;--red-bg:#ffebee;
+  --green:#2e7d32;--green-bg:#e8f5e9;
+  --sw:230px;--r:12px;--rs:8px;
 }
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);font-size:15px}
 
-/* LOGIN */
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a237e,#283593)}
+/* ── LOGIN ── */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a237e,#283593)}
 .lbox{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.lbox .ico{width:60px;height:60px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;color:var(--navy);margin:0 auto 10px}
-.lbox h2{text-align:center;color:var(--navy);font-size:1.1rem;margin-bottom:4px}
+.lico{width:60px;height:60px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;color:var(--navy);margin:0 auto 12px}
+.lbox h2{text-align:center;color:var(--navy);font-size:1.1rem;margin-bottom:2px}
 .lbox p{text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:24px}
-.lbox label{display:block;font-size:.82rem;font-weight:600;color:var(--navy);margin-bottom:5px}
+.lbox label{display:block;font-size:.8rem;font-weight:600;color:var(--navy);margin-bottom:5px}
 .lbox input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;margin-bottom:14px}
 .lbox input:focus{outline:none;border-color:var(--navy)}
 .lbtn{width:100%;padding:12px;background:var(--navy);color:var(--gold-l);font-weight:700;font-size:1rem;border:none;border-radius:var(--rs);cursor:pointer}
 .lerr{color:var(--red);font-size:.82rem;text-align:center;margin-top:8px;display:none}
-.lhint{background:var(--cream);border-radius:var(--rs);padding:8px;font-size:.75rem;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6}
+.lhint{background:var(--cream);border-radius:var(--rs);padding:8px 12px;font-size:.75rem;color:var(--muted);margin-top:14px;text-align:center;line-height:1.7}
 
-/* APP SHELL */
+/* ── APP SHELL ── */
 #app{display:none;min-height:100vh}
-.sidebar{width:var(--sw);background:var(--navy);color:#fff;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.sidebar{width:var(--sw);background:var(--navy);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
 .slogo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
-.slogo .r{display:inline-flex;width:34px;height:34px;background:var(--gold);border-radius:50%;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:var(--navy);margin-right:8px;vertical-align:middle}
-.slogo .co{font-size:.9rem;font-weight:700;color:var(--gold-l);vertical-align:middle}
-.slogo .tg{font-size:.7rem;color:rgba(255,255,255,.45);padding-left:42px;margin-top:3px}
-.nsec{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.38);padding:14px 16px 4px}
-.ni{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;font-size:.86rem;color:rgba(255,255,255,.72);border-radius:6px;margin:1px 8px;transition:all .15s}
-.ni:hover,.ni.on{background:rgba(255,255,255,.11);color:#fff}
+.slogo .ico{display:inline-flex;width:32px;height:32px;background:var(--gold);border-radius:50%;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:var(--navy);margin-right:8px;vertical-align:middle}
+.slogo .co{font-size:.88rem;font-weight:700;color:var(--gold-l);vertical-align:middle}
+.slogo .tg{font-size:.68rem;color:rgba(255,255,255,.42);padding-left:40px;margin-top:3px}
+.nsec{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);padding:14px 16px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;font-size:.86rem;color:rgba(255,255,255,.7);border-radius:6px;margin:1px 8px;transition:all .15s}
+.ni:hover,.ni.on{background:rgba(255,255,255,.1);color:#fff}
 .ni.on{background:rgba(201,168,76,.18);color:var(--gold-l)}
-.nbadge{margin-left:auto;background:var(--gold);color:var(--navy);font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:10px}
-.suser{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem;color:rgba(255,255,255,.55)}
-.suser strong{display:block;color:#fff;font-size:.85rem;margin-bottom:1px}
+.suser{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:.78rem;color:rgba(255,255,255,.5)}
+.suser strong{display:block;color:#fff;margin-bottom:1px}
 
 .main{margin-left:var(--sw);min-height:100vh;display:flex;flex-direction:column}
-.topbar{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.topbar h2{font-size:1.05rem;font-weight:700;color:var(--navy)}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.topbar h2{font-size:1rem;font-weight:700;color:var(--navy)}
 .pg{padding:22px;flex:1}
 
-/* CARDS */
-.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:20px;margin-bottom:18px}
-.ctitle{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold)}
+/* ── CARDS ── */
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.ctitle{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold)}
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
-.scard{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:16px;display:flex;align-items:center;gap:12px}
-.sico{width:46px;height:46px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
-.snum{font-size:1.55rem;font-weight:700;color:var(--navy);line-height:1}
-.slbl{font-size:.76rem;color:var(--muted);margin-top:2px}
+.scard{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.sico{width:44px;height:44px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.snum{font-size:1.5rem;font-weight:700;color:var(--navy);line-height:1}
+.slbl{font-size:.74rem;color:var(--muted);margin-top:2px}
 
-/* TABLE */
+/* ── TABLE ── */
 .tw{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.84rem}
-th{background:var(--navy);color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{background:var(--navy);color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;font-size:.78rem}
 td{padding:8px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:hover td{background:var(--cream)}
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.73rem;font-weight:700}
-.bs-NEW{background:#e3f2fd;color:#1565c0}
-.bs-REVIEW{background:#fff3e0;color:#e65100}
-.bs-APPROVED{background:#e8f5e9;color:#2e7d32}
-.bs-REJECTED{background:#ffebee;color:#c62828}
-.bs-DISBURSED{background:#f3e5f5;color:#6a1b9a}
-.bg-A{background:#e8f5e9;color:#1b5e20}
-.bg-B{background:#e3f2fd;color:#0d47a1}
-.bg-C{background:#fff3e0;color:#e65100}
+tr:hover td{background:#f8f9ff}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700}
+.st-NEW{background:#e3f2fd;color:#1565c0}
+.st-REVIEW{background:#fff3e0;color:#e65100}
+.st-APPROVED{background:#e8f5e9;color:#2e7d32}
+.st-REJECTED{background:#ffebee;color:#c62828}
+.st-DISBURSED{background:#f3e5f5;color:#6a1b9a}
+.gr-A{background:#e8f5e9;color:#1b5e20}
+.gr-B{background:#e3f2fd;color:#0d47a1}
+.gr-C{background:#fff3e0;color:#e65100}
 
-/* BUTTONS */
-.btn{padding:7px 14px;border:none;border-radius:var(--rs);cursor:pointer;font-weight:600;font-size:.82rem;transition:all .15s}
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);cursor:pointer;font-weight:600;font-size:.82rem;transition:all .15s;font-family:inherit}
 .btn-p{background:var(--navy);color:var(--gold-l)}
 .btn-p:hover{background:var(--navy2)}
-.btn-sm{padding:4px 9px;font-size:.76rem}
+.btn-sm{padding:4px 9px;font-size:.75rem}
 .btn-o{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}
 .btn-g{background:var(--green);color:#fff}
 .btn-r{background:var(--red);color:#fff}
 .btn-gold{background:var(--gold);color:var(--navy);font-weight:700}
 
-/* FORM */
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
-.frow.f1{grid-template-columns:1fr}
+/* ── FORM ── */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fgrid.f1{grid-template-columns:1fr}
+.fgrid.f3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:600px){.fgrid,.fgrid.f3{grid-template-columns:1fr}}
 .fg{display:flex;flex-direction:column;gap:5px}
-.fg label{font-size:.79rem;font-weight:600;color:var(--navy)}
-.fg input,.fg select{padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.87rem;background:#fff}
-.fg input:focus,.fg select:focus{outline:none;border-color:var(--navy)}
+.fg label{font-size:.78rem;font-weight:600;color:var(--navy)}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.88rem;font-family:inherit;background:#fff;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,35,126,.07)}
+.fg input.err,.fg select.err{border-color:var(--red)}
 .req{color:var(--red)}
-.upbox{border:2px dashed var(--border);border-radius:var(--rs);padding:12px;text-align:center;cursor:pointer;background:var(--cream);position:relative;transition:border .2s}
-.upbox:hover{border-color:var(--navy)}
-.upbox input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upbox .ui{font-size:1.4rem}
-.upbox .ul{font-size:.78rem;font-weight:600;color:var(--navy);margin-top:2px}
-.upbox .us{font-size:.72rem;color:var(--muted)}
-.udone{display:none;font-size:.77rem;color:var(--green);font-weight:600;margin-top:4px}
-.udone.on{display:block}
-.thumb{width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);display:none;margin:6px auto 0}
-.thumb.on{display:block}
-.gtabs{display:flex;gap:8px;margin-bottom:12px}
-.gtab{flex:1;padding:9px 6px;border:2px solid var(--border);border-radius:var(--rs);cursor:pointer;text-align:center;font-weight:600;font-size:.8rem;background:var(--cream-d);color:var(--muted);transition:all .15s}
-.gtab.on{background:var(--navy);border-color:var(--navy);color:var(--gold-l)}
-.gbadge{background:var(--navy2);color:var(--gold-l);padding:7px 12px;border-radius:var(--rs);font-size:.79rem;font-weight:600;margin-bottom:15px;text-align:center}
+.ferr{font-size:.72rem;color:var(--red);margin-top:2px;display:none}
+.ferr.on{display:block}
+.divider{display:flex;align-items:center;gap:10px;margin:8px 0 14px;font-size:.71rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.gtabs{display:flex;gap:8px;margin-bottom:10px}
+.gtab{flex:1;padding:12px 8px;border:2px solid var(--border);border-radius:var(--rs);cursor:pointer;text-align:center;background:var(--cream);transition:all .15s}
+.gtab:hover{border-color:var(--navy);background:var(--navy-l)}
+.gtab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.gtab .gl{font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.gtab .gr{font-size:.7rem;opacity:.75;margin-top:1px}
+.gbadge{background:var(--navy-l);border-left:3px solid var(--navy);padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;font-size:.8rem;color:var(--navy);font-weight:600;margin-bottom:16px}
+.psteps{display:flex;gap:0;margin-bottom:22px;background:var(--cream);border-radius:var(--rs);padding:4px}
+.pstep{flex:1;padding:8px 4px;text-align:center;font-size:.72rem;font-weight:600;color:var(--muted);border-radius:6px;cursor:pointer;transition:all .15s}
+.pstep.on{background:var(--navy);color:var(--gold-l)}
+.pstep.done{color:var(--green)}
+.step-content{display:none}
+.step-content.on{display:block}
+.nav-row{display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
 
-/* MODAL */
+/* ── MODAL ── */
 .mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
 .mbg.on{display:flex}
-.mbox{background:#fff;border-radius:var(--r);padding:26px;width:680px;max-width:98vw}
-.mtitle{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--gold)}
-.mft{margin-top:18px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:14px;flex-wrap:wrap}
+.mbox{background:#fff;border-radius:var(--r);padding:26px;width:720px;max-width:96vw}
+.mtitle{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--gold);display:flex;justify-content:space-between;align-items:center}
+.mft{margin-top:16px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:14px;flex-wrap:wrap}
 
-/* SPINNER */
-#spin{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center;flex-direction:column}
+/* ── SPINNER ── */
+#spin{display:none;position:fixed;inset:0;background:rgba(26,35,126,.55);backdrop-filter:blur(3px);z-index:999;align-items:center;justify-content:center}
 #spin.on{display:flex}
-.spinbox{background:#fff;padding:30px 38px;border-radius:var(--r);text-align:center;min-width:260px}
-.spnr{width:42px;height:42px;border:4px solid var(--cream-d);border-top-color:var(--navy);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 12px}
+.spinbox{background:#fff;padding:32px 44px;border-radius:var(--r);text-align:center;min-width:260px}
+.spnr{width:44px;height:44px;border:4px solid var(--cream-d);border-top-color:var(--navy);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 14px}
 @keyframes sp{to{transform:rotate(360deg)}}
-#spinstep{font-size:.86rem;color:var(--muted);margin-top:4px}
+.spbar{height:3px;background:var(--cream-d);border-radius:4px;margin-top:14px;overflow:hidden}
+.spfill{height:100%;background:var(--navy);border-radius:4px;transition:width .35s ease;width:0%}
 
-/* SUCCESS */
-#succ{display:none;position:fixed;inset:0;background:var(--cream);z-index:998;overflow-y:auto;padding:30px 16px}
-.succbox{max-width:480px;margin:0 auto;background:#fff;border-radius:var(--r);padding:30px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1)}
-.appid-badge{font-size:1.4rem;font-weight:700;color:var(--navy);background:var(--cream-d);padding:10px 22px;border-radius:var(--rs);display:inline-block;margin:10px 0;letter-spacing:2px}
+/* ── SUCCESS ── */
+#succ-screen{display:none;position:fixed;inset:0;background:var(--cream);z-index:998;overflow-y:auto;padding:36px 16px}
+.succbox{max-width:500px;margin:0 auto;background:#fff;border-radius:var(--r);padding:36px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1);border:1px solid var(--border)}
+.succ-id{font-size:1.4rem;font-weight:700;color:var(--navy);background:var(--navy-l);padding:10px 24px;border-radius:var(--rs);display:inline-block;margin:10px 0;letter-spacing:3px;border:2px solid var(--navy)}
+.succ-detail{background:var(--cream);border-radius:var(--rs);padding:14px;text-align:left;margin:12px 0;font-size:.83rem}
+.sdr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.sdr:last-child{border:none}
+.sdr .l{color:var(--muted)}
+.sdr .v{font-weight:600;color:var(--navy)}
 
-/* TOAST */
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:9px 20px;border-radius:30px;font-size:.86rem;z-index:9999;display:none;white-space:nowrap}
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1c1917;color:#fff;padding:9px 20px;border-radius:30px;font-size:.84rem;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 #toast.on{display:block}
 #toast.err{background:var(--red)}
 #toast.ok{background:var(--green)}
+#toast.info{background:var(--navy)}
 
-/* KANBAN */
-.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
-.kcol{min-width:190px;flex:1;background:var(--cream-d);border-radius:var(--r);padding:11px}
-.kct{font-size:.8rem;font-weight:700;margin-bottom:9px;text-align:center}
-.kcard{background:#fff;border-radius:var(--rs);padding:9px;margin-bottom:7px;border:1px solid var(--border);font-size:.79rem}
-.kcard strong{display:block;color:var(--navy);margin-bottom:1px}
+/* hidden iframe used to read sheet data */
+#data-frame{display:none;width:0;height:0;border:none}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
+<!-- ══ LOGIN ══════════════════════════════════════════════ -->
+<div id="login-page">
   <div class="lbox">
-    <div class="ico">₹</div>
+    <div class="lico">₹</div>
     <h2>Thennagam Finance</h2>
-    <p>Private Limited — Loan Management</p>
+    <p>Private Limited — Staff Login</p>
     <label>Email</label>
-    <input type="email" id="l-email" value="admin@thennagam.com">
+    <input type="email" id="l-email" value="admin@thennagam.com" onkeydown="if(event.key==='Enter')login()">
     <label>Password</label>
     <input type="password" id="l-pass" value="admin123" onkeydown="if(event.key==='Enter')login()">
     <button class="lbtn" onclick="login()">Sign In →</button>
@@ -157,29 +169,26 @@ tr:hover td{background:var(--cream)}
   </div>
 </div>
 
-<!-- APP -->
+<!-- ══ APP ═════════════════════════════════════════════════ -->
 <div id="app">
   <div class="sidebar">
     <div class="slogo">
-      <span class="r">₹</span><span class="co">Thennagam Finance</span>
-      <div class="tg">Loan Management System</div>
+      <span class="ico">₹</span><span class="co">Thennagam Finance</span>
+      <div class="tg">Loan Management</div>
     </div>
     <div class="nsec">Overview</div>
     <div class="ni on" id="n-dash" onclick="go('dash')">📊 Dashboard</div>
     <div class="nsec">Applications</div>
-    <div class="ni" id="n-apps" onclick="go('apps')">📋 All Applications <span class="nbadge" id="nbadge">0</span></div>
-    <div class="ni" id="n-pipe" onclick="go('pipe')">🔄 Pipeline View</div>
+    <div class="ni" id="n-apps" onclick="go('apps')">📋 All Applications</div>
     <div class="ni" id="n-new" onclick="go('new')">➕ New Application</div>
-    <div class="nsec">Loans</div>
-    <div class="ni" id="n-loans" onclick="go('loans')">💰 Active Loans</div>
-    <div class="ni" id="n-coll" onclick="go('coll')">💳 Collection</div>
-    <div class="nsec">Management</div>
-    <div class="ni" id="n-rpt" onclick="go('rpt')">📈 Reports</div>
-    <div class="ni" id="n-staff" onclick="go('staff')">👥 Staff</div>
+    <div class="nsec">Reports</div>
+    <div class="ni" id="n-rpt" onclick="go('rpt')">📈 Summary Report</div>
+    <div class="nsec">System</div>
     <div class="ni" id="n-cfg" onclick="go('cfg')">⚙️ Settings</div>
     <div class="suser">
       <strong id="su-name">Admin</strong>
-      <span id="su-role">Administrator</span> · <a href="#" onclick="logout()" style="color:var(--gold-l)">Logout</a>
+      <span id="su-role">Administrator</span> ·
+      <a href="#" onclick="logout()" style="color:var(--gold-l)">Logout</a>
     </div>
   </div>
 
@@ -187,7 +196,8 @@ tr:hover td{background:var(--cream)}
     <div class="topbar">
       <h2 id="tbtitle">Dashboard</h2>
       <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:.78rem;color:var(--muted)" id="tbdate"></span>
+        <span style="font-size:.76rem;color:var(--muted)" id="tbdate"></span>
+        <button class="btn btn-o btn-sm" onclick="syncFromSheet()">🔄 Sync Sheet</button>
         <button class="btn btn-p btn-sm" onclick="go('new')">+ New Application</button>
       </div>
     </div>
@@ -198,11 +208,14 @@ tr:hover td{background:var(--cream)}
 <!-- VIEW MODAL -->
 <div class="mbg" id="vmod">
   <div class="mbox">
-    <div class="mtitle" id="vmod-title">Application Details</div>
+    <div class="mtitle">
+      <span id="vmod-title">Application Details</span>
+      <button class="btn btn-sm btn-o" onclick="closeModal()">✕ Close</button>
+    </div>
     <div id="vmod-body"></div>
     <div class="mft">
-      <button class="btn btn-o" onclick="closeM()">Close</button>
-      <button class="btn btn-gold" onclick="pdfModal()">🖨️ Download PDF</button>
+      <button class="btn btn-o" onclick="closeModal()">Close</button>
+      <button class="btn btn-gold" onclick="genPDF()">🖨️ Generate PDF</button>
     </div>
   </div>
 </div>
@@ -211,200 +224,215 @@ tr:hover td{background:var(--cream)}
 <div id="spin">
   <div class="spinbox">
     <div class="spnr"></div>
-    <div style="font-weight:700;color:var(--navy)">Submitting Application…</div>
-    <div id="spinstep">Preparing…</div>
+    <div style="font-weight:700;color:var(--navy)">Saving Application…</div>
+    <div id="spin-step" style="font-size:.82rem;color:var(--muted);margin-top:4px">Preparing…</div>
+    <div class="spbar"><div class="spfill" id="spfill"></div></div>
   </div>
 </div>
 
 <!-- SUCCESS -->
-<div id="succ">
+<div id="succ-screen">
   <div class="succbox">
-    <div style="font-size:2.8rem">🎉</div>
+    <div style="font-size:3rem">🎉</div>
     <div style="font-size:1.2rem;font-weight:700;color:var(--green);margin:8px 0">Application Submitted!</div>
-    <div class="appid-badge" id="succ-id"></div>
-    <div style="font-size:.87rem;color:var(--muted);margin:8px 0" id="succ-msg"></div>
-    <div id="succ-pdf" style="font-size:.79rem;color:var(--muted);min-height:18px;margin-top:6px"></div>
+    <div class="succ-id" id="succ-id">TF-2026-A-00001</div>
+    <div style="font-size:.86rem;color:var(--muted);margin:8px 0" id="succ-msg"></div>
+    <div class="succ-detail" id="succ-detail"></div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button class="btn btn-o" onclick="dlPDF()">🖨️ Download PDF</button>
-      <button class="btn btn-p" onclick="backToApps()">← Back to Applications</button>
+      <button class="btn btn-gold" onclick="genPDFFromLast()">🖨️ Generate PDF</button>
+      <button class="btn btn-p" onclick="afterSuccess()">← Back to Dashboard</button>
     </div>
   </div>
 </div>
+
+<!-- hidden iframe for reading sheet data (no CORS) -->
+<iframe id="data-frame" onload="onFrameLoad()"></iframe>
 
 <!-- TOAST -->
 <div id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
-//  CONFIG — update SCRIPT_URL after each new Apps Script deploy
+//  ⚠️  PASTE YOUR APPS SCRIPT URL HERE AFTER DEPLOYING
 // ══════════════════════════════════════════════════════════════
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2oStxgOCMc37-VIIUK2e2q35220tTAWtyw2EmpgmDPxOf6Yx3j_OFRnsir7G9Aqy0HA/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0SnxjsDxyindH-zxnVvi3gWQz9nSPjjiW9yWUDetT_foJkEjkd-pUT-rfwi0Fwl0r/exec';
 
-var USERS = [
-  {email:'admin@thennagam.com',  pass:'admin123',  name:'Admin',   role:'Administrator'},
-  {email:'staff@thennagam.com',  pass:'staff123',  name:'Staff',   role:'Staff'},
-  {email:'anbuarulkanna@gmail.com', pass:'admin123', name:'Anbu',  role:'Administrator'},
+// ── Staff accounts ─────────────────────────────────────────────
+var STAFF = [
+  {email:'admin@thennagam.com',  pass:'admin123',  name:'Admin',  role:'Administrator'},
+  {email:'staff@thennagam.com',  pass:'staff123',  name:'Staff',  role:'Staff'},
+  {email:'anbuarulkanna@gmail.com', pass:'admin123', name:'Anbu', role:'Administrator'},
 ];
 
-// ── App State ──────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────
 var S = {
-  user:    null,
-  page:    'dash',
-  apps:    [],          // all applications — consistent field names (see Code.gs readAllApplications)
-  files:   {},          // uploaded files for current form
-  group:   'A',         // current form group
-  lastId:  null,        // last submitted app ID
-  lastData:null,        // last submitted data (for PDF)
-  viewId:  null,        // currently viewed app ID
+  user:     null,
+  page:     'dash',
+  apps:     [],        // loaded from sheet
+  group:    'A',
+  step:     1,
+  lastData: null,
+  lastId:   null,
+  viewId:   null,
+  syncing:  false,
 };
 
-// ── DOM helpers ────────────────────────────────────────────────
-function $(id){return document.getElementById(id)}
-function gv(id){var el=$(id);return el?el.value.trim():'';}
+var GCOLS = [
+  'app_id','group','name','mobile','email','dob','gender','father_name',
+  'marital','address','city','district','pincode','aadhar_no','pan_no',
+  'voter_id','ration_card','occupation','income','employer',
+  'bank_name','account_no','ifsc','branch',
+  'loan_amount','tenure','purpose','purpose_detail',
+  'nominee_name','nominee_rel','nominee_age','nominee_mobile',
+  'nominee_aadhar','nominee_address','ref_name','ref_mobile',
+  'status','submitted_at'
+];
 
-function toast(msg,type,dur){
-  var t=$('toast');t.textContent=msg;t.className='on '+(type||'');
-  clearTimeout(t._t);t._t=setTimeout(function(){t.className=''},dur||3500);
+// ── Helpers ────────────────────────────────────────────────────
+function $(id){ return document.getElementById(id); }
+function gv(id){ var el=$(id); return el ? el.value.trim() : ''; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtN(n){ return Number(n||0).toLocaleString('en-IN'); }
+function stBadge(s){
+  var m={NEW:'st-NEW','UNDER REVIEW':'st-REVIEW',APPROVED:'st-APPROVED',REJECTED:'st-REJECTED',DISBURSED:'st-DISBURSED'};
+  return m[s]||'st-NEW';
 }
 
-// ── LOGIN / LOGOUT ─────────────────────────────────────────────
+function toast(msg,type,dur){
+  var t=$('toast'); t.textContent=msg; t.className='on '+(type||'');
+  clearTimeout(t._t); t._t=setTimeout(function(){t.className='';},dur||3000);
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────
 function login(){
-  var e=gv('l-email'),p=gv('l-pass');
+  var e=gv('l-email'), p=gv('l-pass');
   var u=null;
-  for(var i=0;i<USERS.length;i++){if(USERS[i].email===e&&USERS[i].pass===p){u=USERS[i];break;}}
+  for(var i=0;i<STAFF.length;i++){if(STAFF[i].email===e&&STAFF[i].pass===p){u=STAFF[i];break;}}
   if(!u){$('l-err').style.display='block';return;}
   S.user=u;
-  $('login-screen').style.display='none';
+  $('login-page').style.display='none';
   $('app').style.display='block';
   $('su-name').textContent=u.name;
   $('su-role').textContent=u.role;
   $('tbdate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  // Load local cache first, then sync from sheet
+  var raw=localStorage.getItem('tf_apps');
+  if(raw){try{S.apps=JSON.parse(raw);}catch(e){}}
   go('dash');
-  loadFromSheet();
+  syncFromSheet();
 }
 
 function logout(){
-  S.user=null;S.apps=[];
+  S.user=null; S.apps=[];
   $('app').style.display='none';
-  $('login-screen').style.display='flex';
+  $('login-page').style.display='flex';
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────
-var TITLES={dash:'Dashboard',apps:'All Applications',pipe:'Pipeline View',
-  new:'New Application',loans:'Active Loans',coll:'Collection',
-  rpt:'Reports',staff:'Staff',cfg:'Settings'};
+var TITLES={dash:'Dashboard',apps:'All Applications',new:'New Application',rpt:'Summary Report',cfg:'Settings'};
 
 function go(page){
   S.page=page;
   document.querySelectorAll('.ni').forEach(function(el){el.classList.remove('on');});
-  var n=$('n-'+page);if(n)n.classList.add('on');
+  var n=$('n-'+page); if(n) n.classList.add('on');
   $('tbtitle').textContent=TITLES[page]||page;
-  $('succ').style.display='none';
+  $('succ-screen').style.display='none';
   var c=$('pg');
   if(page==='dash') c.innerHTML=renderDash();
-  else if(page==='apps')  c.innerHTML=renderApps();
-  else if(page==='pipe')  c.innerHTML=renderPipe();
-  else if(page==='new')   {c.innerHTML=renderForm();initForm();}
-  else if(page==='loans') c.innerHTML=renderLoans();
-  else if(page==='coll')  c.innerHTML=renderColl();
-  else if(page==='rpt')   c.innerHTML=renderRpt();
-  else if(page==='staff') c.innerHTML=renderStaff();
-  else if(page==='cfg')   c.innerHTML=renderCfg();
+  else if(page==='apps') c.innerHTML=renderApps();
+  else if(page==='new') {c.innerHTML=renderForm(); S.step=1; S.group='A'; updateSteps();}
+  else if(page==='rpt') c.innerHTML=renderRpt();
+  else if(page==='cfg') c.innerHTML=renderCfg();
 }
 
-// ── LOAD FROM GOOGLE SHEET (JSONP) ─────────────────────────────
-// JSONP is the ONLY way to read cross-origin from Apps Script
-// It works by injecting a <script> tag — no CORS restriction applies to scripts
-function loadFromSheet(){
-  // Step 1: Show localStorage data immediately (instant)
-  var raw=localStorage.getItem('tf_apps');
-  if(raw){try{var p=JSON.parse(raw);if(p.length)S.apps=p;}catch(e){}}
-  refreshUI();
+// ── SYNC FROM SHEET (iframe trick — zero CORS) ──────────────────
+// We load the Apps Script URL inside a hidden iframe.
+// Apps Script returns an HTML page with the data in a <pre> tag.
+// We read it from the iframe — no CORS restriction on iframes.
+function syncFromSheet(){
+  if(S.syncing) return;
+  if(SCRIPT_URL.indexOf('PASTE_YOUR') !== -1){
+    toast('⚠️ Paste your Apps Script URL in Settings first','err',4000);
+    return;
+  }
+  S.syncing = true;
+  toast('Syncing from Google Sheet…','info',8000);
+  var frame = $('data-frame');
+  frame._loading = true;
+  frame.src = SCRIPT_URL + '?action=getAll&t=' + Date.now();
+}
 
-  // Step 2: Fetch from sheet via JSONP
-  var cb='_tf'+Date.now();
-  var s=document.createElement('script');
-  var timer=setTimeout(function(){
-    try{delete window[cb];s.remove();}catch(e){}
-    toast('Could not reach Google Sheet — showing saved data','err',4000);
-  },12000);
-
-  window[cb]=function(res){
-    clearTimeout(timer);
-    try{delete window[cb];s.remove();}catch(e){}
-    if(res&&res.success&&Array.isArray(res.applications)&&res.applications.length){
-      // Merge: sheet is source of truth; keep local-only entries too
-      var sheet=res.applications;
-      var localOnly=S.apps.filter(function(la){
-        var lid=la.id||'';
-        return lid && !sheet.find(function(sa){return (sa.id||'')=== lid;});
-      });
-      S.apps=sheet.concat(localOnly);
-      localStorage.setItem('tf_apps',JSON.stringify(S.apps));
-      refreshUI();
-      toast('✅ '+sheet.length+' records loaded from Google Sheet','ok');
+function onFrameLoad(){
+  var frame = $('data-frame');
+  if(!frame._loading) return;
+  frame._loading = false;
+  S.syncing = false;
+  try {
+    var pre = frame.contentDocument && frame.contentDocument.getElementById('data');
+    if(!pre){ toast('Sheet sync failed — check URL in Settings','err'); return; }
+    var result = JSON.parse(pre.textContent || pre.innerText);
+    if(result.success && Array.isArray(result.applications)){
+      // Merge: sheet is source of truth, but keep any local-only entries
+      var sheetIds = {};
+      result.applications.forEach(function(a){ sheetIds[a.app_id] = true; });
+      var localOnly = S.apps.filter(function(a){ return !sheetIds[a.app_id]; });
+      S.apps = result.applications.concat(localOnly);
+      localStorage.setItem('tf_apps', JSON.stringify(S.apps));
+      toast('✅ ' + result.applications.length + ' applications loaded from Sheet','ok');
+      if(S.page==='dash'||S.page==='apps') go(S.page);
     } else {
-      toast('Sheet is empty or no data yet','');
+      toast('Sheet returned no data','info');
     }
-  };
-
-  s.onerror=function(){clearTimeout(timer);toast('Sheet load failed — using local data','err',4000);};
-  s.src=SCRIPT_URL+'?action=getApplications&callback='+cb;
-  document.head.appendChild(s);
-}
-
-function refreshUI(){
-  // Update badge
-  var newCount=S.apps.filter(function(a){return a.status==='NEW';}).length;
-  $('nbadge').textContent=newCount>0?newCount:'';
-  // Re-render current page if it shows app data
-  if(S.page==='dash'||S.page==='apps'||S.page==='pipe'||S.page==='rpt')go(S.page);
+  } catch(e){
+    toast('Error reading sheet data: '+e.message,'err',5000);
+    console.error('Frame load error:', e);
+  }
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────────
 function renderDash(){
-  var a=S.apps;
-  var total=a.length;
+  var a=S.apps, total=a.length;
   var nw=a.filter(function(x){return x.status==='NEW';}).length;
   var ap=a.filter(function(x){return x.status==='APPROVED';}).length;
   var dis=a.filter(function(x){return x.status==='DISBURSED';}).length;
-  var ga=a.filter(function(x){return x.group==='A';}).length;
-  var gb=a.filter(function(x){return x.group==='B';}).length;
+  var gA=a.filter(function(x){return x.group==='A';}).length;
+  var gB=a.filter(function(x){return x.group==='B';}).length;
   var recent=a.slice(0,10);
-  var rows=recent.map(function(x){
+
+  var rows = recent.map(function(x){
     return '<tr>'+
-      '<td><strong style="color:var(--navy)">'+esc(x.id)+'</strong></td>'+
+      '<td><strong style="color:var(--navy)">'+esc(x.app_id)+'</strong></td>'+
       '<td>'+esc(x.name)+'</td>'+
       '<td>'+esc(x.mobile)+'</td>'+
-      '<td><span class="badge bg-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
-      '<td>₹'+fmt(x.loanAmount)+'</td>'+
-      '<td><span class="badge '+sb(x.status)+'">'+esc(x.status)+'</span></td>'+
-      '<td>'+esc(x.date)+'</td>'+
-      '<td><button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.id)+'\')">View</button></td>'+
+      '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
+      '<td>₹'+fmtN(x.loan_amount)+'</td>'+
+      '<td><span class="badge '+stBadge(x.status)+'">'+esc(x.status)+'</span></td>'+
+      '<td>'+esc(x.submitted_at||'')+'</td>'+
+      '<td><button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button></td>'+
     '</tr>';
   }).join('');
 
   return '<div class="sgrid">'+
-    sc('📋','#e3f2fd',total,'Total Applications')+
-    sc('🔔','#fff3e0',nw,'New / Pending')+
-    sc('✅','#e8f5e9',ap,'Approved')+
-    sc('💸','#f3e5f5',dis,'Disbursed')+
-    sc('A','#e8f5e9',ga,'Group A')+
-    sc('B','#e3f2fd',gb,'Group B')+
+    scard('📋','#e3f2fd',total,'Total Applications')+
+    scard('🔔','#fff3e0',nw,'New / Pending')+
+    scard('✅','#e8f5e9',ap,'Approved')+
+    scard('💸','#f3e5f5',dis,'Disbursed')+
+    scard('A','#e8f5e9',gA,'Group A')+
+    scard('B','#e3f2fd',gB,'Group B')+
   '</div>'+
   '<div class="card">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
       '<div class="ctitle" style="margin:0;border:none;padding:0">Recent Applications</div>'+
-      '<button class="btn btn-sm btn-o" onclick="loadFromSheet()">🔄 Refresh from Sheet</button>'+
+      '<button class="btn btn-sm btn-o" onclick="syncFromSheet()">🔄 Refresh</button>'+
     '</div>'+
     (total===0
-      ? '<p style="color:var(--muted);text-align:center;padding:24px">No applications yet. <a href="#" onclick="go(\'new\')">Add first →</a></p>'
+      ? '<div style="text-align:center;padding:30px;color:var(--muted)">No applications yet. <a href="#" onclick="go(\'new\')" style="color:var(--navy)">Add first →</a></div>'
       : '<div class="tw"><table><tr><th>App ID</th><th>Name</th><th>Mobile</th><th>Group</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr>'+rows+'</table></div>'
     )+
   '</div>';
 }
 
-function sc(ico,bg,num,lbl){
+function scard(ico,bg,num,lbl){
   return '<div class="scard"><div class="sico" style="background:'+bg+'">'+ico+'</div>'+
     '<div><div class="snum">'+num+'</div><div class="slbl">'+lbl+'</div></div></div>';
 }
@@ -414,18 +442,17 @@ function renderApps(){
   var a=S.apps;
   var rows=a.map(function(x){
     return '<tr>'+
-      '<td><strong style="color:var(--navy)">'+esc(x.id)+'</strong></td>'+
+      '<td><strong style="color:var(--navy)">'+esc(x.app_id)+'</strong></td>'+
       '<td>'+esc(x.name)+'</td>'+
       '<td>'+esc(x.mobile)+'</td>'+
-      '<td><span class="badge bg-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
-      '<td>₹'+fmt(x.loanAmount)+'</td>'+
-      '<td>'+esc(x.loanPurpose)+'</td>'+
-      '<td><span class="badge '+sb(x.status)+'">'+esc(x.status)+'</span></td>'+
-      '<td>'+esc(x.date)+'</td>'+
+      '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
+      '<td>₹'+fmtN(x.loan_amount)+'</td>'+
+      '<td>'+esc(x.purpose||'')+'</td>'+
+      '<td><span class="badge '+stBadge(x.status)+'">'+esc(x.status)+'</span></td>'+
+      '<td>'+esc(x.submitted_at||'')+'</td>'+
       '<td style="display:flex;gap:4px">'+
-        '<button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.id)+'\')">View</button>'+
-        '<button class="btn btn-sm btn-g" onclick="setStatus(\''+esc(x.id)+'\',\'APPROVED\')">✓</button>'+
-        '<button class="btn btn-sm btn-r" onclick="setStatus(\''+esc(x.id)+'\',\'REJECTED\')">✗</button>'+
+        '<button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button>'+
+        '<button class="btn btn-sm btn-gold" onclick="viewAndPDF(\''+esc(x.app_id)+'\')">PDF</button>'+
       '</td>'+
     '</tr>';
   }).join('');
@@ -433,354 +460,369 @@ function renderApps(){
   return '<div class="card">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
       '<div class="ctitle" style="margin:0;border:none;padding:0">All Applications ('+a.length+')</div>'+
-      '<button class="btn btn-sm btn-p" onclick="loadFromSheet()">🔄 Refresh</button>'+
+      '<button class="btn btn-sm btn-p" onclick="syncFromSheet()">🔄 Sync Sheet</button>'+
     '</div>'+
     (a.length===0
-      ? '<p style="color:var(--muted);text-align:center;padding:24px">No applications. <a href="#" onclick="go(\'new\')">Add first →</a></p>'
+      ? '<div style="text-align:center;padding:30px;color:var(--muted)">No applications yet. <a href="#" onclick="go(\'new\')" style="color:var(--navy)">Add first →</a></div>'
       : '<div class="tw"><table><tr><th>App ID</th><th>Name</th><th>Mobile</th><th>Group</th><th>Amount</th><th>Purpose</th><th>Status</th><th>Date</th><th>Actions</th></tr>'+rows+'</table></div>'
     )+
   '</div>';
 }
 
-// ── PIPELINE ───────────────────────────────────────────────────
-function renderPipe(){
-  var stages=['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'];
-  var cols=stages.map(function(st){
-    var items=S.apps.filter(function(a){return a.status===st;});
-    var cards=items.map(function(a){
-      return '<div class="kcard" onclick="viewApp(\''+esc(a.id)+'\')" style="cursor:pointer">'+
-        '<strong>'+esc(a.id)+'</strong>'+esc(a.name)+'<br>'+
-        '<span style="color:var(--muted)">₹'+fmt(a.loanAmount)+' · Grp '+esc(a.group)+'</span>'+
-      '</div>';
-    }).join('') || '<div style="color:var(--muted);font-size:.77rem;text-align:center;padding:8px">Empty</div>';
-    var colors={'NEW':'#1565c0','UNDER REVIEW':'#e65100','APPROVED':'#2e7d32','DISBURSED':'#6a1b9a','REJECTED':'#c62828'};
-    return '<div class="kcol"><div class="kct" style="color:'+colors[st]+'">'+st+' ('+items.length+')</div>'+cards+'</div>';
-  }).join('');
-  return '<div class="kanban">'+cols+'</div>';
+// ── VIEW APPLICATION ───────────────────────────────────────────
+function viewApp(id){
+  var a=S.apps.find(function(x){return x.app_id===id;});
+  if(!a){toast('Not found','err');return;}
+  S.viewId=id;
+  function r(l,v){return '<tr><td style="font-weight:600;color:var(--navy);padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap;width:35%">'+l+'</td><td style="padding:7px 10px;border-bottom:1px solid var(--border)">'+esc(v||'—')+'</td></tr>';}
+  $('vmod-title').textContent='📋 '+a.app_id+' — '+a.name;
+  $('vmod-body').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.84rem">'+
+      r('App ID',a.app_id)+r('Group',a.group)+r('Status',a.status)+
+      r('Name',a.name)+r('Mobile',a.mobile)+r('Email',a.email)+
+      r('Date of Birth',a.dob)+r('Gender',a.gender)+
+      r('Father Name',a.father_name)+r('Marital',a.marital)+
+      r('Aadhaar No',a.aadhar_no)+r('PAN No',a.pan_no)+
+      r('Address',a.address)+r('City',a.city)+r('District',a.district)+r('Pincode',a.pincode)+
+    '</table>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.84rem">'+
+      r('Occupation',a.occupation)+r('Income','₹'+fmtN(a.income))+
+      r('Employer',a.employer)+r('Bank',a.bank_name)+
+      r('Account No',a.account_no)+r('IFSC',a.ifsc)+
+      r('Loan Amount','₹'+fmtN(a.loan_amount))+r('Tenure',a.tenure?a.tenure+' months':'—')+
+      r('Purpose',a.purpose)+
+      r('Nominee',a.nominee_name)+r('Relation',a.nominee_rel)+
+      r('Nominee Mobile',a.nominee_mobile)+
+      r('Submitted',a.submitted_at)+
+    '</table></div>'+
+    '<div style="margin-top:14px;background:var(--cream);border-radius:var(--rs);padding:12px">'+
+      '<div style="font-size:.79rem;font-weight:700;color:var(--navy);margin-bottom:8px">Update Status:</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
+          var isOn=a.status===st;
+          return '<button class="btn btn-sm" style="background:'+(isOn?'var(--navy)':'var(--cream-d)')+';color:'+(isOn?'var(--gold-l)':'var(--text)')+'" onclick="setStatus(\''+id+'\',\''+st+'\')">'+st+'</button>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  $('vmod').classList.add('on');
+}
+
+function viewAndPDF(id){viewApp(id); setTimeout(function(){genPDF();},100);}
+function closeModal(){$('vmod').classList.remove('on');}
+
+function setStatus(id,status){
+  var a=S.apps.find(function(x){return x.app_id===id;});
+  if(a) a.status=status;
+  var ls=JSON.parse(localStorage.getItem('tf_apps')||'[]');
+  var la=ls.find(function(x){return x.app_id===id;});
+  if(la) la.status=status;
+  localStorage.setItem('tf_apps',JSON.stringify(ls));
+  closeModal();
+  toast('✅ Status updated to '+status,'ok');
+  go(S.page);
 }
 
 // ── NEW APPLICATION FORM ───────────────────────────────────────
+var GINFO={
+  A:{desc:'Group A — Small loan for petty business, agriculture, or personal needs up to ₹50,000'},
+  B:{desc:'Group B — Medium loan for business expansion, equipment, or housing (₹50,001–₹3,00,000)'},
+  C:{desc:'Group C — Large loan for significant business investment (Above ₹3,00,001)'},
+};
+
 function renderForm(){
   return '<div class="card">'+
-    '<div class="ctitle">📋 Select Loan Group</div>'+
+  '<div class="psteps">'+
+    '<div class="pstep on" id="ps1" onclick="jumpStep(1)">1 · Personal</div>'+
+    '<div class="pstep" id="ps2" onclick="jumpStep(2)">2 · Employment</div>'+
+    '<div class="pstep" id="ps3" onclick="jumpStep(3)">3 · Loan</div>'+
+    '<div class="pstep" id="ps4" onclick="jumpStep(4)">4 · Nominee</div>'+
+  '</div>'+
+
+  // STEP 1
+  '<div class="step-content on" id="sc1">'+
+    '<div class="divider">Loan Group</div>'+
     '<div class="gtabs">'+
-      '<button class="gtab on" onclick="setGrp(\'A\',this)">Group A<br><small>Up to ₹50,000</small></button>'+
-      '<button class="gtab" onclick="setGrp(\'B\',this)">Group B<br><small>₹50K–₹3L</small></button>'+
-      '<button class="gtab" onclick="setGrp(\'C\',this)">Group C<br><small>Above ₹3L</small></button>'+
+      '<div class="gtab on" onclick="selGrp(\'A\',this)"><div class="gl">Group A</div><div class="gr">Up to ₹50,000</div></div>'+
+      '<div class="gtab" onclick="selGrp(\'B\',this)"><div class="gl">Group B</div><div class="gr">₹50K – ₹3L</div></div>'+
+      '<div class="gtab" onclick="selGrp(\'C\',this)"><div class="gl">Group C</div><div class="gr">Above ₹3L</div></div>'+
     '</div>'+
-    '<div class="gbadge" id="gbadge">GROUP A — Small Loan (Up to ₹50,000)</div>'+
-  '</div>'+
-
-  '<div class="card"><div class="ctitle">👤 Borrower Details</div>'+
-    '<div class="frow f1"><div class="fg"><label>Full Name <span class="req">*</span></label><input id="fn" type="text" placeholder="As per Aadhaar"></div></div>'+
-    '<div class="frow"><div class="fg"><label>Mobile <span class="req">*</span></label><input id="fm" type="tel" maxlength="10" placeholder="10 digits"></div>'+
-      '<div class="fg"><label>Email</label><input id="fe" type="email" placeholder="Optional"></div></div>'+
-    '<div class="frow"><div class="fg"><label>Date of Birth</label><input id="fdob" type="date"></div>'+
-      '<div class="fg"><label>Gender</label><select id="fgen"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option></select></div></div>'+
-    '<div class="frow f1"><div class="fg"><label>Father / Husband Name</label><input id="ffn" type="text"></div></div>'+
-    '<div class="frow f1"><div class="fg"><label>Address <span class="req">*</span></label><input id="fad" type="text" placeholder="Door No, Street"></div></div>'+
-    '<div class="frow"><div class="fg"><label>City</label><input id="fct" type="text"></div>'+
-      '<div class="fg"><label>Pincode</label><input id="fpin" type="text" maxlength="6"></div></div>'+
-    '<div class="frow"><div class="fg"><label>Aadhaar Number</label><input id="faad" type="text" maxlength="14" placeholder="XXXX XXXX XXXX"></div>'+
-      '<div class="fg"><label>PAN Number</label><input id="fpan" type="text" maxlength="10" placeholder="ABCDE1234F" style="text-transform:uppercase"></div></div>'+
-  '</div>'+
-
-  '<div class="card"><div class="ctitle">💼 Employment & Loan</div>'+
-    '<div class="frow"><div class="fg"><label>Occupation</label><select id="focc"><option value="">Select</option><option>Petty Business</option><option>Agriculture</option><option>Salaried</option><option>Daily Wages</option><option>Self Employed</option><option>Others</option></select></div>'+
-      '<div class="fg"><label>Monthly Income (₹)</label><input id="finc" type="number" placeholder="15000"></div></div>'+
-    '<div class="frow"><div class="fg"><label>Loan Amount (₹) <span class="req">*</span></label><input id="fla" type="number"></div>'+
-      '<div class="fg"><label>Tenure (Months)</label><select id="ften"><option value="">Select</option><option>6</option><option>12</option><option>18</option><option>24</option><option>36</option><option>48</option></select></div></div>'+
-    '<div class="frow f1"><div class="fg"><label>Loan Purpose</label><select id="fpurp"><option value="">Select</option><option>Business Working Capital</option><option>Agriculture</option><option>Medical Emergency</option><option>Education</option><option>Housing Repair</option><option>Personal Needs</option><option>Others</option></select></div></div>'+
-  '</div>'+
-
-  '<div class="card"><div class="ctitle">👨‍👩‍👦 Nominee</div>'+
-    '<div class="frow"><div class="fg"><label>Nominee Name <span class="req">*</span></label><input id="fnn" type="text"></div>'+
-      '<div class="fg"><label>Relation</label><select id="fnr"><option value="">Select</option><option>Spouse</option><option>Father</option><option>Mother</option><option>Son</option><option>Daughter</option><option>Sibling</option></select></div></div>'+
-    '<div class="frow"><div class="fg"><label>Nominee Age</label><input id="fna" type="number"></div>'+
-      '<div class="fg"><label>Nominee Phone</label><input id="fnp" type="tel" maxlength="10"></div></div>'+
-  '</div>'+
-
-  '<div class="card"><div class="ctitle">📎 Documents</div>'+
-    '<div class="frow">'+
-      '<div class="fg"><label>Applicant Photo <span class="req">*</span></label>'+
-        '<div class="upbox"><input type="file" accept="image/*" capture="user" onchange="upFile(this,\'selfie\')">'+
-          '<div class="ui">📷</div><div class="ul">Tap to take selfie</div><div class="us">or upload photo</div></div>'+
-        '<img id="selfiethumb" class="thumb"><div id="udone-selfie" class="udone">✅ <span id="uname-selfie"></span></div></div>'+
-      '<div class="fg"><label>Aadhaar Card <span class="req">*</span></label>'+
-        '<div class="upbox"><input type="file" accept="image/*,application/pdf" onchange="upFile(this,\'aadhar\')">'+
-          '<div class="ui">🪪</div><div class="ul">Upload Aadhaar</div><div class="us">PDF or image</div></div>'+
-        '<div id="udone-aadhar" class="udone">✅ <span id="uname-aadhar"></span></div></div>'+
+    '<div class="gbadge" id="gbadge">'+GINFO.A.desc+'</div>'+
+    '<div class="divider">Personal Information</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Full Name (as per Aadhaar)<span class="req">*</span></label><input type="text" id="fn" placeholder="Full name"><div class="ferr" id="e-fn">Required</div></div></div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Mobile<span class="req">*</span></label><input type="tel" id="fm" maxlength="10" placeholder="10-digit"><div class="ferr" id="e-fm">Valid 10-digit number required</div></div>'+
+      '<div class="fg"><label>Email</label><input type="email" id="fe" placeholder="Optional — for confirmation"></div>'+
     '</div>'+
-    '<div class="frow">'+
-      '<div class="fg"><label>PAN Card</label>'+
-        '<div class="upbox"><input type="file" accept="image/*,application/pdf" onchange="upFile(this,\'pan\')">'+
-          '<div class="ui">🗂️</div><div class="ul">Upload PAN</div><div class="us">PDF or image</div></div>'+
-        '<div id="udone-pan" class="udone">✅ <span id="uname-pan"></span></div></div>'+
-      '<div class="fg"><label>Nominee Aadhaar</label>'+
-        '<div class="upbox"><input type="file" accept="image/*,application/pdf" onchange="upFile(this,\'nominee_aadhar\')">'+
-          '<div class="ui">📄</div><div class="ul">Nominee Aadhaar</div><div class="us">PDF or image</div></div>'+
-        '<div id="udone-nominee_aadhar" class="udone">✅ <span id="uname-nominee_aadhar"></span></div></div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Date of Birth<span class="req">*</span></label><input type="date" id="fdob"><div class="ferr" id="e-fdob">Required</div></div>'+
+      '<div class="fg"><label>Gender<span class="req">*</span></label><select id="fgend"><option value="">Select</option><option>Female</option><option>Male</option><option>Transgender</option></select><div class="ferr" id="e-fgend">Required</div></div>'+
+    '</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Father / Husband Name</label><input type="text" id="ffn" placeholder="Name"></div>'+
+      '<div class="fg"><label>Marital Status</label><select id="fmar"><option value="">Select</option><option>Married</option><option>Unmarried</option><option>Widow/Widower</option><option>Divorced</option></select></div>'+
+    '</div>'+
+    '<div class="divider">Address</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Door No & Street<span class="req">*</span></label><input type="text" id="fadr" placeholder="e.g. 12/A, Gandhi Street"><div class="ferr" id="e-fadr">Required</div></div></div>'+
+    '<div class="fgrid f3">'+
+      '<div class="fg"><label>City / Village<span class="req">*</span></label><input type="text" id="fcity" placeholder="City"><div class="ferr" id="e-fcity">Required</div></div>'+
+      '<div class="fg"><label>District</label><select id="fdist"><option value="">Select</option><option>Madurai</option><option>Chennai</option><option>Coimbatore</option><option>Tiruchirappalli</option><option>Salem</option><option>Tirunelveli</option><option>Erode</option><option>Vellore</option><option>Thoothukudi</option><option>Dindigul</option><option>Thanjavur</option><option>Kanyakumari</option><option>Other</option></select></div>'+
+      '<div class="fg"><label>Pincode</label><input type="text" id="fpin" maxlength="6" placeholder="6-digit PIN"></div>'+
+    '</div>'+
+    '<div class="divider">Identity</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Aadhaar Number<span class="req">*</span></label><input type="text" id="faad" maxlength="14" placeholder="XXXX XXXX XXXX"><div class="ferr" id="e-faad">Valid 12-digit Aadhaar required</div></div>'+
+      '<div class="fg"><label>PAN Number</label><input type="text" id="fpan" maxlength="10" placeholder="ABCDE1234F" oninput="this.value=this.value.toUpperCase()"></div>'+
+    '</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Voter ID</label><input type="text" id="fvot" placeholder="Voter ID number"></div>'+
+      '<div class="fg"><label>Ration Card</label><input type="text" id="frat" placeholder="Ration card number"></div>'+
+    '</div>'+
+    '<div class="nav-row"><button class="btn btn-p" onclick="nextStep(1)" style="margin-left:auto">Next →</button></div>'+
+  '</div>'+
+
+  // STEP 2
+  '<div class="step-content" id="sc2">'+
+    '<div class="divider">Employment</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Occupation<span class="req">*</span></label><select id="focc"><option value="">Select</option><option>Petty Business</option><option>Agriculture/Farming</option><option>Salaried — Private</option><option>Salaried — Government</option><option>Daily Wages</option><option>Self Employed</option><option>Auto/Taxi Driver</option><option>Tailor/Weaver</option><option>Domestic Worker</option><option>Others</option></select><div class="ferr" id="e-focc">Required</div></div>'+
+      '<div class="fg"><label>Monthly Income (₹)<span class="req">*</span></label><input type="number" id="finc" placeholder="e.g. 12000" min="0"><div class="ferr" id="e-finc">Required</div></div>'+
+    '</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Employer / Business Name</label><input type="text" id="femp" placeholder="Employer or business name"></div></div>'+
+    '<div class="divider">Bank Details</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Bank Name</label><input type="text" id="fbnk" placeholder="e.g. Indian Bank"></div>'+
+      '<div class="fg"><label>Account Number</label><input type="text" id="facc" placeholder="Account number"></div>'+
+    '</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>IFSC Code</label><input type="text" id="fifc" placeholder="IDIB000M123" oninput="this.value=this.value.toUpperCase()"></div>'+
+      '<div class="fg"><label>Branch</label><input type="text" id="fbrn" placeholder="Branch name"></div>'+
+    '</div>'+
+    '<div class="nav-row">'+
+      '<button class="btn btn-o" onclick="prevStep(2)" style="flex:1">← Back</button>'+
+      '<button class="btn btn-p" onclick="nextStep(2)" style="flex:2">Next →</button>'+
     '</div>'+
   '</div>'+
 
-  '<div style="display:flex;gap:11px;margin-bottom:40px">'+
-    '<button class="btn btn-o" onclick="go(\'apps\')" style="flex:1;padding:12px">Cancel</button>'+
-    '<button class="btn btn-p" onclick="submit()" style="flex:2;padding:12px;font-size:.95rem">✅ Submit Application</button>'+
-  '</div>';
+  // STEP 3
+  '<div class="step-content" id="sc3">'+
+    '<div class="divider">Loan Requirement</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Loan Amount (₹)<span class="req">*</span></label><input type="number" id="fla" placeholder="Amount required" min="1000"><div class="ferr" id="e-fla">Required</div></div>'+
+      '<div class="fg"><label>Repayment Tenure<span class="req">*</span></label><select id="ften"><option value="">Select</option><option value="6">6 months</option><option value="12">12 months</option><option value="18">18 months</option><option value="24">24 months</option><option value="36">36 months</option><option value="48">48 months</option><option value="60">60 months</option></select><div class="ferr" id="e-ften">Required</div></div>'+
+    '</div>'+
+    '<div class="fgrid f1">'+
+      '<div class="fg"><label>Purpose of Loan<span class="req">*</span></label><select id="fpurp"><option value="">Select</option><option>Business Working Capital</option><option>Agriculture/Farming</option><option>Medical Emergency</option><option>Education</option><option>Housing Repair/Construction</option><option>Purchase of Equipment/Vehicle</option><option>Marriage/Family Function</option><option>Personal/Family Needs</option><option>Others</option></select><div class="ferr" id="e-fpurp">Required</div></div>'+
+    '</div>'+
+    '<div class="fgrid f1">'+
+      '<div class="fg"><label>Additional Details</label><textarea id="fpdet" rows="2" placeholder="Brief description (optional)" style="resize:vertical"></textarea></div>'+
+    '</div>'+
+    '<div class="nav-row">'+
+      '<button class="btn btn-o" onclick="prevStep(3)" style="flex:1">← Back</button>'+
+      '<button class="btn btn-p" onclick="nextStep(3)" style="flex:2">Next →</button>'+
+    '</div>'+
+  '</div>'+
+
+  // STEP 4
+  '<div class="step-content" id="sc4">'+
+    '<div class="divider">Nominee Details</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Nominee Full Name<span class="req">*</span></label><input type="text" id="fnn" placeholder="Full name"><div class="ferr" id="e-fnn">Required</div></div></div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Relation<span class="req">*</span></label><select id="fnrel"><option value="">Select</option><option>Spouse</option><option>Father</option><option>Mother</option><option>Son</option><option>Daughter</option><option>Brother</option><option>Sister</option><option>Other</option></select><div class="ferr" id="e-fnrel">Required</div></div>'+
+      '<div class="fg"><label>Nominee Age</label><input type="number" id="fnage" placeholder="Age" min="18" max="80"></div>'+
+    '</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Nominee Mobile<span class="req">*</span></label><input type="tel" id="fnmob" maxlength="10" placeholder="10-digit mobile"><div class="ferr" id="e-fnmob">Valid 10-digit number required</div></div>'+
+      '<div class="fg"><label>Nominee Aadhaar</label><input type="text" id="fnaad" maxlength="14" placeholder="XXXX XXXX XXXX"></div>'+
+    '</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Nominee Address (if different)</label><input type="text" id="fnadr" placeholder="Leave blank if same as applicant"></div></div>'+
+    '<div class="divider">Reference (Optional)</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Reference Name</label><input type="text" id="frn" placeholder="Name"></div>'+
+      '<div class="fg"><label>Reference Mobile</label><input type="tel" id="frm" maxlength="10" placeholder="Mobile"></div>'+
+    '</div>'+
+    '<div style="background:#fffbf0;border:1px solid var(--gold);border-radius:var(--rs);padding:12px 14px;margin-top:8px;font-size:.8rem;color:#78580a;line-height:1.6">'+
+      '⚠️ By submitting this form, I declare that all information provided is true and correct. I authorise Thennagam Finance Pvt Ltd to verify the details and process my loan application.'+
+    '</div>'+
+    '<div class="nav-row">'+
+      '<button class="btn btn-o" onclick="prevStep(4)" style="flex:1">← Back</button>'+
+      '<button class="btn btn-g" onclick="submitForm()" style="flex:2;font-size:.95rem">✅ Submit Application</button>'+
+    '</div>'+
+  '</div>'+
+  '</div>'; // end card
 }
 
-function initForm(){S.files={};S.group='A';}
+// ── STEP NAVIGATION ────────────────────────────────────────────
+function updateSteps(){
+  for(var i=1;i<=4;i++){
+    var ps=$('ps'+i), sc=$('sc'+i);
+    if(!ps||!sc) continue;
+    ps.className='pstep'+(i===S.step?' on':i<S.step?' done':'');
+    sc.className='step-content'+(i===S.step?' on':'');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
-var GLAB={A:'GROUP A — Small Loan (Up to ₹50,000)',B:'GROUP B — Medium Loan (₹50K–₹3L)',C:'GROUP C — Large Loan (Above ₹3L)'};
-function setGrp(g,btn){
+function jumpStep(n){ if(n<=S.step){S.step=n;updateSteps();} }
+
+function selGrp(g,btn){
   S.group=g;
   document.querySelectorAll('.gtab').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  $('gbadge').textContent=GLAB[g];
+  var gbadge=$('gbadge'); if(gbadge) gbadge.textContent=GINFO[g].desc;
 }
 
-function upFile(input,key){
-  var f=input.files[0];if(!f)return;
-  S.files[key]=f;
-  var d=$('udone-'+key),n=$('uname-'+key);
-  if(d)d.classList.add('on');
-  if(n)n.textContent=f.name.length>28?f.name.slice(0,25)+'…':f.name;
-  if(key==='selfie'){
-    var r=new FileReader();
-    r.onload=function(e){var t=$('selfiethumb');t.src=e.target.result;t.classList.add('on');};
-    r.readAsDataURL(f);
+function nextStep(from){
+  if(!validateStep(from)) return;
+  S.step=from+1; updateSteps();
+}
+function prevStep(from){ S.step=from-1; updateSteps(); }
+
+// ── VALIDATION ─────────────────────────────────────────────────
+function showE(id,msg){var el=$(id);if(el){el.textContent=msg||el.textContent;el.classList.add('on');}}
+function clearE(id){var el=$(id);if(el)el.classList.remove('on');}
+function req(fid,eid,msg){
+  var v=gv(fid);
+  if(!v){showE(eid,msg);return false;}
+  clearE(eid);return true;
+}
+
+function validateStep(step){
+  var ok=true;
+  if(step===1){
+    if(!req('fn','e-fn','Required')) ok=false;
+    var mob=gv('fm');
+    if(!mob||mob.length!==10||!/^\d+$/.test(mob)){showE('e-fm','Valid 10-digit number required');ok=false;}else clearE('e-fm');
+    if(!req('fdob','e-fdob','Required')) ok=false;
+    if(!req('fgend','e-fgend','Required')) ok=false;
+    if(!req('fadr','e-fadr','Required')) ok=false;
+    if(!req('fcity','e-fcity','Required')) ok=false;
+    var aad=gv('faad').replace(/\s/g,'');
+    if(!aad||aad.length!==12||!/^\d+$/.test(aad)){showE('e-faad','Valid 12-digit Aadhaar required');ok=false;}else clearE('e-faad');
   }
+  if(step===2){
+    if(!req('focc','e-focc','Required')) ok=false;
+    if(!req('finc','e-finc','Required')) ok=false;
+  }
+  if(step===3){
+    if(!req('fla','e-fla','Required')) ok=false;
+    if(!req('ften','e-ften','Required')) ok=false;
+    if(!req('fpurp','e-fpurp','Required')) ok=false;
+  }
+  if(step===4){
+    if(!req('fnn','e-fnn','Required')) ok=false;
+    if(!req('fnrel','e-fnrel','Required')) ok=false;
+    var nm=gv('fnmob');
+    if(!nm||nm.length!==10||!/^\d+$/.test(nm)){showE('e-fnmob','Valid 10-digit number required');ok=false;}else clearE('e-fnmob');
+  }
+  if(!ok) toast('Please fill all required fields','err');
+  return ok;
 }
 
-function toB64(file){
-  return new Promise(function(res,rej){
-    var r=new FileReader();
-    r.onload=function(){res(r.result.split(',')[1]);};
-    r.onerror=function(){rej(new Error('read fail'));};
-    r.readAsDataURL(file);
-  });
+// ── COLLECT DATA ───────────────────────────────────────────────
+function collectData(){
+  return {
+    group:S.group, name:gv('fn'), mobile:gv('fm'), email:gv('fe'),
+    dob:gv('fdob'), gender:gv('fgend'), father_name:gv('ffn'), marital:gv('fmar'),
+    address:gv('fadr'), city:gv('fcity'), district:gv('fdist'), pincode:gv('fpin'),
+    aadhar_no:gv('faad'), pan_no:gv('fpan'), voter_id:gv('fvot'), ration_card:gv('frat'),
+    occupation:gv('focc'), income:gv('finc'), employer:gv('femp'),
+    bank_name:gv('fbnk'), account_no:gv('facc'), ifsc:gv('fifc'), branch:gv('fbrn'),
+    loan_amount:gv('fla'), tenure:gv('ften'), purpose:gv('fpurp'), purpose_detail:gv('fpdet'),
+    nominee_name:gv('fnn'), nominee_rel:gv('fnrel'), nominee_age:gv('fnage'),
+    nominee_mobile:gv('fnmob'), nominee_aadhar:gv('fnaad'), nominee_address:gv('fnadr'),
+    ref_name:gv('frn'), ref_mobile:gv('frm'),
+  };
 }
-function fext(f){var p=f.name.split('.');return p.length>1?p.pop().toLowerCase():'bin';}
 
-// ── SUBMIT APPLICATION ─────────────────────────────────────────
-async function submit(){
-  var name=gv('fn'),mob=gv('fm'),addr=gv('fad'),amt=gv('fla'),nom=gv('fnn');
-  if(!name){toast('⚠️ Enter Applicant Name','err');return;}
-  if(!mob||mob.length!==10){toast('⚠️ Enter 10-digit Mobile','err');return;}
-  if(!addr){toast('⚠️ Enter Address','err');return;}
-  if(!amt){toast('⚠️ Enter Loan Amount','err');return;}
-  if(!nom){toast('⚠️ Enter Nominee Name','err');return;}
-  if(!S.files.selfie){toast('⚠️ Upload Applicant Photo','err');return;}
-  if(!S.files.aadhar){toast('⚠️ Upload Aadhaar Card','err');return;}
+// ── SUBMIT ─────────────────────────────────────────────────────
+async function submitForm(){
+  if(!validateStep(4)) return;
+  if(SCRIPT_URL.indexOf('PASTE_YOUR')!==-1){toast('Set Apps Script URL in Settings first','err',5000);return;}
 
-  var spin=$('spin'),step=$('spinstep');
-  spin.classList.add('on');
+  var spin=$('spin'); spin.classList.add('on');
+  setBar(10,'Preparing…');
 
-  try{
-    // Build payload (field names MUST match Code.gs saveApplication)
-    var data={
-      action:'submitApplication',
-      group:S.group,
-      name:name,
-      mobile:mob,
-      email:gv('fe'),
-      dob:gv('fdob'),
-      gender:gv('fgen'),
-      fatherName:gv('ffn'),
-      address:addr,
-      city:gv('fct'),
-      pincode:gv('fpin'),
-      aadharNo:gv('faad'),
-      panNo:gv('fpan').toUpperCase(),
-      occupation:gv('focc'),
-      income:gv('finc'),
-      loanAmount:amt,
-      loanPurpose:gv('fpurp'),
-      loanTenure:gv('ften'),
-      nomineeName:nom,
-      nomineeRel:gv('fnr'),
-      nomineeAge:gv('fna'),
-      nomineePhone:gv('fnp'),
-      files:{}
-    };
+  try {
+    var data = collectData();
+    data.action = 'save';
 
-    // Encode files to base64
-    var fkeys=['selfie','aadhar','pan','nominee_aadhar'];
-    var flbls=['photo','Aadhaar','PAN','Nominee Aadhaar'];
-    for(var i=0;i<fkeys.length;i++){
-      var k=fkeys[i];
-      if(S.files[k]){
-        step.textContent='Uploading '+flbls[i]+'…';
-        data.files[k]={data:await toB64(S.files[k]),mimeType:S.files[k].type,ext:fext(S.files[k])};
-      }
-    }
+    setBar(40,'Saving to Google Sheet…');
 
-    step.textContent='Saving to database…';
-
-    // Generate local App ID (same format as server)
-    // Server will generate same sequential ID — but we show locally generated one instantly
-    var appId='TF-'+new Date().getFullYear()+'-'+S.group+'-'+String(Date.now()).slice(-5);
-
-    // Fire to Google Apps Script (no-cors = no CORS block, server still saves)
-    fetch(SCRIPT_URL,{
-      method:'POST',mode:'no-cors',
+    var resp = await fetch(SCRIPT_URL, {
+      method:'POST',
+      mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
       body:JSON.stringify(data)
-    }).catch(function(){});
+    });
+    // no-cors = opaque response, can't read it
+    // Generate App ID locally (same format as server)
+    var appId = 'TF-'+new Date().getFullYear()+'-'+S.group+'-'+String(Date.now()).slice(-5);
 
-    // Save locally with consistent field names matching Code.gs readAllApplications output
-    var localApp={
-      id:appId, group:S.group, name:name, mobile:mob,
-      email:gv('fe'), dob:gv('fdob'), gender:gv('fgen'),
-      fatherName:gv('ffn'), address:addr, city:gv('fct'),
-      pincode:gv('fpin'), aadharNo:gv('faad'), panNo:gv('fpan').toUpperCase(),
-      occupation:gv('focc'), income:gv('finc'),
-      loanAmount:amt, loanPurpose:gv('fpurp'), loanTenure:gv('ften'),
-      nomineeName:nom, nomineeRel:gv('fnr'), nomineeAge:gv('fna'), nomineePhone:gv('fnp'),
-      selfieLink:'', aadharLink:'', panLink:'', nomineeAadharLink:'',
-      folderLink:'', pdfLink:'',
-      date:new Date().toLocaleDateString('en-IN'),
-      status:'NEW'
-    };
+    setBar(80,'Saving locally…');
 
-    var existing=JSON.parse(localStorage.getItem('tf_apps')||'[]');
-    existing.unshift(localApp);
-    localStorage.setItem('tf_apps',JSON.stringify(existing));
+    // Save to localStorage with all fields
+    var localApp = Object.assign({}, data, {
+      app_id:appId, status:'NEW',
+      submitted_at:new Date().toLocaleString('en-IN')
+    });
+    delete localApp.action;
     S.apps.unshift(localApp);
-    S.lastId=appId;
-    S.lastData=data;
+    localStorage.setItem('tf_apps',JSON.stringify(S.apps));
 
+    S.lastData = localApp;
+    S.lastId   = appId;
+
+    setBar(100,'Done!');
+    setTimeout(function(){
+      spin.classList.remove('on');
+      showSuccess(appId, localApp);
+      // Sync from sheet after 3 seconds to get server-assigned ID
+      setTimeout(syncFromSheet, 3000);
+    },400);
+
+  } catch(ex){
     spin.classList.remove('on');
-
-    // Show success screen
-    $('succ-id').textContent=appId;
-    $('succ-msg').textContent='Application saved! '+name+' will be contacted within 1–2 working days.';
-    $('succ-pdf').textContent='';
-    $('succ').style.display='block';
-
-    // Generate & send PDF in background
-    makePDF(data,appId,'succ-pdf');
-
-  }catch(ex){
-    spin.classList.remove('on');
-    toast('❌ Error: '+ex.message,'err');
+    toast('❌ '+ex.message,'err',5000);
     console.error(ex);
   }
 }
 
-function backToApps(){$('succ').style.display='none';go('apps');}
-
-// ── VIEW APPLICATION ───────────────────────────────────────────
-function viewApp(id){
-  var a=S.apps.find(function(x){return x.id===id;});
-  if(!a){toast('Application not found','err');return;}
-  S.viewId=id;
-  $('vmod-title').textContent='📋 '+a.id+' — '+a.name;
-
-  function r(l,v){return '<tr><td style="font-weight:600;color:var(--navy);padding:7px 10px;border-bottom:1px solid var(--border);width:38%">'+l+'</td><td style="padding:7px 10px;border-bottom:1px solid var(--border)">'+v+'</td></tr>';}
-
-  var driveBtn=a.folderLink?'<a href="'+a.folderLink+'" target="_blank" class="btn btn-sm btn-p" style="text-decoration:none">📁 Open Drive Folder</a>':'—';
-  var pdfBtn=a.pdfLink?'<a href="'+a.pdfLink+'" target="_blank" class="btn btn-sm btn-gold" style="text-decoration:none">📄 Open PDF</a>':'—';
-
-  $('vmod-body').innerHTML=
-    '<table style="width:100%;border-collapse:collapse;font-size:.86rem">'+
-      r('Application ID','<strong>'+esc(a.id)+'</strong>')+
-      r('Status','<span class="badge '+sb(a.status)+'">'+esc(a.status)+'</span>')+
-      r('Group','<span class="badge bg-'+esc(a.group)+'">'+esc(a.group)+'</span>')+
-      r('Name',esc(a.name))+
-      r('Mobile',esc(a.mobile))+
-      r('Email',esc(a.email||'—'))+
-      r('Date of Birth',esc(a.dob||'—'))+
-      r('Gender',esc(a.gender||'—'))+
-      r('Father Name',esc(a.fatherName||'—'))+
-      r('Address',esc(a.address)+(a.city?', '+esc(a.city):'')+(a.pincode?' – '+esc(a.pincode):''))+
-      r('Aadhaar No',esc(a.aadharNo||'—'))+
-      r('PAN No',esc(a.panNo||'—'))+
-      r('Occupation',esc(a.occupation||'—'))+
-      r('Monthly Income',a.income?'₹'+fmt(a.income):'—')+
-      r('Loan Amount','<strong>₹'+fmt(a.loanAmount)+'</strong>')+
-      r('Loan Purpose',esc(a.loanPurpose||'—'))+
-      r('Tenure',a.loanTenure?esc(a.loanTenure)+' months':'—')+
-      r('Nominee',esc(a.nomineeName||'—')+(a.nomineeRel?' ('+esc(a.nomineeRel)+')':''))+
-      r('Nominee Phone',esc(a.nomineePhone||'—'))+
-      r('Submission Date',esc(a.date||'—'))+
-      r('Drive Folder',driveBtn)+
-      r('PDF',pdfBtn)+
-    '</table>'+
-    '<div style="margin-top:14px;background:var(--cream);border-radius:var(--rs);padding:12px">'+
-      '<div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:8px">Update Status:</div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
-          return '<button class="btn btn-sm" style="'+(a.status===st?'background:var(--navy);color:var(--gold-l)':'background:var(--cream-d);color:var(--text)')+'" onclick="setStatus(\''+id+'\',\''+st+'\')">'+st+'</button>';
-        }).join('')+
-      '</div>'+
-    '</div>';
-
-  $('vmod').classList.add('on');
+function setBar(pct,msg){
+  $('spfill').style.width=pct+'%';
+  $('spin-step').textContent=msg;
 }
 
-function closeM(){$('vmod').classList.remove('on');}
-
-function setStatus(id,status){
-  var a=S.apps.find(function(x){return x.id===id;});
-  if(a)a.status=status;
-  var ls=JSON.parse(localStorage.getItem('tf_apps')||'[]');
-  var la=ls.find(function(x){return x.id===id;});
-  if(la)la.status=status;
-  localStorage.setItem('tf_apps',JSON.stringify(ls));
-  closeM();
-  toast('✅ Status → '+status,'ok');
-  go(S.page);
+// ── SUCCESS ────────────────────────────────────────────────────
+function showSuccess(appId, d){
+  $('succ-id').textContent=appId;
+  $('succ-msg').textContent='Application received.'+(d.email?' Confirmation sent to '+d.email+'.':'')+' Our team will contact you within 1–2 working days.';
+  $('succ-detail').innerHTML=
+    dr('Applicant',d.name)+dr('Mobile',d.mobile)+
+    dr('Group',d.group)+dr('Loan Amount','₹'+fmtN(d.loan_amount))+
+    dr('Tenure',d.tenure+' months')+dr('Purpose',d.purpose)+dr('Status','NEW');
+  $('succ-screen').style.display='block';
 }
+function dr(l,v){return '<div class="sdr"><span class="l">'+l+'</span><span class="v">'+v+'</span></div>';}
+function afterSuccess(){$('succ-screen').style.display='none';go('dash');}
 
-// ── PDF ────────────────────────────────────────────────────────
-async function makePDF(data,appId,statusElId){
-  var el=statusElId?$(statusElId):null;
-  if(el)el.textContent='⏳ Generating PDF…';
+// ── PDF GENERATION ─────────────────────────────────────────────
+function genPDF(){ if(S.viewId) genPDFForApp(S.apps.find(function(x){return x.app_id===S.viewId;})); }
+function genPDFFromLast(){ if(S.lastData) genPDFForApp(S.lastData); }
+
+async function genPDFForApp(d){
+  if(!d){toast('No data','err');return;}
   try{
     await loadJsPDF();
-    var b64=buildPDF(data,appId);
-    if(el)el.textContent='⏳ Saving PDF to Drive…';
-    // Send PDF to Drive (no-cors fire-and-forget)
-    fetch(SCRIPT_URL,{
-      method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'savePDF',appId:appId,pdfBase64:b64,fileName:'Application_'+appId+'.pdf'})
-    }).catch(function(){});
-    if(el)el.textContent='✅ PDF saved to Google Drive';
-  }catch(e){
-    if(el)el.textContent='Use Download PDF button for local copy';
-  }
-}
-
-async function dlPDF(){
-  if(!S.lastData||!S.lastId){toast('No data','err');return;}
-  await loadJsPDF();
-  var b64=buildPDF(S.lastData,S.lastId);
-  var blob=b64Blob(b64,'application/pdf');
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');a.href=url;a.download='Application_'+S.lastId+'.pdf';a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function pdfModal(){
-  var id=S.viewId;
-  var app=S.apps.find(function(x){return x.id===id;});
-  if(!app){toast('No data','err');return;}
-  // Build data object matching buildPDF expected fields
-  var d={group:app.group,name:app.name,mobile:app.mobile,email:app.email||'',
-    dob:app.dob||'',gender:app.gender||'',fatherName:app.fatherName||'',
-    address:app.address||'',city:app.city||'',aadharNo:app.aadharNo||'',panNo:app.panNo||'',
-    occupation:app.occupation||'',income:app.income||'',loanAmount:app.loanAmount,
-    loanPurpose:app.loanPurpose||'',loanTenure:app.loanTenure||'',
-    nomineeName:app.nomineeName||'',nomineeRel:app.nomineeRel||'',
-    nomineeAge:app.nomineeAge||'',nomineePhone:app.nomineePhone||''};
-  await loadJsPDF();
-  var b64=buildPDF(d,id);
-  var blob=b64Blob(b64,'application/pdf');
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');a.href=url;a.download='Application_'+id+'.pdf';a.click();
-  URL.revokeObjectURL(url);
+    var blob = buildPDF(d, d.app_id||S.lastId||'TF-XXXX');
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href   = url;
+    a.download = 'Application_'+(d.app_id||'form')+'.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ PDF downloaded','ok');
+  }catch(e){toast('PDF error: '+e.message,'err',5000);}
 }
 
 function loadJsPDF(){
@@ -788,146 +830,176 @@ function loadJsPDF(){
     if(window.jspdf){res();return;}
     var s=document.createElement('script');
     s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=function(){res();}; s.onerror=function(){rej(new Error('jsPDF CDN failed'));};
+    s.onload=function(){res();};s.onerror=function(){rej(new Error('jsPDF load failed'));};
     document.head.appendChild(s);
   });
 }
 
-function buildPDF(d,appId){
+function buildPDF(d, appId){
   var jsPDF=window.jspdf.jsPDF;
   var doc=new jsPDF({unit:'mm',format:'a4'});
   // Header
-  doc.setFillColor(26,35,126);doc.rect(0,0,210,28,'F');
-  doc.setTextColor(245,215,139);doc.setFontSize(15);doc.setFont('helvetica','bold');
-  doc.text('Thennagam Finance Private Limited',105,12,{align:'center'});
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text('Loan Application Form',105,20,{align:'center'});
-  // App ID badge
-  doc.setFillColor(201,168,76);doc.roundedRect(15,31,85,10,2,2,'F');
-  doc.setTextColor(26,35,126);doc.setFontSize(10);doc.setFont('helvetica','bold');
-  doc.text('ID: '+appId,57,38,{align:'center'});
-  doc.setTextColor(100,100,100);doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('Date: '+new Date().toLocaleDateString('en-IN')+'  |  Group '+d.group,195,38,{align:'right'});
-
-  var y=50;
+  doc.setFillColor(26,35,126); doc.rect(0,0,210,30,'F');
+  doc.setTextColor(245,215,139); doc.setFontSize(15); doc.setFont('helvetica','bold');
+  doc.text('Thennagam Finance Private Limited',105,13,{align:'center'});
+  doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+  doc.text('CIN: U64990TN2025PTC179499  |  Loan Application Form',105,21,{align:'center'});
+  // App ID
+  doc.setFillColor(201,168,76); doc.roundedRect(15,34,90,11,2,2,'F');
+  doc.setTextColor(26,35,126); doc.setFontSize(10); doc.setFont('helvetica','bold');
+  doc.text('App ID: '+appId,60,41,{align:'center'});
+  doc.setTextColor(100,100,100); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('Date: '+new Date().toLocaleDateString('en-IN')+'  |  Group '+d.group+'  |  '+d.status,195,41,{align:'right'});
+  var y=52;
   function sec(t){
-    doc.setFillColor(240,232,216);doc.rect(15,y-4,180,8,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(26,35,126);
-    doc.text(t,17,y);doc.setTextColor(0,0,0);y+=8;
+    doc.setFillColor(232,234,246); doc.rect(15,y-4,180,8,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(26,35,126);
+    doc.text(t,17,y); doc.setTextColor(20,20,20); doc.setFont('helvetica','normal'); y+=9;
   }
   function rw(l1,v1,l2,v2){
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(80,80,80);
-    doc.text(l1,17,y);if(l2)doc.text(l2,110,y);
-    doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);
-    doc.text(String(v1||'—'),55,y);if(l2)doc.text(String(v2||'—'),148,y);
-    y+=6.5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(90,90,90);
+    doc.text(String(l1),17,y); if(l2)doc.text(String(l2),110,y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    doc.text(String(v1||'—'),52,y); if(l2)doc.text(String(v2||'—'),145,y);
+    y+=6;
   }
-  sec('Borrower Information');
+  sec('Personal Information');
   rw('Name:',d.name,'Mobile:',d.mobile);
-  rw('DOB:',d.dob,'Gender:',d.gender);
-  rw('Father/Husband:',d.fatherName,'Email:',d.email);
-  rw('Address:',d.address,'City:',d.city);
-  rw('Aadhaar:',d.aadharNo,'PAN:',d.panNo);
-  y+=3;sec('Employment & Loan');
-  rw('Occupation:',d.occupation,'Income:',d.income?'₹'+d.income:'');
-  rw('Loan Amount:','₹'+d.loanAmount,'Tenure:',d.loanTenure?d.loanTenure+' months':'');
-  rw('Purpose:',d.loanPurpose,'','');
-  y+=3;sec('Nominee');
-  rw('Nominee Name:',d.nomineeName,'Relation:',d.nomineeRel);
-  rw('Age:',d.nomineeAge,'Phone:',d.nomineePhone);
-  y+=3;sec('Documents Submitted');
-  rw('Selfie/Photo:',S.files&&S.files.selfie?'✓ Uploaded':'—','Aadhaar Doc:',S.files&&S.files.aadhar?'✓ Uploaded':'—');
-  rw('PAN Doc:',S.files&&S.files.pan?'✓ Uploaded':'—','Nominee Aadhaar:',S.files&&S.files.nominee_aadhar?'✓ Uploaded':'—');
-  y+=5;
-  doc.setFillColor(232,245,233);doc.rect(15,y-4,180,16,'F');
-  doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(22,101,52);
-  doc.text('I declare that the information provided is true and correct. I authorise Thennagam Finance Pvt Ltd to verify and process my application.',17,y+1,{maxWidth:176});
-  doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);
-  doc.text('Signature: _______________________',17,y+10);
-  doc.text('Date: '+new Date().toLocaleDateString('en-IN'),170,y+10,{align:'right'});
-  // Footer
-  doc.setFillColor(26,35,126);doc.rect(0,285,210,12,'F');
-  doc.setTextColor(245,215,139);doc.setFontSize(7);
-  doc.text('Thennagam Finance Private Limited  |  CIN: U64990TN2025PTC179499  |  Tamil Nadu',105,292,{align:'center'});
-  return doc.output('datauristring').split(',')[1];
+  rw('Date of Birth:',d.dob,'Gender:',d.gender);
+  rw('Father/Husband:',d.father_name,'Marital:',d.marital);
+  rw('Address:',(d.address||'')+(d.city?', '+d.city:'')+(d.district?', '+d.district:'')+(d.pincode?' – '+d.pincode:''),'','');
+  rw('Aadhaar:',d.aadhar_no,'PAN:',d.pan_no);
+  y+=2; sec('Employment & Loan');
+  rw('Occupation:',d.occupation,'Income:',d.income?'₹'+fmtN(d.income):'');
+  rw('Employer:',d.employer,'Bank:',d.bank_name);
+  rw('Account No:',d.account_no,'IFSC:',d.ifsc);
+  rw('Loan Amount:','₹'+fmtN(d.loan_amount),'Tenure:',d.tenure?d.tenure+' months':'');
+  rw('Purpose:',d.purpose,'','');
+  y+=2; sec('Nominee');
+  rw('Name:',d.nominee_name,'Relation:',d.nominee_rel);
+  rw('Mobile:',d.nominee_mobile,'Age:',d.nominee_age);
+  y+=4;
+  doc.setFillColor(255,251,240); doc.rect(15,y-3,180,14,'F');
+  doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(100,70,10);
+  doc.text('I declare that all information provided is true and correct. I authorise Thennagam Finance Pvt Ltd to verify and process my loan application.',17,y+2,{maxWidth:176});
+  doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+  doc.text('Signature: ___________________',17,y+9);
+  doc.text('Date: '+new Date().toLocaleDateString('en-IN'),190,y+9,{align:'right'});
+  doc.setFillColor(26,35,126); doc.rect(0,284,210,13,'F');
+  doc.setTextColor(245,215,139); doc.setFontSize(7);
+  doc.text('Thennagam Finance Private Limited  |  CIN: U64990TN2025PTC179499  |  Tamil Nadu, India',105,291.5,{align:'center'});
+  return doc.output('blob');
 }
 
-function b64Blob(b64,mime){
-  var bytes=atob(b64),arr=new Uint8Array(bytes.length);
-  for(var i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);
-  return new Blob([arr],{type:mime});
-}
-
-// ── OTHER PAGES ────────────────────────────────────────────────
-function renderLoans(){
-  var dis=S.apps.filter(function(a){return a.status==='DISBURSED';});
-  return '<div class="card"><div class="ctitle">💰 Active Loans</div>'+
-    (dis.length===0?'<p style="color:var(--muted);padding:20px">No disbursed loans yet.</p>':
-    '<div class="tw"><table><tr><th>App ID</th><th>Name</th><th>Amount</th><th>Group</th><th>Date</th></tr>'+
-    dis.map(function(a){return '<tr><td>'+esc(a.id)+'</td><td>'+esc(a.name)+'</td><td>₹'+fmt(a.loanAmount)+'</td><td>'+esc(a.group)+'</td><td>'+esc(a.date)+'</td></tr>';}).join('')+
-    '</table></div>')+
-  '</div>';
-}
-
-function renderColl(){return '<div class="card"><div class="ctitle">💳 Collection</div><p style="color:var(--muted)">Daily collection entries will appear here.</p></div>';}
-
+// ── REPORTS ────────────────────────────────────────────────────
 function renderRpt(){
-  var a=S.apps,total=a.length;
-  var byGrp=function(g){return a.filter(function(x){return x.group===g;});};
-  var sumAmt=function(arr){return arr.reduce(function(s,x){return s+Number(x.loanAmount||0);},0);};
+  var a=S.apps, total=a.length;
+  var sum=function(arr){return arr.reduce(function(s,x){return s+Number(x.loan_amount||0);},0);};
+  var grps=['A','B','C'];
   return '<div class="card"><div class="ctitle">📈 Portfolio Summary</div>'+
-    '<div class="sgrid">'+
-      sc('A','#e8f5e9',byGrp('A').length,'Group A — ₹'+lkh(sumAmt(byGrp('A'))))+
-      sc('B','#e3f2fd',byGrp('B').length,'Group B — ₹'+lkh(sumAmt(byGrp('B'))))+
-      sc('C','#fff3e0',byGrp('C').length,'Group C — ₹'+lkh(sumAmt(byGrp('C'))))+
-    '</div>'+
-    '<div class="tw"><table><tr><th>Status</th><th>Count</th><th>Total Amount</th></tr>'+
+    '<div class="sgrid">'+grps.map(function(g){
+      var f=a.filter(function(x){return x.group===g;});
+      return scard(g,g==='A'?'#e8f5e9':g==='B'?'#e3f2fd':'#fff3e0',f.length,'Group '+g+' — ₹'+(sum(f)/100000).toFixed(1)+'L');
+    }).join('')+'</div>'+
+    '<div class="tw"><table><tr><th>Status</th><th>Count</th><th>Total Amount</th><th>%</th></tr>'+
     ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
       var f=a.filter(function(x){return x.status===st;});
-      return '<tr><td><span class="badge '+sb(st)+'">'+st+'</span></td><td>'+f.length+'</td><td>₹'+sumAmt(f).toLocaleString('en-IN')+'</td></tr>';
+      var pct=total>0?Math.round(f.length/total*100):0;
+      return '<tr><td><span class="badge '+stBadge(st)+'">'+st+'</span></td><td>'+f.length+'</td><td>₹'+fmtN(sum(f))+'</td><td>'+pct+'%</td></tr>';
     }).join('')+
     '</table></div></div>';
 }
 
-function renderStaff(){
-  return '<div class="card"><div class="ctitle">👥 Staff</div>'+
-    '<table><tr><th>Name</th><th>Email</th><th>Role</th></tr>'+
-    USERS.map(function(u){return '<tr><td>'+u.name+'</td><td>'+u.email+'</td><td>'+u.role+'</td></tr>';}).join('')+
-    '</table></div>';
-}
-
+// ── SETTINGS ───────────────────────────────────────────────────
 function renderCfg(){
-  return '<div class="card"><div class="ctitle">⚙️ Settings</div>'+
-    '<div style="font-size:.87rem;line-height:2.2">'+
-    '<strong>Company:</strong> Thennagam Finance Private Limited<br>'+
-    '<strong>CIN:</strong> U64990TN2025PTC179499<br>'+
-    '<strong>Alert Email:</strong> anbuarulkanna@gmail.com<br>'+
-    '<strong>Apps Script:</strong> <a href="'+SCRIPT_URL+'" target="_blank" style="font-size:.75rem">View deployment</a>'+
+  return '<div class="card"><div class="ctitle">⚙️ Apps Script Configuration</div>'+
+    '<div class="fg" style="margin-bottom:16px">'+
+      '<label style="font-size:.82rem;font-weight:600;color:var(--navy)">Apps Script Web App URL<span class="req">*</span></label>'+
+      '<input type="text" id="cfg-url" value="'+esc(SCRIPT_URL)+'" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.8rem;font-family:monospace">'+
+      '<div style="font-size:.75rem;color:var(--muted);margin-top:4px">Paste your deployed Apps Script URL here. Deploy as Web App → Execute as Me → Anyone.</div>'+
     '</div>'+
-    '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">'+
-      '<button class="btn btn-o btn-sm" onclick="loadFromSheet()">🔄 Sync from Google Sheet</button>'+
-      '<button class="btn btn-r btn-sm" onclick="if(confirm(\'Clear all local data?\'))clearLocal()">🗑️ Clear Local Cache</button>'+
-    '</div></div>';
+    '<button class="btn btn-p" onclick="saveUrl()">💾 Save URL</button>'+
+    '<button class="btn btn-o" onclick="testUrl()" style="margin-left:8px">🔍 Test Connection</button>'+
+    '<div id="url-test-result" style="margin-top:12px;font-size:.83rem"></div>'+
+    '</div>'+
+    '<div class="card"><div class="ctitle">📊 Google Sheet</div>'+
+    '<div style="font-size:.87rem;line-height:2.2">'+
+      '<strong>Sheet ID:</strong> 1RcndhHjrS2fs1pnc5xHT-5nMSBxA7OyPRfRpYDkb8Yg<br>'+
+      '<a href="https://docs.google.com/spreadsheets/d/1RcndhHjrS2fs1pnc5xHT-5nMSBxA7OyPRfRpYDkb8Yg" target="_blank" class="btn btn-o btn-sm" style="margin-top:8px;display:inline-block;text-decoration:none">📊 Open Google Sheet</a>'+
+    '</div></div>'+
+    '<div class="card"><div class="ctitle">🗑️ Local Cache</div>'+
+    '<div style="font-size:.84rem;color:var(--muted);margin-bottom:12px">Local cache has '+S.apps.length+' records. Clear it if data looks stale after syncing from sheet.</div>'+
+    '<button class="btn btn-r btn-sm" onclick="if(confirm(\'Clear local cache?\'))clearCache()">Clear Local Cache</button>'+
+    '</div>';
 }
 
-function clearLocal(){localStorage.removeItem('tf_apps');S.apps=[];refreshUI();toast('Local cache cleared','ok');}
-
-// ── UTILITIES ──────────────────────────────────────────────────
-function esc(s){
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function saveUrl(){
+  var url=gv('cfg-url');
+  if(!url||url.indexOf('script.google.com')===-1){toast('Enter a valid Apps Script URL','err');return;}
+  SCRIPT_URL=url;
+  localStorage.setItem('tf_script_url',url);
+  toast('✅ URL saved!','ok');
 }
-function fmt(n){return Number(n||0).toLocaleString('en-IN');}
-function lkh(n){return n>=100000?(n/100000).toFixed(1)+'L':(n>=1000?(n/1000).toFixed(0)+'K':n);}
-function sb(s){
-  var m={'NEW':'bs-NEW','UNDER REVIEW':'bs-REVIEW','APPROVED':'bs-APPROVED','REJECTED':'bs-REJECTED','DISBURSED':'bs-DISBURSED'};
-  return m[s]||'bs-NEW';
+
+async function testUrl(){
+  var url=gv('cfg-url');
+  var res=$('url-test-result');
+  res.textContent='Testing…';
+  try{
+    // Load URL in iframe to test
+    var frame=$('data-frame');
+    frame._loading=true;
+    frame._testMode=true;
+    frame.src=url+'?action=ping&t='+Date.now();
+    setTimeout(function(){
+      if(frame._testMode){
+        frame._testMode=false;
+        frame._loading=false;
+        res.innerHTML='<span style="color:var(--red)">❌ No response in 8 seconds — check URL and deployment settings</span>';
+      }
+    },8000);
+  }catch(e){
+    res.innerHTML='<span style="color:var(--red)">❌ Error: '+e.message+'</span>';
+  }
+}
+
+function clearCache(){
+  localStorage.removeItem('tf_apps');
+  S.apps=[];
+  toast('Cache cleared','ok');
+  go(S.page);
 }
 
 // ── INIT ───────────────────────────────────────────────────────
 window.onload=function(){
+  var saved=localStorage.getItem('tf_script_url');
+  if(saved) SCRIPT_URL=saved;
   var raw=localStorage.getItem('tf_apps');
   if(raw){try{S.apps=JSON.parse(raw);}catch(e){}}
 };
+
+// Override onFrameLoad for test mode
+var _origFrameLoad = onFrameLoad;
+function onFrameLoad(){
+  var frame=$('data-frame');
+  if(frame._testMode){
+    frame._testMode=false;
+    frame._loading=false;
+    var res=$('url-test-result');
+    try{
+      var body=frame.contentDocument&&frame.contentDocument.body;
+      if(body&&body.innerText&&body.innerText.indexOf('ok')!==-1){
+        if(res)res.innerHTML='<span style="color:var(--green)">✅ Connected! Apps Script is live and responding.</span>';
+      } else {
+        if(res)res.innerHTML='<span style="color:var(--green)">✅ URL reachable. Run Sync Sheet to load data.</span>';
+      }
+    }catch(e){
+      if(res)res.innerHTML='<span style="color:var(--green)">✅ URL responded (CORS blocks full read — that\'s normal)</span>';
+    }
+    return;
+  }
+  _origFrameLoad();
+}
 </script>
 </body>
 </html>
