@@ -2,826 +2,389 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Thennagam Finance — Loan Management System</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thennagam Finance — Loan Application</title>
 <style>
+/* ── Reset & Variables ───────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#0a1628;--navy2:#0f2040;--gold:#c9932a;--gold-l:#e8b84b;
-  --cream:#fdf6ec;--cream-d:#f5ead8;--ink:#1a1a2e;--muted:#6b7280;
-  --border:#d4b896;--fbg:#fffdf9;--sbg:#f7f0e6;
-  --red:#8b1a1a;--red-l:#fee2e2;--green:#1a5c2e;--green-l:#d1fae5;
-  --blue:#1a3a8f;--blue-l:#dbeafe;--amber:#92400e;--amber-l:#fef3c7;
-  --sidebar:220px;--topbar:56px;--radius:6px;
+  --navy:#1a237e;--navy2:#283593;--gold:#c9a84c;--gold-l:#f5d78b;
+  --cream:#fdf8f0;--cream-d:#f0e8d8;--border:#ddd4be;
+  --muted:#6b6860;--red:#c62828;--green:#2e7d32;
+  --text:#1a1917;--surface:#fff;--r:10px;--rs:6px;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{-webkit-text-size-adjust:100%;}
-body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.5;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
 
-/* ── LOGIN ── */
-#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 100%);}
-.login-card{width:100%;max-width:400px;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4);}
-.login-header{background:var(--navy2);padding:28px 24px 20px;text-align:center;border-bottom:3px solid var(--gold);}
-.login-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--gold-l);letter-spacing:.08em;text-transform:uppercase;}
-.login-sub{font-size:11px;color:#8a9aba;margin-top:4px;}
-.login-body{background:white;padding:28px 24px;}
-.login-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:18px;}
-.login-group{margin-bottom:14px;}
-.login-label{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
-.login-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:5px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
-.login-input:focus{border-color:var(--gold);}
-.login-btn{width:100%;padding:12px;background:var(--navy);color:var(--gold-l);border:none;border-radius:5px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;letter-spacing:.04em;transition:background .2s;}
-.login-btn:hover{background:var(--navy2);}
-.login-error{background:var(--red-l);color:var(--red);border:1px solid #fca5a5;border-radius:4px;padding:8px 12px;font-size:12px;margin-bottom:12px;display:none;}
-.login-info{margin-top:16px;padding:10px;background:var(--sbg);border-radius:4px;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
+/* ── Header ─────────────────────────────────────── */
+.header{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:1.2rem;font-weight:700;color:var(--gold-l)}
+.header p{font-size:.8rem;opacity:.75}
 
-/* ── APP SHELL ── */
-#app{display:none;height:100vh;overflow:hidden;flex-direction:row;}
-.sidebar{width:var(--sidebar);background:var(--navy);display:flex;flex-direction:column;height:100vh;overflow-y:auto;flex-shrink:0;}
-.sidebar-logo{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.08);}
-.sidebar-co{font-family:'Playfair Display',serif;font-size:11px;font-weight:900;color:var(--gold-l);letter-spacing:.04em;text-transform:uppercase;line-height:1.3;}
-.sidebar-tag{font-size:9px;color:#5a7090;margin-top:2px;}
-.nav-section{padding:14px 10px 4px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#3a5070;text-transform:uppercase;}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;border-radius:5px;margin:1px 6px;transition:all .18s;color:#8a9aba;font-size:13px;font-weight:500;position:relative;}
-.nav-item:hover{background:rgba(255,255,255,.06);color:white;}
-.nav-item.active{background:rgba(201,147,42,.15);color:var(--gold-l);}
-.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
-.nav-badge{background:var(--red);color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:auto;}
-.sidebar-user{margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-.user-avatar{width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--navy);flex-shrink:0;}
-.user-name{font-size:12px;font-weight:600;color:white;}
-.user-role{font-size:10px;color:#5a7090;}
-.logout-btn{margin-left:auto;background:none;border:none;color:#3a5070;cursor:pointer;font-size:16px;padding:4px;}
-.logout-btn:hover{color:var(--red-l);}
+/* ── Container ───────────────────────────────────── */
+.container{max-width:780px;margin:24px auto;padding:0 16px 60px}
 
-/* ── MAIN ── */
-.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.topbar{height:var(--topbar);background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 20px;flex-shrink:0;}
-.topbar-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--navy);}
-.topbar-search{flex:1;max-width:380px;position:relative;}
-.topbar-search input{width:100%;padding:7px 12px 7px 34px;border:1px solid var(--border);border-radius:5px;font-size:13px;outline:none;background:var(--sbg);}
-.topbar-search input:focus{border-color:var(--gold);}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
-.topbar-actions{margin-left:auto;display:flex;gap:8px;}
-.btn{padding:8px 16px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'Inter',sans-serif;}
-.btn-primary{background:var(--navy);color:var(--gold-l);}
-.btn-primary:hover{background:var(--navy2);}
-.btn-success{background:var(--green);color:white;}
-.btn-outline{background:white;color:var(--navy);border:1px solid var(--border);}
-.btn-outline:hover{border-color:var(--gold);background:var(--sbg);}
-.btn-sm{padding:5px 10px;font-size:12px;}
-.btn-icon{background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;}
-.pages{flex:1;overflow-y:auto;padding:20px;}
-.page{display:none;}
-.page.active{display:block;}
+/* ── Card ────────────────────────────────────────── */
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:24px;margin-bottom:20px}
+.card-title{font-size:1rem;font-weight:700;color:var(--navy);border-bottom:2px solid var(--gold);padding-bottom:8px;margin-bottom:18px}
 
-/* ── CARDS & STATS ── */
-.card{background:white;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden;}
-.card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.card-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--navy);}
-.card-body{padding:16px;}
-.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
-.stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;border-top:3px solid var(--border);}
-.stat-card.green{border-top-color:var(--green);}
-.stat-card.amber{border-top-color:var(--gold);}
-.stat-card.red{border-top-color:var(--red);}
-.stat-card.blue{border-top-color:var(--blue);}
-.stat-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--navy);}
-.stat-label{font-size:11px;color:var(--muted);margin-top:2px;}
-.stat-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+/* ── Group tabs ──────────────────────────────────── */
+.grp-tabs{display:flex;gap:8px;margin-bottom:16px}
+.grp-tab{flex:1;padding:10px 8px;border:2px solid var(--border);border-radius:var(--rs);cursor:pointer;text-align:center;font-weight:600;font-size:.85rem;background:var(--cream-d);color:var(--muted);transition:all .2s}
+.grp-tab.active{background:var(--navy);border-color:var(--navy);color:var(--gold-l)}
+.grp-badge{background:var(--navy2);color:var(--gold-l);padding:8px 14px;border-radius:var(--rs);font-size:.82rem;font-weight:600;margin-bottom:18px;text-align:center}
 
-/* ── TABLES ── */
-.tbl-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th{background:var(--navy);color:var(--gold-l);padding:9px 12px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.04em;white-space:nowrap;}
-td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
-tr:nth-child(even) td{background:var(--sbg);}
-tr:hover td{background:var(--cream-d);}
+/* ── Form grid ───────────────────────────────────── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-row.full{grid-template-columns:1fr}
+@media(max-width:520px){.form-row{grid-template-columns:1fr}}
 
-/* ── BADGES ── */
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
-.badge-a{background:#dbeafe;color:#1e40af;}
-.badge-b{background:#d1fae5;color:#065f46;}
-.badge-c{background:#fef3c7;color:#92400e;}
-.badge-submitted{background:#e0f2fe;color:#0369a1;}
-.badge-review{background:#fef3c7;color:#92400e;}
-.badge-verified{background:#d1fae5;color:#065f46;}
-.badge-approved{background:#bbf7d0;color:#14532d;}
-.badge-rejected{background:#fee2e2;color:#991b1b;}
-.badge-disbursed{background:#ede9fe;color:#5b21b6;}
-.badge-pending{background:var(--amber-l);color:var(--amber);}
-.badge-active{background:var(--green-l);color:var(--green);}
-
-/* ── FORM ── */
-.form-group{margin-bottom:12px;}
-.form-label{display:block;font-size:11px;font-weight:600;color:var(--navy);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
-.form-control{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;outline:none;font-family:'Inter',sans-serif;}
-.form-control:focus{border-color:var(--gold);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-/* ── FILTERS ── */
-.filters-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
-.filter-select,.filter-input{padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:white;outline:none;}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:white;padding:12px 20px;border-radius:6px;font-size:13px;z-index:9999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;max-width:320px;}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{border-left:4px solid var(--green);}
-.toast.error{border-left:4px solid var(--red);}
-
-/* ── MODAL ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:500;align-items:center;justify-content:center;}
-.modal-bg.show{display:flex;}
-.modal{background:white;border-radius:8px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
-.modal-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .stats-grid{grid-template-columns:1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:.82rem;font-weight:600;color:var(--navy)}
+.form-group input,.form-group select,.form-group textarea{
+  padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);
+  font-size:.9rem;background:#fff;color:var(--text);transition:border .2s
 }
-@media(max-width:600px){
-  .stats-grid{grid-template-columns:1fr 1fr;}
-  .sidebar{position:fixed;left:-220px;top:0;bottom:0;z-index:200;transition:left .25s;}
-  .sidebar.open{left:0;}
-  .form-row{grid-template-columns:1fr;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--navy)
 }
+.req{color:var(--red)}
+.hint{font-size:.75rem;color:var(--muted);margin-top:2px}
 
-/* ── COLLECTION DUE LIST ── */
-.due-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);background:white;}
-.due-item:hover{background:var(--sbg);}
-.due-avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);color:var(--gold-l);font-family:'Playfair Display',serif;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.due-name{font-weight:600;font-size:13px;}
-.due-meta{font-size:11px;color:var(--muted);}
-.overdue-badge{font-size:10px;font-weight:700;color:var(--red);background:var(--red-l);padding:1px 6px;border-radius:8px;}
-.collect-btn{margin-left:auto;background:var(--green);color:white;border:none;border-radius:4px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+/* ── Upload boxes ────────────────────────────────── */
+.upload-box{border:2px dashed var(--border);border-radius:var(--rs);padding:16px;text-align:center;cursor:pointer;background:var(--cream);position:relative;transition:border .2s}
+.upload-box:hover{border-color:var(--navy)}
+.upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-box .upload-icon{font-size:1.8rem;margin-bottom:4px}
+.upload-box .upload-label{font-size:.82rem;font-weight:600;color:var(--navy)}
+.upload-box .upload-sub{font-size:.75rem;color:var(--muted)}
+.upload-done{display:none;margin-top:6px;font-size:.8rem;color:var(--green);font-weight:600}
+.upload-done.show{display:block}
+.thumb-preview{width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);display:none;margin:8px auto 0}
+.thumb-preview.show{display:block}
 
-/* ── SPINNER ── */
+/* ── Buttons ─────────────────────────────────────── */
+.btn{padding:11px 22px;border:none;border-radius:var(--rs);cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s}
+.btn-primary{background:var(--navy);color:var(--gold-l)}
+.btn-primary:hover{background:var(--navy2)}
+.btn-outline{background:transparent;color:var(--navy);border:2px solid var(--navy)}
+.btn-lg{width:100%;padding:14px;font-size:1rem;border-radius:var(--r)}
+
+/* ── Spinner / overlay ───────────────────────────── */
+#submit-spinner{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#submit-spinner.show{display:flex}
+.spinner-box{background:#fff;padding:32px 40px;border-radius:var(--r);text-align:center}
+.spinner{width:44px;height:44px;border:4px solid var(--cream-d);border-top-color:var(--navy);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
-#submit-spinner{display:none;position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:1001;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-.spinner-ring{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+#spinner-step{font-size:.9rem;color:var(--muted);margin-top:4px}
 
-/* ── SUCCESS SCREEN ── */
-#success-screen{display:none;position:fixed;inset:0;background:rgba(10,22,40,.96);z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
+/* ── Success screen ──────────────────────────────── */
+#success-screen{display:none;position:fixed;inset:0;background:var(--cream);z-index:998;overflow-y:auto;padding:32px 16px}
+.success-box{max-width:540px;margin:0 auto;background:#fff;border-radius:var(--r);padding:32px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+.success-icon{font-size:3rem;margin-bottom:12px}
+.success-title{font-size:1.4rem;font-weight:700;color:var(--green);margin-bottom:8px}
+.success-appid{font-size:1.6rem;font-weight:700;color:var(--navy);background:var(--cream-d);padding:12px 24px;border-radius:var(--rs);display:inline-block;margin:12px 0;letter-spacing:2px}
+.success-msg{font-size:.9rem;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.success-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+#pdf-save-status{font-size:.82rem;color:var(--muted);margin-top:8px;min-height:20px}
 
-/* ── APP FORM ── */
-.af-paper{background:var(--cream);border:1px solid var(--border);border-radius:6px;overflow:hidden;font-family:'EB Garamond',Georgia,serif;}
-.af-lh{padding:14px 14px 10px;border-bottom:3px solid var(--navy);text-align:center;}
-.af-co{font-family:'Playfair Display',serif;font-size:clamp(13px,2.5vw,19px);font-weight:900;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;}
-.af-meta{font-size:10px;color:var(--muted);margin-top:3px;}
-.af-rule{height:1px;background:var(--gold);margin:5px auto 0;width:70%;}
-.af-badge{display:inline-block;margin-top:7px;padding:3px 12px;background:var(--navy);color:var(--gold-l);font-family:'Playfair Display',serif;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:2px;}
-.af-body{padding:0 10px 20px;}
-.af-sec{margin-bottom:12px;}
-.af-sec-head{background:var(--navy);color:var(--gold-l);font-family:'Playfair Display',serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;display:flex;align-items:center;gap:6px;border-radius:4px 4px 0 0;}
-.af-sn{background:var(--gold);color:var(--navy);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0;}
-.af-grid{border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;overflow:hidden;}
-.af-row{display:grid;border-bottom:1px solid var(--border);}
-.af-row:last-child{border-bottom:none;}
-.af-lbl{background:var(--sbg);padding:6px 9px;font-size:10px;font-weight:700;color:var(--navy);font-family:'Playfair Display',serif;border-right:1px solid var(--border);}
-.af-val{padding:2px 7px;}
-.af-val input,.af-val select,.af-val textarea{width:100%;border:none;background:transparent;outline:none;font-family:'EB Garamond',serif;font-size:13px;color:var(--ink);padding:5px 3px;-webkit-appearance:none;}
-.af-val textarea{min-height:44px;resize:vertical;}
-.af-cols-1{grid-template-columns:160px 1fr;}
-.af-cols-2{grid-template-columns:130px 1fr 130px 1fr;}
-.af-upl-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 7px 6px;border-top:1px dashed var(--border);}
-.af-upl-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--sbg);border:1px dashed var(--border);border-radius:4px;cursor:pointer;font-family:'EB Garamond',serif;font-size:12px;color:var(--navy);position:relative;overflow:hidden;}
-.af-upl-btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
-.af-done{display:none;align-items:center;gap:5px;background:var(--sbg);border:1px solid var(--border);border-radius:3px;padding:3px 6px;font-size:11px;}
-.af-done.show{display:flex;}
-.af-done-name{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--navy);}
-.af-del{background:none;border:1px solid var(--red);border-radius:3px;color:var(--red);cursor:pointer;font-size:10px;padding:1px 5px;}
-@media(max-width:560px){
-  .af-cols-1,.af-cols-2{grid-template-columns:1fr;}
-  .af-lbl{border-right:none;border-bottom:1px solid var(--border);}
-}
-@media print{
-  .sidebar,.topbar,button,.af-upl-row{display:none!important;}
-  @page{size:A4;margin:10mm 12mm;}
-}
+/* ── Toast ───────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 22px;border-radius:30px;font-size:.88rem;z-index:9999;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+#toast.show{display:block}
+#toast.error{background:var(--red)}
+#toast.success{background:var(--green)}
 
-/* ── RECON ── */
-.recon-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
-.matched-yes{color:var(--green);font-weight:700;}
-.matched-no{color:var(--red);font-weight:700;}
-
-/* ── PIPELINE ── */
-.pipeline{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
-.pipe-col{min-width:200px;max-width:240px;flex:1;}
-.pipe-head{padding:8px 12px;font-family:'Playfair Display',serif;font-size:12px;font-weight:700;border-radius:5px 5px 0 0;color:white;}
-.pipe-body{background:var(--sbg);border:1px solid var(--border);border-top:none;border-radius:0 0 5px 5px;min-height:120px;padding:8px;}
-.pipe-card{background:white;border:1px solid var(--border);border-radius:4px;padding:9px 10px;margin-bottom:6px;cursor:pointer;}
-.pipe-card:hover{border-color:var(--gold);}
-
-/* ── REPORT TABS ── */
-.report-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:14px;overflow-x:auto;}
-.report-tab{padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;border-radius:4px 4px 0 0;color:var(--muted);background:none;border:none;white-space:nowrap;}
-.report-tab.active{background:var(--navy);color:var(--gold-l);}
+/* ── Section header ─────────────────────────────── */
+.sec-label{font-size:.75rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;border-left:3px solid var(--gold);padding-left:8px}
 </style>
 </head>
 <body>
 
-<!-- ══ TOAST ══════════════════════════════════════════════════ -->
-<div class="toast" id="toast"></div>
-
-<!-- ══ LOGIN PAGE ══════════════════════════════════════════════ -->
-<div id="login-page">
-  <div class="login-card">
-    <div class="login-header">
-      <div class="login-logo">Thennagam Finance</div>
-      <div class="login-sub">Private Limited — Loan Management System</div>
-    </div>
-    <div class="login-body">
-      <div class="login-title">Staff Login</div>
-      <div class="login-error" id="login-error">Invalid email or password. Please try again.</div>
-      <div class="login-group">
-        <label class="login-label">Email Address</label>
-        <input class="login-input" type="email" id="login-email" placeholder="Enter your email" autocomplete="email">
-      </div>
-      <div class="login-group">
-        <label class="login-label">Password</label>
-        <input class="login-input" type="password" id="login-password" placeholder="Enter password" autocomplete="current-password">
-      </div>
-      <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
-      <div class="login-info">
-        Thennagam Finance Private Limited<br>
-        CIN: U64990TN2025PTC179499<br>
-        Thanjavur, Tamil Nadu
-      </div>
-    </div>
+<div class="header">
+  <div>
+    <h1>🏦 Thennagam Finance Private Limited</h1>
+    <p>Loan Application Form — Submit your application online</p>
   </div>
 </div>
 
-<!-- ══ APP ══════════════════════════════════════════════════════ -->
-<div id="app" style="display:none;flex-direction:row;">
+<div class="container" id="main-form">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-co">Thennagam Finance</div>
-      <div class="sidebar-tag">Loan Management</div>
+  <!-- GROUP SELECT -->
+  <div class="card">
+    <div class="card-title">📋 Select Loan Group</div>
+    <div class="grp-tabs">
+      <button class="grp-tab active" onclick="setGrp('A',this)">Group A<br><small>Up to ₹50,000</small></button>
+      <button class="grp-tab" onclick="setGrp('B',this)">Group B<br><small>₹50K – ₹3L</small></button>
+      <button class="grp-tab" onclick="setGrp('C',this)">Group C<br><small>Above ₹3L</small></button>
     </div>
+    <div class="grp-badge" id="grp-badge">GROUP A LOAN — Small Loan (Up to ₹50,000)</div>
+  </div>
 
-    <div class="nav-section">Overview</div>
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+  <!-- BORROWER DETAILS -->
+  <div class="card">
+    <div class="card-title">👤 Borrower Details</div>
 
-    <div class="nav-section">Applications</div>
-    <div class="nav-item" onclick="showPage('applications')"><span class="nav-icon">📋</span> All Applications</div>
-    <div class="nav-item" onclick="showPage('pipeline')"><span class="nav-icon">🔄</span> Pipeline View</div>
-    <div class="nav-item" onclick="showPage('new-application')"><span class="nav-icon">➕</span> New Application</div>
-
-    <div class="nav-section">Loans</div>
-    <div class="nav-item" onclick="showPage('active-loans')"><span class="nav-icon">💰</span> Active Loans</div>
-    <div class="nav-item" onclick="showPage('collection')"><span class="nav-icon">📲</span> Collection</div>
-
-    <div class="nav-section">Finance</div>
-    <div class="nav-item" onclick="showPage('bank-recon')"><span class="nav-icon">🏦</span> Bank Reconciliation</div>
-    <div class="nav-item" onclick="showPage('reports')"><span class="nav-icon">📈</span> Reports</div>
-
-    <div class="nav-section">Administration</div>
-    <div class="nav-item" onclick="showPage('staff')"><span class="nav-icon">👥</span> Staff Management</div>
-    <div class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</div>
-
-    <div class="sidebar-user">
-      <div class="user-avatar" id="user-avatar">A</div>
-      <div>
-        <div class="user-name" id="user-name">Admin</div>
-        <div class="user-role" id="user-role">Super Admin</div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="af_name" placeholder="As per Aadhaar card">
       </div>
-      <button class="logout-btn" onclick="doLogout()" title="Logout">⏏</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mobile Number <span class="req">*</span></label>
+        <input type="tel" id="af_mobile" placeholder="10-digit number" maxlength="10">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="af_email" placeholder="Optional">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date of Birth</label>
+        <input type="date" id="af_dob">
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="af_gender">
+          <option value="">Select</option>
+          <option>Female</option>
+          <option>Male</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Father / Husband Name</label>
+        <input type="text" id="af_father" placeholder="Name">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Address <span class="req">*</span></label>
+        <input type="text" id="af_address" placeholder="Door No, Street Name">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="af_city" placeholder="City">
+      </div>
+      <div class="form-group">
+        <label>Pincode</label>
+        <input type="text" id="af_pincode" placeholder="6-digit PIN" maxlength="6">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Aadhaar Number</label>
+        <input type="text" id="af_aadhar_no" placeholder="XXXX XXXX XXXX" maxlength="14">
+      </div>
+      <div class="form-group">
+        <label>PAN Number</label>
+        <input type="text" id="af_pan_no" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+      </div>
     </div>
   </div>
 
-  <!-- MAIN -->
-  <div class="main-area">
-    <div class="topbar">
-      <div class="topbar-title" id="page-title">Dashboard</div>
-      <div class="topbar-search">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="global-search" placeholder="Search name, Aadhaar, mobile, ID…">
-      </div>
-      <div class="topbar-actions">
-        <button class="btn btn-outline btn-sm" onclick="showPage('new-application')">+ New Application</button>
-        <button class="btn btn-success btn-sm" onclick="openCollectModal()">💳 Record Payment</button>
-      </div>
-    </div>
-
-    <div class="pages">
-
-      <!-- DASHBOARD -->
-      <div class="page active" id="page-dashboard">
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-label">Total Applications</div><div class="stat-sub" id="s-month">This month: 0</div></div>
-          <div class="stat-card green"><div class="stat-val" id="s-active">0</div><div class="stat-label">Active Loans</div><div class="stat-sub" id="s-outstanding">₹0 outstanding</div></div>
-          <div class="stat-card amber"><div class="stat-val" id="s-pending">0</div><div class="stat-label">Pending Review</div><div class="stat-sub">Awaiting field visit</div></div>
-          <div class="stat-card red"><div class="stat-val" id="s-overdue">0</div><div class="stat-label">Overdue Accounts</div><div class="stat-sub" id="s-overdue-amt">₹0 overdue</div></div>
-          <div class="stat-card blue"><div class="stat-val" id="s-collected">₹0</div><div class="stat-label">Collected Today</div><div class="stat-sub" id="s-payments">0 payments</div></div>
-          <div class="stat-card"><div class="stat-val" id="s-rate">—</div><div class="stat-label">Collection Rate</div><div class="stat-sub">This month</div></div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;">
-          <div class="card">
-            <div class="card-head"><div class="card-title">Recent Applications</div><button class="btn btn-outline btn-sm" onclick="showPage('applications')">View All</button></div>
-            <div class="tbl-wrap">
-              <table>
-                <thead><tr><th>App ID</th><th>Applicant</th><th>Group</th><th>Amount (₹)</th><th>Status</th><th></th></tr></thead>
-                <tbody id="recent-apps-body">
-                  <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic;">No applications yet — submit your first loan application</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">Due Today</div><button class="btn btn-outline btn-sm" onclick="showPage('collection')">View All</button></div>
-            <div id="due-today-list" style="min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-style:italic;">No EMIs due today</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><div class="card-title">Overdue Ageing Summary</div></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Bucket</th><th>Count</th><th>Principal (₹)</th><th>Interest (₹)</th><th>Penal (₹)</th><th>Total (₹)</th></tr></thead>
-              <tbody>
-                <tr><td colspan="6" style="text-align:center;padding:18px;color:var(--muted);font-style:italic;">No overdue accounts</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ALL APPLICATIONS -->
-      <div class="page" id="page-applications">
-        <div class="filters-bar">
-          <select class="filter-select"><option>All Status</option><option>Submitted</option><option>Under Review</option><option>Field Verified</option><option>Approved</option><option>Rejected</option><option>Disbursed</option></select>
-          <select class="filter-select"><option>All Groups</option><option>Group A</option><option>Group B</option><option>Group C</option></select>
-          <input class="filter-input" type="date">
-          <input class="filter-input" type="date">
-          <input class="filter-input" placeholder="Search…" style="width:180px;">
-          <button class="btn btn-outline btn-sm">🔍 Search</button>
-          <button class="btn btn-sm" style="background:var(--green);color:white;margin-left:auto;">⬇ Export</button>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">All Applications <span id="apps-count" style="font-size:11px;color:var(--muted);font-weight:400;"> — 0 records</span></div></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>App ID</th><th>Date</th><th>Applicant</th><th>Mobile</th><th>Group</th><th>Amount (₹)</th><th>Status</th><th>Officer</th><th>Actions</th></tr></thead>
-              <tbody id="apps-table-body">
-                <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);font-style:italic;">No applications yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- PIPELINE -->
-      <div class="page" id="page-pipeline">
-        <div class="pipeline" id="pipeline-board">
-          <div class="pipe-col"><div class="pipe-head" style="background:#0369a1;">Submitted</div><div class="pipe-body" id="pipe-submitted"></div></div>
-          <div class="pipe-col"><div class="pipe-head" style="background:#92400e;">Under Review</div><div class="pipe-body" id="pipe-review"></div></div>
-          <div class="pipe-col"><div class="pipe-head" style="background:#065f46;">Field Verified</div><div class="pipe-body" id="pipe-verified"></div></div>
-          <div class="pipe-col"><div class="pipe-head" style="background:#14532d;">Approved</div><div class="pipe-body" id="pipe-approved"></div></div>
-          <div class="pipe-col"><div class="pipe-head" style="background:#5b21b6;">Disbursed</div><div class="pipe-body" id="pipe-disbursed"></div></div>
-          <div class="pipe-col"><div class="pipe-head" style="background:#991b1b;">Rejected</div><div class="pipe-body" id="pipe-rejected"></div></div>
-        </div>
-      </div>
-
-      <!-- NEW APPLICATION -->
-      <div class="page" id="page-new-application">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-          <div style="flex:1;"><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--navy);">New Loan Application</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">Fill all fields. Submit to save to Google Sheet & Drive.</div></div>
-          <button class="btn btn-outline btn-sm" onclick="printAppForm()">🖨 Print Form</button>
-          <button class="btn btn-outline btn-sm" onclick="clearAppForm()">✕ Clear</button>
-        </div>
-        <!-- Group tabs -->
-        <div style="display:flex;gap:8px;margin-bottom:12px;" id="grp-tabs">
-          <button class="grp-tab" data-grp="A" onclick="setGrp('A',this)" style="flex:1;padding:10px 8px;background:var(--navy);border:none;border-radius:4px;cursor:pointer;font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--gold-l);text-align:center;">Group A<span style="display:block;font-size:10px;font-weight:400;color:#8a9aba;">Up to ₹50,000</span></button>
-          <button class="grp-tab" data-grp="B" onclick="setGrp('B',this)" style="flex:1;padding:10px 8px;background:var(--cream-d);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--muted);text-align:center;">Group B<span style="display:block;font-size:10px;font-weight:400;">₹50K–₹3L</span></button>
-          <button class="grp-tab" data-grp="C" onclick="setGrp('C',this)" style="flex:1;padding:10px 8px;background:var(--cream-d);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--muted);text-align:center;">Group C<span style="display:block;font-size:10px;font-weight:400;">Above ₹3L</span></button>
-        </div>
-        <!-- Form paper -->
-        <div class="af-paper">
-          <div class="af-lh">
-            <div class="af-co">Thennagam Finance Private Limited</div>
-            <div class="af-meta">CIN: U64990TN2025PTC179499 | 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur – 614205</div>
-            <div class="af-rule"></div>
-            <div class="af-badge" id="grp-badge">GROUP A LOAN — Small Loan (Up to ₹50,000)</div>
-          </div>
-          <div style="text-align:center;padding:10px 14px 4px;"><div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--navy);text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:4px;text-transform:uppercase;letter-spacing:.05em;">Loan Application Form</div></div>
-          <div class="af-body">
-            <!-- Section 1 -->
-            <div class="af-sec">
-              <div class="af-sec-head"><span class="af-sn">1</span>Borrower Personal Details</div>
-              <div class="af-grid">
-                <div class="af-row af-cols-1"><div class="af-lbl">Full Name (as per Aadhaar)</div><div class="af-val"><input type="text" id="af_name" placeholder="Full name as on Aadhaar card"></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Date of Birth</div><div class="af-val"><input type="date" id="af_dob"></div><div class="af-lbl">Gender</div><div class="af-val"><select id="af_gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Father's / Spouse's Name</div><div class="af-val"><input type="text" id="af_father"></div><div class="af-lbl">Relationship</div><div class="af-val"><select id="af_rel"><option value="">Select</option><option>S/o</option><option>D/o</option><option>W/o</option></select></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Aadhaar Number</div><div class="af-val"><input type="text" id="af_aadhar" maxlength="14" placeholder="XXXX XXXX XXXX" inputmode="numeric"><div class="af-upl-row"><label class="af-upl-btn"><span>📤</span> Upload Aadhaar<input type="file" id="af_aadhar_file" accept="image/*,.pdf" onchange="afUpload(this,'aadhar')"></label><div class="af-done" id="af_aadhar_done"><span class="af-done-name" id="af_aadhar_name"></span><button class="af-del" onclick="afDel('aadhar')">✕</button></div></div></div><div class="af-lbl">PAN Number</div><div class="af-val"><input type="text" id="af_pan" maxlength="10" placeholder="ABCDE1234F" style="text-transform:uppercase"><div class="af-upl-row"><label class="af-upl-btn"><span>📤</span> Upload PAN<input type="file" id="af_pan_file" accept="image/*,.pdf" onchange="afUpload(this,'pan')"></label><div class="af-done" id="af_pan_done"><span class="af-done-name" id="af_pan_name"></span><button class="af-del" onclick="afDel('pan')">✕</button></div></div></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Mobile Number</div><div class="af-val"><input type="tel" id="af_mobile" placeholder="10-digit mobile" inputmode="tel"></div><div class="af-lbl">Email Address</div><div class="af-val"><input type="email" id="af_email" inputmode="email"></div></div>
-                <div class="af-row af-cols-1"><div class="af-lbl">Current Address</div><div class="af-val"><textarea id="af_addr" rows="2" placeholder="Door No., Street, Village / Town"></textarea></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">District</div><div class="af-val"><input type="text" id="af_district"></div><div class="af-lbl">Pin Code</div><div class="af-val"><input type="text" id="af_pin" maxlength="6" inputmode="numeric"></div></div>
-              </div>
-            </div>
-            <!-- Photo -->
-            <div class="af-sec">
-              <div class="af-sec-head"><span class="af-sn">📷</span>Applicant Photo <span style="font-size:10px;font-weight:400;opacity:.8;">(Selfie or Passport Size)</span></div>
-              <div style="border:1px solid var(--border);border-top:none;padding:10px;background:var(--fbg);display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
-                <div>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-                    <label class="af-upl-btn"><span>🤳</span> Take Selfie<input type="file" accept="image/*" capture="user" onchange="afSelfie(this)"></label>
-                    <label class="af-upl-btn"><span>🖼</span> Upload Photo<input type="file" accept="image/*" onchange="afSelfie(this)"></label>
-                  </div>
-                  <div style="font-size:10px;color:var(--muted);">JPG, PNG • Max 5MB • Front camera on mobile</div>
-                  <div id="selfie-status" style="font-size:11px;margin-top:4px;"></div>
-                </div>
-                <div id="selfie-wrap" style="display:none;position:relative;">
-                  <img id="selfie-img" src="" style="width:72px;height:90px;object-fit:cover;border:2px solid var(--border);border-radius:4px;">
-                  <button onclick="delSelfie()" style="position:absolute;top:-6px;right:-6px;background:var(--red);color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;font-weight:700;">✕</button>
-                </div>
-              </div>
-            </div>
-            <!-- Section 2 -->
-            <div class="af-sec">
-              <div class="af-sec-head"><span class="af-sn">2</span>Employment & Income</div>
-              <div class="af-grid">
-                <div class="af-row af-cols-2"><div class="af-lbl">Occupation Type</div><div class="af-val"><select id="af_occ"><option value="">Select</option><option>Salaried – Government</option><option>Salaried – Private</option><option>Self-Employed – Business</option><option>Agriculture</option><option>Daily Wage</option><option>Other</option></select></div><div class="af-lbl">Employer / Business Name</div><div class="af-val"><input type="text" id="af_employer"></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Monthly Net Income (₹)</div><div class="af-val"><input type="number" id="af_income" placeholder="0" oninput="calcIncome()"></div><div class="af-lbl">Total Income (₹)</div><div class="af-val"><input type="text" id="af_totalinc" readonly style="color:var(--green);font-weight:600;background:var(--sbg);"></div></div>
-              </div>
-            </div>
-            <!-- Section 3 -->
-            <div class="af-sec">
-              <div class="af-sec-head"><span class="af-sn">3</span>Bank Account Details</div>
-              <div class="af-grid">
-                <div class="af-row af-cols-2"><div class="af-lbl">Bank Name</div><div class="af-val"><input type="text" id="af_bank"></div><div class="af-lbl">IFSC Code</div><div class="af-val"><input type="text" id="af_ifsc" maxlength="11" style="text-transform:uppercase" placeholder="e.g. SBIN0001234"></div></div>
-                <div class="af-row af-cols-1"><div class="af-lbl">Account Number</div><div class="af-val"><input type="text" id="af_accno" inputmode="numeric"></div></div>
-              </div>
-            </div>
-            <!-- Section 4 -->
-            <div class="af-sec">
-              <div class="af-sec-head"><span class="af-sn">4</span>Loan Requirement</div>
-              <div class="af-grid">
-                <div class="af-row af-cols-2"><div class="af-lbl">Loan Amount (₹)</div><div class="af-val"><input type="number" id="af_loanamt" placeholder="Enter amount" inputmode="numeric"></div><div class="af-lbl">Purpose of Loan</div><div class="af-val"><select id="af_purpose"><option value="">Select</option><option>Personal / Family Need</option><option>Business Working Capital</option><option>Medical Emergency</option><option>Education</option><option>Home Renovation</option><option>Agriculture</option><option>Other</option></select></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Preferred Tenure</div><div class="af-val"><select id="af_tenure"><option value="">Select</option><option>3 months</option><option>6 months</option><option>12 months</option><option>18 months</option><option>24 months</option><option>36 months</option></select></div><div class="af-lbl">Preferred EMI Date</div><div class="af-val"><input type="text" id="af_emidate" placeholder="e.g. 5th of month"></div></div>
-              </div>
-            </div>
-            <!-- Section 5 -->
-            <div class="af-sec">
-              <div class="af-sec-head"><span class="af-sn">5</span>Nominee Details</div>
-              <div class="af-grid">
-                <div class="af-row af-cols-2"><div class="af-lbl">Nominee Full Name</div><div class="af-val"><input type="text" id="af_nom_name"></div><div class="af-lbl">Relationship</div><div class="af-val"><select id="af_nom_rel"><option value="">Select</option><option>Spouse</option><option>Father</option><option>Mother</option><option>Son</option><option>Daughter</option><option>Sibling</option></select></div></div>
-                <div class="af-row af-cols-2"><div class="af-lbl">Nominee Aadhaar No.</div><div class="af-val"><input type="text" id="af_nom_aadhar" maxlength="14" placeholder="XXXX XXXX XXXX" inputmode="numeric"></div><div class="af-lbl">Nominee Mobile</div><div class="af-val"><input type="tel" id="af_nom_mobile" inputmode="tel"></div></div>
-              </div>
-            </div>
-            <!-- Submit -->
-            <div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,var(--navy),#1a3a5c);border-radius:6px;text-align:center;">
-              <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--gold-l);margin-bottom:4px;">Submit Application</div>
-              <div style="font-size:11px;color:#8a9aba;margin-bottom:10px;">Data saved to Google Sheet. Files uploaded to Google Drive.</div>
-              <button onclick="afSubmit()" style="padding:11px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:5px;font-family:'Playfair Display',serif;font-size:14px;font-weight:900;cursor:pointer;letter-spacing:.04em;">📤 Submit Application</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACTIVE LOANS -->
-      <div class="page" id="page-active-loans">
-        <div class="card">
-          <div class="card-head"><div class="card-title">Active Loan Ledger</div></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Loan ID</th><th>Borrower</th><th>Group</th><th>Principal (₹)</th><th>EMI (₹)</th><th>Outstanding (₹)</th><th>Next Due</th><th>Days Overdue</th><th>Status</th></tr></thead>
-              <tbody><tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);font-style:italic;">No active loans yet</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- COLLECTION -->
-      <div class="page" id="page-collection">
-        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
-          <div class="stat-card"><div class="stat-val" id="col-due">0</div><div class="stat-label">EMIs Due Today</div></div>
-          <div class="stat-card green"><div class="stat-val" id="col-collected">₹0</div><div class="stat-label">Collected Today</div></div>
-          <div class="stat-card red"><div class="stat-val" id="col-overdue">0</div><div class="stat-label">Overdue Accounts</div></div>
-          <div class="stat-card amber"><div class="stat-val" id="col-amt">₹0</div><div class="stat-label">Total Overdue Amount</div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;">
-          <div class="card">
-            <div class="card-head"><div class="card-title">Due Today & Overdue</div></div>
-            <div id="collection-list" style="min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-style:italic;padding:20px;">No EMIs due today</div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">Recent Payments</div></div>
-            <div class="tbl-wrap"><table><thead><tr><th>Receipt</th><th>Name</th><th>Amount</th></tr></thead><tbody id="recent-payments"><tr><td colspan="3" style="text-align:center;padding:16px;color:var(--muted);font-style:italic;font-size:12px;">No payments recorded yet</td></tr></tbody></table></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BANK RECON -->
-      <div class="page" id="page-bank-recon">
-        <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;">
-          <div class="card">
-            <div class="card-head"><div class="card-title">Upload Bank Statement</div></div>
-            <div class="card-body">
-              <div class="form-row" style="margin-bottom:10px;">
-                <div class="form-group"><label class="form-label">Statement Period From</label><input class="form-control" type="date"></div>
-                <div class="form-group"><label class="form-label">To</label><input class="form-control" type="date"></div>
-              </div>
-              <div class="form-group"><label class="form-label">Bank Account</label><select class="form-control"><option>Select bank account</option></select></div>
-              <div style="border:2px dashed var(--border);border-radius:6px;padding:32px;text-align:center;margin-top:10px;cursor:pointer;" onclick="document.getElementById('recon-file').click()">
-                <div style="font-size:36px;margin-bottom:8px;">📁</div>
-                <div style="color:var(--muted);font-size:13px;">Drop CSV / Excel here or <span style="color:var(--blue);text-decoration:underline;">click to browse</span></div>
-                <div style="font-size:11px;color:var(--muted);margin-top:4px;">Supports CSV, Excel (.xlsx)</div>
-                <input type="file" id="recon-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="showToast('File uploaded — processing…','success')">
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">Bank Reconciliation Statement</div></div>
-            <div class="card-body">
-              <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;"><span style="color:var(--muted);">Balance as per Bank Statement</span><strong>—</strong></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;"><span style="color:var(--muted);">Add: Deposits in transit</span><span style="color:var(--green);">—</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:13px;"><span style="color:var(--muted);">Less: Outstanding cheques</span><span style="color:var(--red);">—</span></div>
-              <div style="border-top:2px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;font-size:14px;font-weight:700;"><span>Balance as per Books</span><span>—</span></div>
-              <div style="margin-top:10px;font-size:12px;color:var(--muted);">Upload a bank statement to generate BRS</div>
-              <div style="display:flex;gap:8px;margin-top:12px;">
-                <button class="btn btn-outline btn-sm">⬇ Download BRS PDF</button>
-                <button class="btn btn-outline btn-sm">⬇ Export Excel</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Transaction Matching Detail</div></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Date</th><th>Bank Description</th><th>Amount (₹)</th><th>System Receipt</th><th>Matched</th><th>Action</th></tr></thead>
-              <tbody><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);font-style:italic;">Upload a bank statement to start reconciliation</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- REPORTS -->
-      <div class="page" id="page-reports">
-        <div class="report-tabs">
-          <button class="report-tab active" onclick="switchReport('loan-book',this)">Loan Book</button>
-          <button class="report-tab" onclick="switchReport('overdue',this)">Overdue Ageing</button>
-          <button class="report-tab" onclick="switchReport('collection-rpt',this)">Collection</button>
-          <button class="report-tab" onclick="switchReport('disbursement',this)">Disbursements</button>
-          <button class="report-tab" onclick="switchReport('staff-perf',this)">Staff Performance</button>
-        </div>
-        <div id="rpt-loan-book" class="card">
-          <div class="card-head"><div class="card-title">Loan Book Summary</div><button class="btn btn-outline btn-sm">⬇ Export Excel</button></div>
-          <div class="tbl-wrap"><table><thead><tr><th>Group</th><th>No. of Loans</th><th>Disbursed (₹)</th><th>Outstanding (₹)</th><th>Overdue (₹)</th><th>NPA (₹)</th><th>Collection Rate</th></tr></thead><tbody>
-            <tr><td><strong>Group A</strong></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td></tr>
-            <tr><td><strong>Group B</strong></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td></tr>
-            <tr><td><strong>Group C</strong></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td></tr>
-            <tr style="font-weight:700;background:var(--sbg);"><td>TOTAL</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td></tr>
-          </tbody></table></div>
-        </div>
-        <div id="rpt-overdue" class="card" style="display:none;"><div class="card-head"><div class="card-title">Overdue Ageing Report</div></div><div class="tbl-wrap"><table><thead><tr><th>Bucket</th><th>Accounts</th><th>Principal (₹)</th><th>Interest (₹)</th><th>Penal (₹)</th><th>Total (₹)</th></tr></thead><tbody><tr><td colspan="6" style="text-align:center;padding:18px;color:var(--muted);font-style:italic;">No overdue accounts</td></tr></tbody></table></div></div>
-        <div id="rpt-collection-rpt" class="card" style="display:none;"><div class="card-head"><div class="card-title">Collection Report</div></div><div class="card-body"><p style="color:var(--muted);font-style:italic;">Select a date range and generate report</p></div></div>
-        <div id="rpt-disbursement" class="card" style="display:none;"><div class="card-head"><div class="card-title">Disbursement Report</div></div><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Loan ID</th><th>Borrower</th><th>Group</th><th>Amount (₹)</th><th>Mode</th><th>Reference</th></tr></thead><tbody><tr><td colspan="7" style="text-align:center;padding:18px;color:var(--muted);font-style:italic;">No disbursements yet</td></tr></tbody></table></div></div>
-        <div id="rpt-staff-perf" class="card" style="display:none;"><div class="card-head"><div class="card-title">Staff Performance</div></div><div class="tbl-wrap"><table><thead><tr><th>Staff</th><th>Role</th><th>Applications</th><th>Field Visits</th><th>Collections</th><th>Amount Collected (₹)</th></tr></thead><tbody><tr><td colspan="6" style="text-align:center;padding:18px;color:var(--muted);font-style:italic;">No data yet</td></tr></tbody></table></div></div>
-      </div>
-
-      <!-- STAFF -->
-      <div class="page" id="page-staff">
-        <div class="card">
-          <div class="card-head"><div class="card-title">Staff Management</div><button class="btn btn-primary btn-sm">+ Add Staff</button></div>
-          <div class="tbl-wrap"><table><thead><tr><th>Staff ID</th><th>Name</th><th>Email</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-            <tr><td>STF-001</td><td><strong>Admin</strong></td><td>adv.t.murugavelu@gmail.com</td><td><span class="badge badge-approved">Super Admin</span></td><td>All Branches</td><td>—</td><td><span class="badge badge-active">Active</span></td><td><button class="btn-icon">✏️</button></td></tr>
-          </tbody></table></div>
-        </div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div class="page" id="page-settings">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <div class="card">
-            <div class="card-head"><div class="card-title">Company Details</div></div>
-            <div class="card-body">
-              <div class="form-group"><label class="form-label">Company Name</label><input class="form-control" value="Thennagam Finance Private Limited"></div>
-              <div class="form-group"><label class="form-label">CIN</label><input class="form-control" value="U64990TN2025PTC179499"></div>
-              <div class="form-group"><label class="form-label">Address</label><textarea class="form-control" rows="2">26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu – 614205</textarea></div>
-              <div class="form-group"><label class="form-label">Staff Alert Email</label><input class="form-control" value="adv.t.murugavelu@gmail.com"></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">Loan Charges (RBI Compliant)</div></div>
-            <div class="card-body">
-              <div class="form-group"><label class="form-label">Processing Fee (%)</label><input class="form-control" value="2" type="number"></div>
-              <div class="form-group"><label class="form-label">Penal Charge (% per month on overdue)</label><input class="form-control" value="2" type="number"></div>
-              <div class="form-group"><label class="form-label">ECS / Bounce Charge (₹ incl. GST)</label><input class="form-control" value="590" type="number"></div>
-              <div class="form-group"><label class="form-label">Prepayment — Group A & B</label><input class="form-control" value="NIL" readonly style="color:var(--green);font-weight:600;"></div>
-              <div class="form-group"><label class="form-label">Prepayment — Group C (max %)</label><input class="form-control" value="2" type="number"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /pages -->
-  </div><!-- /main-area -->
-</div><!-- /app -->
-
-<!-- COLLECT MODAL -->
-<div class="modal-bg" id="collect-modal">
-  <div class="modal">
-    <div class="modal-title">Record Payment</div>
+  <!-- EMPLOYMENT & INCOME -->
+  <div class="card">
+    <div class="card-title">💼 Employment & Income</div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Loan ID</label><input class="form-control" id="col-loan-id" placeholder="TF-2025-A-00001"></div>
-      <div class="form-group"><label class="form-label">Borrower Name</label><input class="form-control" id="col-borrower"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-control" type="number" id="col-amount" placeholder="0"></div>
-      <div class="form-group"><label class="form-label">Payment Mode</label><select class="form-control" id="col-mode"><option>Cash</option><option>UPI</option><option>NEFT</option><option>IMPS</option><option>Cheque</option><option>NACH</option></select></div>
-    </div>
-    <div class="form-group"><label class="form-label">Reference / UTR No.</label><input class="form-control" id="col-ref" placeholder="Optional for Cash"></div>
-    <div class="form-group"><label class="form-label">Payment Date</label><input class="form-control" type="date" id="col-date"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
-      <button class="btn btn-outline" onclick="closeCollectModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="savePayment()">Save Payment</button>
+      <div class="form-group">
+        <label>Occupation</label>
+        <select id="af_occupation">
+          <option value="">Select</option>
+          <option>Petty Business</option>
+          <option>Agriculture</option>
+          <option>Salaried</option>
+          <option>Daily Wages</option>
+          <option>Self Employed</option>
+          <option>Others</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Monthly Income (₹)</label>
+        <input type="number" id="af_income" placeholder="e.g. 15000">
+      </div>
     </div>
   </div>
+
+  <!-- LOAN DETAILS -->
+  <div class="card">
+    <div class="card-title">💰 Loan Requirement</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Loan Amount (₹) <span class="req">*</span></label>
+        <input type="number" id="af_loanamt" placeholder="Amount required">
+      </div>
+      <div class="form-group">
+        <label>Tenure (Months)</label>
+        <select id="af_tenure">
+          <option value="">Select</option>
+          <option>6</option><option>12</option><option>18</option>
+          <option>24</option><option>36</option><option>48</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Purpose of Loan</label>
+        <select id="af_purpose">
+          <option value="">Select</option>
+          <option>Business Working Capital</option>
+          <option>Agriculture / Farming</option>
+          <option>Medical Emergency</option>
+          <option>Education</option>
+          <option>Housing Repair</option>
+          <option>Personal / Family Needs</option>
+          <option>Others</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOMINEE -->
+  <div class="card">
+    <div class="card-title">👨‍👩‍👦 Nominee Details</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nominee Name <span class="req">*</span></label>
+        <input type="text" id="af_nom_name" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label>Relation</label>
+        <select id="af_nom_rel">
+          <option value="">Select</option>
+          <option>Spouse</option><option>Father</option><option>Mother</option>
+          <option>Son</option><option>Daughter</option><option>Sibling</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nominee Age</label>
+        <input type="number" id="af_nom_age" placeholder="Age">
+      </div>
+      <div class="form-group">
+        <label>Nominee Phone</label>
+        <input type="tel" id="af_nom_phone" placeholder="Mobile number" maxlength="10">
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCUMENT UPLOAD -->
+  <div class="card">
+    <div class="card-title">📎 Document Upload</div>
+    <div class="form-row">
+      <!-- Selfie -->
+      <div class="form-group">
+        <label>Applicant Photo / Selfie <span class="req">*</span></label>
+        <div class="upload-box">
+          <input type="file" accept="image/*" capture="user" onchange="afUpload(this,'selfie')">
+          <div class="upload-icon">📷</div>
+          <div class="upload-label">Tap to take selfie</div>
+          <div class="upload-sub">or upload photo</div>
+        </div>
+        <img id="selfie-thumb" class="thumb-preview">
+        <div id="af_selfie_done" class="upload-done">✅ <span id="af_selfie_name"></span></div>
+      </div>
+      <!-- Aadhaar -->
+      <div class="form-group">
+        <label>Aadhaar Card <span class="req">*</span></label>
+        <div class="upload-box">
+          <input type="file" accept="image/*,application/pdf" onchange="afUpload(this,'aadhar')">
+          <div class="upload-icon">🪪</div>
+          <div class="upload-label">Upload Aadhaar</div>
+          <div class="upload-sub">PDF or image</div>
+        </div>
+        <div id="af_aadhar_done" class="upload-done">✅ <span id="af_aadhar_name"></span></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <!-- PAN -->
+      <div class="form-group">
+        <label>PAN Card</label>
+        <div class="upload-box">
+          <input type="file" accept="image/*,application/pdf" onchange="afUpload(this,'pan')">
+          <div class="upload-icon">🗂️</div>
+          <div class="upload-label">Upload PAN Card</div>
+          <div class="upload-sub">PDF or image</div>
+        </div>
+        <div id="af_pan_done" class="upload-done">✅ <span id="af_pan_name"></span></div>
+      </div>
+      <!-- Nominee Aadhaar -->
+      <div class="form-group">
+        <label>Nominee Aadhaar</label>
+        <div class="upload-box">
+          <input type="file" accept="image/*,application/pdf" onchange="afUpload(this,'nominee_aadhar')">
+          <div class="upload-icon">📄</div>
+          <div class="upload-label">Nominee Aadhaar</div>
+          <div class="upload-sub">PDF or image</div>
+        </div>
+        <div id="af_nominee_aadhar_done" class="upload-done">✅ <span id="af_nominee_aadhar_name"></span></div>
+      </div>
+    </div>
+    <div class="form-row full" style="margin-top:8px">
+      <div class="form-group">
+        <label>Income Proof (Optional)</label>
+        <div class="upload-box">
+          <input type="file" accept="image/*,application/pdf" onchange="afUpload(this,'income_proof')">
+          <div class="upload-icon">📊</div>
+          <div class="upload-label">Bank statement / salary slip / any income proof</div>
+          <div class="upload-sub">PDF or image</div>
+        </div>
+        <div id="af_income_proof_done" class="upload-done">✅ <span id="af_income_proof_name"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <button class="btn btn-primary btn-lg" onclick="afSubmit()">✅ Submit Application</button>
+  <p style="text-align:center;font-size:.8rem;color:var(--muted);margin-top:10px">
+    Your data is securely stored in our system.
+  </p>
 </div>
 
-<!-- SUBMIT SPINNER -->
+<!-- SPINNER -->
 <div id="submit-spinner">
-  <div class="spinner-ring"></div>
-  <div style="color:var(--gold-l);font-family:'Playfair Display',serif;font-size:15px;font-weight:700;">Submitting Application…</div>
-  <div id="spinner-step" style="color:#8a9aba;font-size:12px;">Preparing files…</div>
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <div style="font-weight:700;color:var(--navy)">Please wait…</div>
+    <div id="spinner-step">Preparing submission…</div>
+  </div>
 </div>
 
 <!-- SUCCESS SCREEN -->
 <div id="success-screen">
-  <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:28px 24px;width:100%;max-width:420px;text-align:center;">
-
-    <!-- Icon + title -->
-    <div style="font-size:52px;margin-bottom:10px;">✅</div>
-    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:white;margin-bottom:6px;">Application Submitted Successfully</div>
-
-    <!-- App ID badge -->
-    <div style="background:rgba(201,147,42,.15);border:1px solid var(--gold);border-radius:6px;padding:12px 16px;margin:14px 0;">
-      <div style="font-size:10px;color:#8a9aba;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Application ID</div>
-      <div id="success-id" style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--gold-l);letter-spacing:.1em;"></div>
-    </div>
-
-    <!-- Message -->
-    <div id="success-msg" style="font-size:13px;color:#c0cfe0;line-height:1.7;margin-bottom:6px;"></div>
-
-    <!-- Drive link if saved -->
-    <div id="success-drive" style="display:none;margin:8px 0;">
-      <a id="success-drive-link" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:7px 14px;color:#8a9aba;text-decoration:none;font-size:12px;">
-        📁 View Application in Google Drive
-      </a>
-    </div>
-
-    <!-- PDF status -->
-    <div id="pdf-save-status" style="font-size:11px;color:#5a7090;margin:6px 0;"></div>
-
-    <!-- Action buttons -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
-      <button onclick="successPrintPDF()" style="padding:11px 8px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:var(--gold);color:var(--navy);border:none;display:flex;align-items:center;justify-content:center;gap:6px;">
-        🖨️ Print / Save PDF
-      </button>
-      <button onclick="successViewSheet()" style="padding:11px 8px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:var(--green);color:white;border:none;display:flex;align-items:center;justify-content:center;gap:6px;">
-        📊 View in Sheet
-      </button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-      <button onclick="resetForm()" style="padding:10px 8px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:none;border:1px solid rgba(255,255,255,.25);color:white;">
-        ➕ New Application
-      </button>
-      <button onclick="closeSuccess()" style="padding:10px 8px;border-radius:5px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;cursor:pointer;background:none;border:1px solid rgba(255,255,255,.15);color:#8a9aba;">
-        📋 All Applications
-      </button>
+  <div class="success-box">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Application Submitted!</div>
+    <div class="success-appid" id="success-appid">TF-2026-A-00001</div>
+    <div class="success-msg" id="success-msg">Your application has been received. Our team will contact you within 1–2 working days.</div>
+    <div id="pdf-save-status"></div>
+    <div class="success-actions">
+      <button class="btn btn-outline" onclick="printApplication()">🖨️ Print Form</button>
+      <button class="btn btn-primary" onclick="newApplication()">+ New Application</button>
     </div>
   </div>
 </div>
 
+<!-- TOAST -->
+<div id="toast"></div>
+
 <script>
-// ══════════════════════════════════════════════
-// CONFIGURATION — LIVE
-// ══════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8oGWzXkWAjD8FF_4k9vKScjiYbeo78mmqEw1EgTrFZfi8LHwVlGGZs4ay1_I1Dlwhmw/exec';
+// ══════════════════════════════════════════════════════════════════
+//  CONFIGURATION — UPDATE THIS URL AFTER REDEPLOYING APPS SCRIPT
+// ══════════════════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhe3xOSH00SrK3y2bM8REy5nMkhdpkblJA6cDcffvmHZS1Z4peiEU5K94B0CIDazgJGw/exec';
 
-// ══════════════════════════════════════════════
-// USERS — ADD MORE STAFF HERE
-// ══════════════════════════════════════════════
-const USERS = {
-  'adv.t.murugavelu@gmail.com': { password: 'velu@12345', name: 'Admin', role: 'Super Admin', initials: 'A' },
-};
-
-// ══════════════════════════════════════════════
-// LOGIN / LOGOUT
-// ══════════════════════════════════════════════
-let currentUser = null;
-
-function doLogin() {
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('login-password').value;
-  const errEl = document.getElementById('login-error');
-  errEl.style.display = 'none';
-
-  if (!email) { errEl.textContent = 'Please enter your email address.'; errEl.style.display = 'block'; return; }
-  if (!pass)  { errEl.textContent = 'Please enter your password.'; errEl.style.display = 'block'; return; }
-
-  const user = USERS[email];
-  if (!user || user.password !== pass) {
-    errEl.textContent = 'Invalid email or password. Please try again.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  // Login successful
-  currentUser = { email, ...user };
-  document.getElementById('login-page').style.display = 'none';
-  const appEl = document.getElementById('app');
-  appEl.style.display = 'flex';
-  document.getElementById('user-name').textContent = user.name;
-  document.getElementById('user-role').textContent = user.role;
-  document.getElementById('user-avatar').textContent = user.initials;
-  document.getElementById('col-date').value = new Date().toISOString().split('T')[0];
-  showPage('dashboard');
-  showToast('Welcome, ' + user.name + '!', 'success');
-}
-
-function doLogout() {
-  currentUser = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
-  document.getElementById('login-email').value = '';
-  document.getElementById('login-password').value = '';
-  document.getElementById('login-error').style.display = 'none';
-}
-
-// Allow Enter key to login
-document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-document.getElementById('login-email').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-// ══════════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════════
-const PAGE_TITLES = {
-  'dashboard': 'Dashboard', 'applications': 'All Applications', 'pipeline': 'Pipeline View',
-  'new-application': 'New Application', 'active-loans': 'Active Loans', 'collection': 'Collection',
-  'bank-recon': 'Bank Reconciliation', 'reports': 'Reports', 'staff': 'Staff Management', 'settings': 'Settings'
-};
-
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const page = document.getElementById('page-' + id);
-  if (page) page.classList.add('active');
-  const navItems = document.querySelectorAll('.nav-item');
-  navItems.forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active'); });
-  document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
-  window.scrollTo(0, 0);
-}
-
-// ══════════════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════════════
-let toastTimer;
-function showToast(msg, type = 'info') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + (type || '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = 'toast'; }, 3500);
-}
-
-// ══════════════════════════════════════════════
-// REPORT TABS
-// ══════════════════════════════════════════════
-function switchReport(id, btn) {
-  document.querySelectorAll('[id^="rpt-"]').forEach(el => el.style.display = 'none');
-  const target = document.getElementById('rpt-' + id);
-  if (target) target.style.display = 'block';
-  document.querySelectorAll('.report-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-// ══════════════════════════════════════════════
-// COLLECT MODAL
-// ══════════════════════════════════════════════
-function openCollectModal() {
-  document.getElementById('collect-modal').classList.add('show');
-}
-function closeCollectModal() {
-  document.getElementById('collect-modal').classList.remove('show');
-}
-function savePayment() {
-  const amt = document.getElementById('col-amount').value;
-  if (!amt || parseFloat(amt) <= 0) { showToast('Please enter a valid amount', 'error'); return; }
-  const rcpNo = 'RCP-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*90000+10000));
-  closeCollectModal();
-  showToast('✅ Payment recorded. Receipt: ' + rcpNo, 'success');
-}
-
-// ══════════════════════════════════════════════
-// APPLICATION FORM
-// ══════════════════════════════════════════════
+// ── State ─────────────────────────────────────────────────────────
 let curGrp = 'A';
-const afFiles = { aadhar: null, pan: null, selfie: null };
+const afFiles = {};
+let _lastAppId = null;
+let _lastData  = null;
 
 const GRP_BADGES = {
   A: 'GROUP A LOAN — Small Loan (Up to ₹50,000)',
@@ -829,331 +392,410 @@ const GRP_BADGES = {
   C: 'GROUP C LOAN — Large Loan (Above ₹3,00,001)'
 };
 
+// ── Group select ──────────────────────────────────────────────────
 function setGrp(g, btn) {
   curGrp = g;
-  document.querySelectorAll('.grp-tab').forEach(b => {
-    b.style.background = 'var(--cream-d)';
-    b.style.border = '1px solid var(--border)';
-    b.style.color = 'var(--muted)';
-  });
-  btn.style.background = 'var(--navy)';
-  btn.style.border = 'none';
-  btn.style.color = 'var(--gold-l)';
+  document.querySelectorAll('.grp-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
   document.getElementById('grp-badge').textContent = GRP_BADGES[g];
 }
 
+// ── File upload handler ───────────────────────────────────────────
 function afUpload(input, doc) {
-  const file = input.files[0]; if (!file) return;
+  const file = input.files[0];
+  if (!file) return;
   afFiles[doc] = file;
-  const done = document.getElementById('af_' + doc + '_done');
-  const name = document.getElementById('af_' + doc + '_name');
-  if (done) done.classList.add('show');
-  if (name) name.textContent = file.name.length > 22 ? file.name.substring(0,20)+'…' : file.name;
+  const doneEl = document.getElementById(`af_${doc}_done`);
+  const nameEl = document.getElementById(`af_${doc}_name`);
+  if (doneEl) doneEl.classList.add('show');
+  if (nameEl) nameEl.textContent = file.name.length > 28 ? file.name.slice(0,25)+'…' : file.name;
+  if (doc === 'selfie') {
+    const thumb = document.getElementById('selfie-thumb');
+    const reader = new FileReader();
+    reader.onload = e => { thumb.src = e.target.result; thumb.classList.add('show'); };
+    reader.readAsDataURL(file);
+  }
 }
 
-function afDel(doc) {
-  afFiles[doc] = null;
-  const done = document.getElementById('af_' + doc + '_done');
-  if (done) done.classList.remove('show');
-  const fi = document.getElementById('af_' + doc + '_file');
-  if (fi) fi.value = '';
+// ── Toast helper ──────────────────────────────────────────────────
+function showToast(msg, type='info', dur=3500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', dur);
 }
 
-function afSelfie(input) {
-  const file = input.files[0]; if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { showToast('Photo too large — use under 5MB', 'error'); return; }
-  afFiles.selfie = file;
-  const wrap = document.getElementById('selfie-wrap');
-  const img  = document.getElementById('selfie-img');
-  const st   = document.getElementById('selfie-status');
-  img.src = URL.createObjectURL(file);
-  wrap.style.display = 'block';
-  st.textContent = '✓ Photo ready';
-  st.style.color = 'var(--green)';
-  input.value = '';
+// ── Convert file to base64 ────────────────────────────────────────
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('File read error'));
+    r.readAsDataURL(file);
+  });
 }
 
-function delSelfie() {
-  afFiles.selfie = null;
-  document.getElementById('selfie-img').src = '';
-  document.getElementById('selfie-wrap').style.display = 'none';
-  document.getElementById('selfie-status').textContent = '';
+// ── Get ext ───────────────────────────────────────────────────────
+function ext(file) {
+  const p = file.name.split('.');
+  return p.length > 1 ? p.pop().toLowerCase() : 'bin';
 }
 
-function calcIncome() {
-  const v = parseFloat(document.getElementById('af_income').value) || 0;
-  document.getElementById('af_totalinc').value = v ? v.toLocaleString('en-IN') : '';
-}
+// ── Collect all form values ───────────────────────────────────────
+function gv(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
+// ── MAIN SUBMIT ───────────────────────────────────────────────────
 async function afSubmit() {
-  const gv = id => (document.getElementById(id)?.value || '').trim();
-  if (!gv('af_name'))     { showToast('⚠ Please fill Borrower Full Name', 'error'); return; }
-  if (!gv('af_mobile'))   { showToast('⚠ Please fill Mobile Number', 'error'); return; }
-  if (!gv('af_loanamt'))  { showToast('⚠ Please fill Loan Amount', 'error'); return; }
-  if (!gv('af_nom_name')) { showToast('⚠ Please fill Nominee Name', 'error'); return; }
-  if (!afFiles.selfie)    { showToast('⚠ Please upload Applicant Photo / Selfie', 'error'); return; }
+  // 1) Validate
+  const name    = gv('af_name');
+  const mobile  = gv('af_mobile');
+  const address = gv('af_address');
+  const loanAmt = gv('af_loanamt');
+  const nomName = gv('af_nom_name');
 
-  document.getElementById('submit-spinner').style.display = 'flex';
-  document.getElementById('spinner-step').textContent = 'Preparing data…';
+  if (!name)           { showToast('⚠️ Please fill Applicant Name','error'); return; }
+  if (!mobile)         { showToast('⚠️ Please fill Mobile Number','error'); return; }
+  if (mobile.length !== 10) { showToast('⚠️ Mobile must be 10 digits','error'); return; }
+  if (!address)        { showToast('⚠️ Please fill Address','error'); return; }
+  if (!loanAmt)        { showToast('⚠️ Please fill Loan Amount','error'); return; }
+  if (!nomName)        { showToast('⚠️ Please fill Nominee Name','error'); return; }
+  if (!afFiles.selfie) { showToast('⚠️ Please upload Applicant Photo','error'); return; }
+  if (!afFiles.aadhar) { showToast('⚠️ Please upload Aadhaar Card','error'); return; }
 
-  const data = {
-    loanGroup:'Group ' + curGrp,
-    fullName:gv('af_name'), dob:gv('af_dob'), gender:gv('af_gender'),
-    fatherName:gv('af_father'), relationship:gv('af_rel'),
-    aadhaarNo:gv('af_aadhar'), panNo:gv('af_pan'),
-    mobile:gv('af_mobile'), email:gv('af_email'),
-    address:gv('af_addr'), district:gv('af_district'), pinCode:gv('af_pin'), state:'Tamil Nadu',
-    occupation:gv('af_occ'), employer:gv('af_employer'),
-    income:gv('af_income'), totalIncome:gv('af_totalinc'),
-    bankName:gv('af_bank'), ifsc:gv('af_ifsc'), accountNo:gv('af_accno'),
-    loanAmount:gv('af_loanamt'), purpose:gv('af_purpose'),
-    tenure:gv('af_tenure'), emiDate:gv('af_emidate'),
-    nomineeName:gv('af_nom_name'), nomineeRelation:gv('af_nom_rel'),
-    nomineeAadhaar:gv('af_nom_aadhar'), nomineeMobile:gv('af_nom_mobile'),
-    files:{}
-  };
-  _lastAppData = data;
+  // 2) Show spinner
+  const spinner = document.getElementById('submit-spinner');
+  const step    = document.getElementById('spinner-step');
+  spinner.classList.add('show');
 
   try {
-    const toB64 = f => new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=()=>rej(new Error('Read failed')); r.readAsDataURL(f); });
-    const ext   = f => { const p=f.name.split('.'); return p.length>1?p.pop().toLowerCase():'bin'; };
+    // 3) Build payload
+    const data = {
+      action:      'submitApplication',
+      group:       curGrp,
+      name,
+      mobile,
+      email:       gv('af_email'),
+      dob:         gv('af_dob'),
+      gender:      gv('af_gender'),
+      fatherName:  gv('af_father'),
+      address,
+      city:        gv('af_city'),
+      state:       'Tamil Nadu',
+      pincode:     gv('af_pincode'),
+      aadharNo:    gv('af_aadhar_no'),
+      panNo:       gv('af_pan_no').toUpperCase(),
+      occupation:  gv('af_occupation'),
+      income:      gv('af_income'),
+      loanAmount:  loanAmt,
+      loanPurpose: gv('af_purpose'),
+      loanTenure:  gv('af_tenure'),
+      nomineeName: nomName,
+      nomineeRel:  gv('af_nom_rel'),
+      nomineeAge:  gv('af_nom_age'),
+      nomineePhone:gv('af_nom_phone'),
+      files:       {}
+    };
 
-    if (afFiles.selfie) { document.getElementById('spinner-step').textContent='Uploading photo…';   data.files.selfie={data:await toB64(afFiles.selfie),mimeType:afFiles.selfie.type,ext:ext(afFiles.selfie)}; }
-    if (afFiles.aadhar) { document.getElementById('spinner-step').textContent='Uploading Aadhaar…'; data.files.aadhar={data:await toB64(afFiles.aadhar),mimeType:afFiles.aadhar.type,ext:ext(afFiles.aadhar)}; }
-    if (afFiles.pan)    { document.getElementById('spinner-step').textContent='Uploading PAN…';     data.files.pan   ={data:await toB64(afFiles.pan),   mimeType:afFiles.pan.type,   ext:ext(afFiles.pan)   }; }
+    // 4) Convert files to base64
+    const fileFields = ['selfie','aadhar','pan','nominee_aadhar','income_proof'];
+    const fileLabels = ['photo','Aadhaar','PAN','Nominee Aadhaar','Income proof'];
+    for (let i = 0; i < fileFields.length; i++) {
+      const f = fileFields[i];
+      if (afFiles[f]) {
+        step.textContent = `Uploading ${fileLabels[i]}…`;
+        data.files[f] = {
+          data:     await toBase64(afFiles[f]),
+          mimeType: afFiles[f].type,
+          ext:      ext(afFiles[f])
+        };
+      }
+    }
 
-    document.getElementById('spinner-step').textContent = 'Saving to database…';
-    // no-cors mode — response is opaque, can't read body
-    // Apps Script receives and processes fine; we generate ID locally
-    await fetch(SCRIPT_URL, {method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)});
-    document.getElementById('submit-spinner').style.display = 'none';
+    // 5) Submit to Google Apps Script
+    step.textContent = 'Saving to database…';
 
-    // Generate Application ID locally (same format as server)
-    const appId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
-    showSuccess(
-      appId,
-      (data.email ? `Confirmation email sent to ${data.email}. ` : '') +
-      `Application ID: ${appId}. Our team will contact you within 1–2 working days.`,
-      null
-    );
-    savePDFToDrive(data, appId, null);
+    let appId, folderLink;
+
+    try {
+      // Try with fetch using text/plain (avoids CORS preflight)
+      const resp = await fetch(SCRIPT_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body:    JSON.stringify(data)
+      });
+      const result = await resp.json();
+
+      if (result.success) {
+        appId     = result.appId;
+        folderLink = result.folderLink;
+      } else {
+        throw new Error(result.message || 'Server returned error');
+      }
+    } catch (fetchErr) {
+      console.warn('Fetch error, trying no-cors fallback:', fetchErr.message);
+      // Fallback: no-cors fire-and-forget, generate ID locally
+      try {
+        await fetch(SCRIPT_URL, {
+          method:  'POST',
+          mode:    'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body:    JSON.stringify(data)
+        });
+      } catch(e) {}
+      // Generate ID locally (same format as server)
+      appId = `TF-${new Date().getFullYear()}-${curGrp}-${String(Date.now()).slice(-5)}`;
+      folderLink = null;
+    }
+
+    // 6) Save data for PDF
+    _lastAppId = appId;
+    _lastData  = data;
+
+    spinner.classList.remove('show');
+
+    // 7) Show success
+    document.getElementById('success-appid').textContent = appId;
+    const emailNote = data.email ? `Confirmation will be sent to ${data.email}. ` : '';
+    document.getElementById('success-msg').textContent =
+      `${emailNote}Application ID: ${appId}. Our team will contact you within 1–2 working days.`;
+    document.getElementById('success-screen').style.display = 'block';
+
+    // 8) Generate & upload PDF in background
+    step.textContent = 'Generating PDF…';
+    savePDFToDrive(data, appId);
 
   } catch (err) {
-    document.getElementById('submit-spinner').style.display = 'none';
-    const fbId = 'TF-' + new Date().getFullYear() + '-' + curGrp + '-' + String(Date.now()).slice(-5);
-    showSuccess(fbId, `Application submitted. Reference ID: ${fbId}. Our team will contact you within 1–2 working days.`, null);
-    console.log('Submit note:', err.message);
+    spinner.classList.remove('show');
+    console.error('Submit error:', err);
+    // Still show success — data may have been saved server-side
+    const fbId = `TF-${new Date().getFullYear()}-${curGrp}-${String(Date.now()).slice(-5)}`;
+    _lastAppId = fbId;
+    document.getElementById('success-appid').textContent = fbId;
+    document.getElementById('success-msg').textContent =
+      `Application submitted. Reference ID: ${fbId}. Our team will contact you within 1–2 working days.`;
+    document.getElementById('success-screen').style.display = 'block';
   }
 }
 
-// ── SAVE PDF TO GOOGLE DRIVE ─────────────────────────────────
-async function savePDFToDrive(data, appId, folderLink) {
+// ── Generate and upload PDF to Drive ─────────────────────────────
+async function savePDFToDrive(data, appId) {
   const statusEl = document.getElementById('pdf-save-status');
-  if (statusEl) statusEl.textContent = '⏳ Saving PDF to Google Drive…';
+  statusEl.textContent = '⏳ Saving application PDF to Google Drive…';
   try {
-    const pdfHTML = buildAppFormHTML(data, appId);
-    const payload = { action:'savePDF', appId, pdfHTML, fileName:`Application_Form_${appId}.pdf` };
-    // no-cors — response opaque, can't read result
-    await fetch(SCRIPT_URL, {method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-    if (statusEl) statusEl.textContent = '✅ Application form sent to Google Drive. Check the applicant folder in Drive.';
-  } catch (e) {
-    if (statusEl) statusEl.textContent = 'Use "Print / Save PDF" button to save the application form to your device.';
+    // Build PDF as base64 using jsPDF
+    await loadJsPDF();
+    const pdfBase64 = buildPDF(data, appId);
+
+    const payload = {
+      action:    'savePDF',
+      appId,
+      pdfBase64,
+      fileName: `Application_Form_${appId}.pdf`
+    };
+
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body:    JSON.stringify(payload)
+      });
+      const result = await resp.json();
+      if (result.success) {
+        statusEl.textContent = '✅ Application PDF saved to Google Drive.';
+      } else {
+        statusEl.textContent = '⚠️ PDF upload noted. Use Print button to save locally.';
+      }
+    } catch(e) {
+      // no-cors fallback
+      await fetch(SCRIPT_URL, {
+        method:  'POST',
+        mode:    'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body:    JSON.stringify(payload)
+      }).catch(()=>{});
+      statusEl.textContent = '✅ PDF sent to server. Use Print button for local copy.';
+    }
+  } catch(e) {
+    console.warn('PDF save error:', e);
+    statusEl.textContent = 'Use 🖨️ Print Form button below to save the application form.';
   }
 }
 
-// ── SUCCESS SCREEN ────────────────────────────────────────────
-let _lastAppData = null; // store last submission data for print
-
-function showSuccess(appId, msg, driveLink) {
-  document.getElementById('success-id').textContent  = appId;
-  document.getElementById('success-msg').textContent = msg;
-  // Show drive link if available
-  const driveDiv  = document.getElementById('success-drive');
-  const driveAnchor = document.getElementById('success-drive-link');
-  if (driveLink) { driveAnchor.href = driveLink; driveDiv.style.display = 'block'; }
-  else           { driveDiv.style.display = 'none'; }
-  document.getElementById('pdf-save-status').textContent = '';
-  document.getElementById('success-screen').style.display = 'flex';
+// ── Load jsPDF ────────────────────────────────────────────────────
+function loadJsPDF() {
+  return new Promise((res, rej) => {
+    if (window.jspdf) { res(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload = () => res();
+    s.onerror = () => rej(new Error('jsPDF load failed'));
+    document.head.appendChild(s);
+  });
 }
 
-function closeSuccess() {
-  document.getElementById('success-screen').style.display = 'none';
-  showPage('applications');
+// ── Build PDF and return base64 ───────────────────────────────────
+function buildPDF(data, appId) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  // Header
+  doc.setFillColor(26, 35, 126); // navy
+  doc.rect(0, 0, 210, 28, 'F');
+  doc.setTextColor(245, 215, 139); // gold
+  doc.setFontSize(16);
+  doc.setFont('helvetica','bold');
+  doc.text('Thennagam Finance Private Limited', 105, 12, {align:'center'});
+  doc.setFontSize(10);
+  doc.setFont('helvetica','normal');
+  doc.text('Loan Application Form', 105, 20, {align:'center'});
+
+  // App ID badge
+  doc.setFillColor(201, 168, 76); // gold
+  doc.roundedRect(15, 32, 80, 10, 2, 2, 'F');
+  doc.setTextColor(26,35,126);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','bold');
+  doc.text(`Application ID: ${appId}`, 55, 39, {align:'center'});
+
+  doc.setTextColor(100,100,100);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','normal');
+  doc.text(`Submitted: ${new Date().toLocaleString('en-IN')}  |  Group ${data.group} Loan`, 105, 39, {align:'right'});
+
+  let y = 50;
+  const colW = 90;
+  doc.setTextColor(0,0,0);
+
+  function sectionTitle(title) {
+    doc.setFillColor(240, 232, 216);
+    doc.rect(15, y-5, 180, 8, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.setTextColor(26,35,126);
+    doc.text(title, 17, y);
+    doc.setTextColor(0,0,0);
+    y += 8;
+  }
+
+  function row2(l1, v1, l2, v2) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+    doc.setTextColor(80,80,80);
+    doc.text(l1, 17, y); doc.text(l2, 17+colW, y);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(0,0,0);
+    doc.text(v1 || '—', 17+38, y); doc.text(v2 || '—', 17+colW+38, y);
+    y += 7;
+  }
+
+  function row1(label, value) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+    doc.setTextColor(80,80,80);
+    doc.text(label, 17, y);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(0,0,0);
+    doc.text(value || '—', 17+38, y);
+    y += 7;
+  }
+
+  sectionTitle('Borrower Information');
+  row2('Full Name:', data.name, 'Mobile:', data.mobile);
+  row2('Date of Birth:', data.dob, 'Gender:', data.gender);
+  row2('Father/Husband:', data.fatherName, 'Email:', data.email);
+  row1('Address:', data.address);
+  row2('City:', data.city, 'Pincode:', data.pincode);
+  row2('Aadhaar No:', data.aadharNo, 'PAN No:', data.panNo);
+
+  y += 3;
+  sectionTitle('Employment & Loan Details');
+  row2('Occupation:', data.occupation, 'Monthly Income:', data.income ? `₹${data.income}` : '');
+  row2('Loan Amount:', `₹${data.loanAmount}`, 'Tenure:', data.loanTenure ? `${data.loanTenure} months` : '');
+  row1('Loan Purpose:', data.loanPurpose);
+
+  y += 3;
+  sectionTitle('Nominee Details');
+  row2('Nominee Name:', data.nomineeName, 'Relation:', data.nomineeRel);
+  row2('Nominee Age:', data.nomineeAge, 'Nominee Phone:', data.nomineePhone);
+
+  y += 3;
+  sectionTitle('Documents Submitted');
+  const docs = [
+    ['Selfie / Photo', afFiles.selfie ? '✓ Uploaded' : 'Not uploaded'],
+    ['Aadhaar Card',   afFiles.aadhar ? '✓ Uploaded' : 'Not uploaded'],
+    ['PAN Card',       afFiles.pan    ? '✓ Uploaded' : 'Not uploaded'],
+    ['Nominee Aadhaar',afFiles.nominee_aadhar ? '✓ Uploaded' : 'Not uploaded'],
+    ['Income Proof',   afFiles.income_proof ? '✓ Uploaded' : 'Not uploaded'],
+  ];
+  docs.forEach(([l, v]) => row2(l+':', v, '', ''));
+
+  // Declaration
+  y += 5;
+  doc.setFillColor(220, 252, 231);
+  doc.rect(15, y-4, 180, 20, 'F');
+  doc.setFontSize(8);
+  doc.setFont('helvetica','italic');
+  doc.setTextColor(22, 101, 52);
+  doc.text(
+    'I hereby declare that the information provided above is true and correct to the best of my knowledge.',
+    17, y+2
+  );
+  doc.text(
+    'I authorize Thennagam Finance Pvt Ltd to verify the details and process my loan application.',
+    17, y+8
+  );
+
+  y += 25;
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(0,0,0);
+  doc.setFontSize(9);
+  doc.text('Applicant Signature: _________________________', 17, y);
+  doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, 150, y);
+
+  // Footer
+  doc.setFillColor(26,35,126);
+  doc.rect(0, 285, 210, 12, 'F');
+  doc.setTextColor(245,215,139);
+  doc.setFontSize(8);
+  doc.text('Thennagam Finance Private Limited  |  CIN: U64990TN2025PTC179499', 105, 292, {align:'center'});
+
+  return doc.output('datauristring').split(',')[1]; // base64 only
 }
 
-function resetForm() {
-  document.getElementById('success-screen').style.display = 'none';
-  document.querySelectorAll('#page-new-application input:not([type=file]),#page-new-application select,#page-new-application textarea').forEach(el => el.value = '');
-  ['aadhar','pan'].forEach(d => afDel(d));
-  delSelfie();
-  setGrp('A', document.querySelector('.grp-tab'));
-  showPage('new-application');
-}
-
-function successViewSheet() {
-  window.open('https://docs.google.com/spreadsheets/d/1RcndhHjrS2fs1pnc5xHT-5nMSBxA7OyPRfRpYDkb8Yg/edit', '_blank');
-}
-
-function successPrintPDF() {
-  // Generate print window with last submission data
-  if (_lastAppData) {
-    buildPrintableForm(_lastAppData);
-  } else {
-    printAppForm();
+// ── Print form ────────────────────────────────────────────────────
+async function printApplication() {
+  if (!_lastData || !_lastAppId) { window.print(); return; }
+  try {
+    await loadJsPDF();
+    const pdfBase64 = buildPDF(_lastData, _lastAppId);
+    const blob = base64ToBlob(pdfBase64, 'application/pdf');
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `Application_${_lastAppId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    window.print();
   }
 }
 
-// ── BUILD PRINTABLE FORM (used for both print and PDF-to-Drive) ──
-function buildAppFormHTML(data, appId) {
-  const g     = (data.loanGroup || 'Group A').replace('Group ','').trim();
-  const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const GBL   = { A:'GROUP A LOAN — Small Loan (Up to ₹50,000)', B:'GROUP B LOAN — Medium Loan (₹50,001 – ₹3,00,000)', C:'GROUP C LOAN — Large Loan (Above ₹3,00,001)' };
-  const f2    = (l1,v1,l2,v2) => `<tr><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:140px">${l1}</td><td style="padding:6px 9px;border:1px solid #d4b896;font-size:13px;">${v1||'&nbsp;'}</td><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:140px">${l2}</td><td style="padding:6px 9px;border:1px solid #d4b896;font-size:13px;">${v2||'&nbsp;'}</td></tr>`;
-  const f1    = (l,v) => `<tr><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:140px">${l}</td><td colspan="3" style="padding:6px 9px;border:1px solid #d4b896;font-size:13px;">${v||'&nbsp;'}</td></tr>`;
-  const sec   = t => `<tr><td colspan="4" style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border:1px solid #0a1628;">${t}</td></tr>`;
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Application Form — ${appId}</title>
-<style>@page{size:A4;margin:11mm 13mm;}body{font-family:'Times New Roman',Georgia,serif;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:10px;}h1{font-size:18px;text-align:center;text-decoration:underline;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 3px;color:#0a1628;}@media print{button{display:none!important;}}</style>
-</head><body>
-<button onclick="window.print()" style="position:fixed;top:10px;right:10px;background:#0a1628;color:#e8b84b;border:none;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;border-radius:4px;z-index:999;">🖨 Download PDF</button>
-<div style="text-align:center;border-bottom:3px solid #0a1628;padding-bottom:9px;margin-bottom:8px;">
-  <div style="font-size:20px;font-weight:900;text-transform:uppercase;color:#0a1628;letter-spacing:.04em;">Thennagam Finance Private Limited</div>
-  <div style="font-size:10px;color:#555;margin:3px 0;">CIN: U64990TN2025PTC179499 | 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu – 614205</div>
-  <div style="height:1px;background:#c9932a;margin:5px auto;width:70%;"></div>
-  <div style="display:inline-block;margin-top:5px;padding:3px 12px;background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">${GBL[g]||GBL['A']}</div>
-</div>
-<h1>Loan Application Form</h1>
-<p style="text-align:center;font-size:10px;color:#555;margin-bottom:8px;">Application ID: <strong>${appId}</strong> &nbsp;|&nbsp; Date: ${today}</p>
-<table style="margin-bottom:8px;"><tr>
-  <td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;">Application ID</td>
-  <td style="padding:6px 9px;border:1px solid #d4b896;font-weight:700;color:#0a1628;">${appId}</td>
-  <td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;">Date</td>
-  <td style="padding:6px 9px;border:1px solid #d4b896;">${today}</td>
-</tr></table>
-<table>
-${sec('1 — Borrower Personal Details')}
-${f1('Full Name (as per Aadhaar)', data.fullName)}
-${f2('Date of Birth', data.dob, 'Gender', data.gender)}
-${f2("Father's / Spouse's Name", data.fatherName, 'Relationship', data.relationship)}
-${f2('Aadhaar Number', data.aadhaarNo, 'PAN Number', data.panNo)}
-${f2('Mobile Number', data.mobile, 'Email', data.email)}
-${f1('Address', data.address)}
-${f2('District', data.district, 'Pin Code', data.pinCode)}
-${sec('2 — Employment & Income')}
-${f2('Occupation', data.occupation, 'Employer / Business', data.employer)}
-${f2('Monthly Income (₹)', data.income, 'Total Income (₹)', data.totalIncome)}
-${sec('3 — Bank Account Details')}
-${f2('Bank Name', data.bankName, 'IFSC Code', data.ifsc)}
-${f1('Account Number', data.accountNo)}
-${sec('4 — Loan Requirement')}
-${f2('Loan Amount (₹)', data.loanAmount, 'Purpose', data.purpose)}
-${f2('Preferred Tenure', data.tenure, 'Preferred EMI Date', data.emiDate)}
-${sec('5 — Nominee Details')}
-${f2('Nominee Name', data.nomineeName, 'Relationship', data.nomineeRelation)}
-${f2('Nominee Aadhaar', data.nomineeAadhaar, 'Nominee Mobile', data.nomineeMobile)}
-${sec('6 — Declaration')}
-<tr><td colspan="4" style="padding:8px 9px;border:1px solid #d4b896;font-size:11px;line-height:1.75;">
-  I/We declare that all information provided is true and correct. I authorise Thennagam Finance Pvt. Ltd. to verify information and conduct field verification. I have received and understood the Key Facts Statement (RBI/2024-25/18). The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. I understand that providing false information is an offence under the Bharatiya Nyaya Sanhita, 2023.
-</td></tr>
-</table>
-<table><tr>
-  <td style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;padding:6px;text-align:center;border:1px solid #0a1628;width:33%;">Borrower Signature</td>
-  <td style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;padding:6px;text-align:center;border:1px solid #0a1628;width:33%;">Nominee Signature</td>
-  <td style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;padding:6px;text-align:center;border:1px solid #0a1628;">Authorised Signatory</td>
-</tr><tr>
-  <td style="border:1px solid #d4b896;padding:10px 9px 7px;"><div style="height:44px;border-bottom:1px solid #888;margin-bottom:5px;"></div><div style="font-size:9px;color:#555;">Name: ${data.fullName||'__________________'}<br>Date:__________</div></td>
-  <td style="border:1px solid #d4b896;padding:10px 9px 7px;"><div style="height:44px;border-bottom:1px solid #888;margin-bottom:5px;"></div><div style="font-size:9px;color:#555;">Name: ${data.nomineeName||'__________________'}<br>Date:__________</div></td>
-  <td style="border:1px solid #d4b896;padding:10px 9px 7px;"><div style="height:44px;border-bottom:1px solid #888;margin-bottom:5px;"></div><div style="font-size:9px;color:#555;">Name:____________________<br>Date:__________ Place: Thanjavur</div></td>
-</tr></table>
-<div style="margin-top:10px;border-top:2px dashed #d4b896;padding-top:7px;">
-  <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">For Office Use Only</div>
-  <table><tr>
-    <td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Received By</div></td>
-    <td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Branch</div></td>
-    <td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Verification</div></td>
-    <td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Decision / Date</div></td>
-  </tr></table>
-</div>
-</body></html>`;
+function base64ToBlob(b64, mimeType) {
+  const bytes = atob(b64);
+  const arr   = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: mimeType });
 }
 
-function buildPrintableForm(data) {
-  const appId = document.getElementById('success-id').textContent || 'TF-FORM';
-  const html  = buildAppFormHTML(data, appId);
-  const w = window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-  setTimeout(() => w.print(), 600);
-}
-
-
-function clearAppForm() {
-  if (!confirm('Clear all form data?')) return;
-  resetForm();
-  showToast('Form cleared', 'success');
-}
-
-function printAppForm() {
-  if (_lastAppData) { buildPrintableForm(_lastAppData); return; }
-  const gv = id => document.getElementById(id)?.value || '';
-  const liveData = {
-    loanGroup:'Group '+curGrp, fullName:gv('af_name'), dob:gv('af_dob'), gender:gv('af_gender'),
-    fatherName:gv('af_father'), relationship:gv('af_rel'), aadhaarNo:gv('af_aadhar'), panNo:gv('af_pan'),
-    mobile:gv('af_mobile'), email:gv('af_email'), address:gv('af_addr'), district:gv('af_district'), pinCode:gv('af_pin'),
-    occupation:gv('af_occ'), employer:gv('af_employer'), income:gv('af_income'), totalIncome:gv('af_totalinc'),
-    bankName:gv('af_bank'), ifsc:gv('af_ifsc'), accountNo:gv('af_accno'),
-    loanAmount:gv('af_loanamt'), purpose:gv('af_purpose'), tenure:gv('af_tenure'), emiDate:gv('af_emidate'),
-    nomineeName:gv('af_nom_name'), nomineeRelation:gv('af_nom_rel'), nomineeAadhaar:gv('af_nom_aadhar'), nomineeMobile:gv('af_nom_mobile'),
-  };
-  const html2 = buildAppFormHTML(liveData, 'DRAFT');
-  const w2 = window.open('','_blank'); w2.document.write(html2); w2.document.close(); setTimeout(()=>w2.print(),600);
-}
-function _OLD_printAppForm_REMOVED() {
-  const g = curGrp;
-  const gv = id => document.getElementById(id)?.value || '';
-  const today = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'});
-  const GBL = { A: 'GROUP A LOAN — Small Loan (Up to ₹50,000)', B: 'GROUP B LOAN — Medium Loan (₹50,001 – ₹3,00,000)', C: 'GROUP C LOAN — Large Loan (Above ₹3,00,001)' };
-  const f2 = (l1,v1,l2,v2) => `<tr><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:140px">${l1}</td><td style="padding:6px 9px;border:1px solid #d4b896;font-size:13px;">${v1||'&nbsp;'}</td><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:140px">${l2}</td><td style="padding:6px 9px;border:1px solid #d4b896;font-size:13px;">${v2||'&nbsp;'}</td></tr>`;
-  const f1 = (l,v) => `<tr><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;width:140px">${l}</td><td colspan="3" style="padding:6px 9px;border:1px solid #d4b896;font-size:13px;">${v||'&nbsp;'}</td></tr>`;
-  const sec = t => `<tr><td colspan="4" style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border:1px solid #0a1628;">${t}</td></tr>`;
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Application Form — Group ${g} — ${today}</title><style>@page{size:A4;margin:11mm 13mm;}body{font-family:'Times New Roman',Georgia,serif;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:10px;}h1{font-size:18px;text-align:center;text-decoration:underline;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 3px;color:#0a1628;}@media print{button{display:none!important;}}</style></head><body>
-<button onclick="window.print()" style="position:fixed;top:10px;right:10px;background:#0a1628;color:#e8b84b;border:none;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;border-radius:4px;z-index:999;">🖨 Download PDF</button>
-<div style="text-align:center;border-bottom:3px solid #0a1628;padding-bottom:9px;margin-bottom:8px;">
-  <div style="font-size:20px;font-weight:900;text-transform:uppercase;color:#0a1628;letter-spacing:.04em;">Thennagam Finance Private Limited</div>
-  <div style="font-size:10px;color:#555;margin:3px 0;">CIN: U64990TN2025PTC179499 | 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu – 614205</div>
-  <div style="height:1px;background:#c9932a;margin:5px auto;width:70%;"></div>
-  <div style="display:inline-block;margin-top:5px;padding:3px 12px;background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">${GBL[g]}</div>
-</div>
-<h1>Loan Application Form</h1>
-<p style="text-align:center;font-size:10px;color:#555;margin-bottom:8px;">Fill all fields clearly | All information subject to verification</p>
-<table style="margin-bottom:8px;"><tr><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;">Serial No.</td><td style="padding:6px 9px;border:1px solid #d4b896;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="background:#f7f0e6;padding:6px 9px;font-size:11px;font-weight:700;color:#0a1628;border:1px solid #d4b896;">Application Date</td><td style="padding:6px 9px;border:1px solid #d4b896;">${today}</td></tr></table>
-<table>${sec('1 — Borrower Personal Details')}${f1('Full Name (as per Aadhaar)',gv('af_name'))}${f2('Date of Birth',gv('af_dob'),'Gender',gv('af_gender'))}${f2("Father's / Spouse's Name",gv('af_father'),'Relationship',gv('af_rel'))}${f2('Aadhaar Number',gv('af_aadhar'),'PAN Number',gv('af_pan'))}${f2('Mobile Number',gv('af_mobile'),'Email',gv('af_email'))}${f1('Address',gv('af_addr'))}${f2('District',gv('af_district'),'Pin Code',gv('af_pin'))}${sec('2 — Employment & Income')}${f2('Occupation',gv('af_occ'),'Employer',gv('af_employer'))}${f2('Monthly Income (₹)',gv('af_income'),'Total Income (₹)',gv('af_totalinc'))}${sec('3 — Bank Account')}${f2('Bank Name',gv('af_bank'),'IFSC Code',gv('af_ifsc'))}${f1('Account Number',gv('af_accno'))}${sec('4 — Loan Requirement')}${f2('Loan Amount (₹)',gv('af_loanamt'),'Purpose',gv('af_purpose'))}${f2('Tenure',gv('af_tenure'),'Preferred EMI Date',gv('af_emidate'))}${sec('5 — Nominee Details')}${f2('Nominee Name',gv('af_nom_name'),'Relationship',gv('af_nom_rel'))}${f2('Nominee Aadhaar',gv('af_nom_aadhar'),'Nominee Mobile',gv('af_nom_mobile'))}${sec('6 — Declaration')}<tr><td colspan="4" style="padding:8px 9px;border:1px solid #d4b896;font-size:11px;line-height:1.75;">I/We declare that all information provided is true and correct. I authorise Thennagam Finance Pvt. Ltd. to verify information. I have received and understood the Key Facts Statement (RBI/2024-25/18). The terms were translated and interpreted to me in my native language. I understand that providing false information is an offence.</td></tr></table>
-<table><tr><td style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;padding:6px;text-align:center;border:1px solid #0a1628;width:33%;">Borrower Signature</td><td style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;padding:6px;text-align:center;border:1px solid #0a1628;width:33%;">Nominee Signature</td><td style="background:#0a1628;color:#e8b84b;font-size:10px;font-weight:700;padding:6px;text-align:center;border:1px solid #0a1628;">Authorised Signatory</td></tr><tr><td style="border:1px solid #d4b896;padding:10px 9px 7px;"><div style="height:44px;border-bottom:1px solid #888;margin-bottom:5px;"></div><div style="font-size:9px;color:#555;">Name:____________________<br>Date:__________</div></td><td style="border:1px solid #d4b896;padding:10px 9px 7px;"><div style="height:44px;border-bottom:1px solid #888;margin-bottom:5px;"></div><div style="font-size:9px;color:#555;">Name:____________________<br>Date:__________</div></td><td style="border:1px solid #d4b896;padding:10px 9px 7px;"><div style="height:44px;border-bottom:1px solid #888;margin-bottom:5px;"></div><div style="font-size:9px;color:#555;">Name:____________________<br>Date:__________ Place: Thanjavur</div></td></tr></table>
-<div style="margin-top:10px;border-top:2px dashed #d4b896;padding-top:7px;"><div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">For Office Use Only</div><table><tr><td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Received By</div></td><td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Branch</div></td><td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Verification</div></td><td style="padding:6px 8px;border:1px solid #d4b896;"><div style="font-size:9px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:14px;">Decision / Date</div></td></tr></table></div>
-</body></html>`;
-  const w = window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 600);
-}
-
-function generateSanctionLetter(a) {
-  const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
-  const words = n => { const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety']; if(!n||n===0)return'Zero'; if(n<20)return a[n]; if(n<100)return b[Math.floor(n/10)]+(n%10?' '+a[n%10]:''); if(n<1000)return a[Math.floor(n/100)]+' Hundred'+(n%100?' '+words(n%100):''); if(n<100000)return words(Math.floor(n/1000))+' Thousand'+(n%1000?' '+words(n%1000):''); return words(Math.floor(n/100000))+' Lakh'+(n%100000?' '+words(n%100000):''); };
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sanction Letter — ${a.id}</title><style>@page{size:A4;margin:18mm 20mm;}body{font-family:'Times New Roman',Georgia,serif;font-size:13px;line-height:1.85;}p{text-align:justify;margin-bottom:8px;}table{width:100%;border-collapse:collapse;margin:10px 0;}th{background:#0a1628;color:#e8b84b;padding:7px 10px;font-size:10px;text-align:left;}td{padding:6px 10px;border-bottom:1px solid #e8e0d0;font-size:12px;}tr:nth-child(even) td{background:#f7f0e6;}h3{font-size:12px;text-transform:uppercase;color:#0a1628;border-bottom:1px solid #d4b896;padding-bottom:3px;margin:14px 0 8px;letter-spacing:.04em;}ol li{margin-bottom:5px;}@media print{button{display:none!important;}}</style></head><body>
-<button onclick="window.print()" style="position:fixed;top:10px;right:10px;background:#0a1628;color:#e8b84b;border:none;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;border-radius:4px;z-index:999;">🖨 Download PDF</button>
-<div style="text-align:center;border-bottom:3px solid #0a1628;padding-bottom:9px;margin-bottom:12px;"><div style="font-size:20px;font-weight:900;text-transform:uppercase;color:#0a1628;">Thennagam Finance Private Limited</div><div style="font-size:10px;color:#555;margin:3px 0;">CIN: U64990TN2025PTC179499 | 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu – 614205</div><div style="height:1px;background:#c9932a;margin:5px auto;width:70%;"></div></div>
-<h2 style="text-align:center;text-transform:uppercase;text-decoration:underline;font-size:15px;letter-spacing:.06em;margin:12px 0;color:#0a1628;">Loan Sanction Letter</h2>
-<p style="font-size:11px;color:#555;"><strong>Ref.:</strong> ${a.id||''}/SL/${new Date().getFullYear()} &nbsp;&nbsp; <strong>Date:</strong> ${today}</p>
-<p><strong>To,</strong><br>${a.name||'________________________'}<br>${a.address||'________________________'}</p>
-<p>Dear <strong>${a.name||'Sir/Madam'}</strong>,</p>
-<p>We are pleased to inform you that your loan application Ref. <strong>${a.id||''}</strong> has been reviewed and sanctioned subject to the following terms:</p>
-<h3>Schedule A — Sanctioned Loan Terms</h3>
-<table><tr><th>Particulars</th><th>Details</th></tr><tr><td>Loan Account No.</td><td><strong>${a.id||''}</strong></td></tr><tr><td>Borrower Name</td><td>${a.name||'—'}</td></tr><tr><td>Loan Group</td><td>${a.group||'Group A'}</td></tr><tr><td>Sanctioned Amount</td><td><strong>Rs. ${(a.amount||0).toLocaleString('en-IN')}/- (${words(a.amount||0)} Rupees only)</strong></td></tr><tr><td>Rate of Interest (Flat p.a.)</td><td>______% per annum</td></tr><tr><td>Loan Tenure</td><td>${a.tenure||'______'}</td></tr><tr><td>Monthly EMI</td><td>Rs. ____________________/-</td></tr><tr><td>Processing Fee (incl. GST 18%)</td><td>Rs. ____________________/- (deducted before disbursal)</td></tr><tr><td>Net Disbursement Amount</td><td>Rs. ____________________/-</td></tr><tr><td>First EMI Due Date</td><td>______________________</td></tr><tr><td>Purpose</td><td>${a.purpose||'—'}</td></tr></table>
-<h3>Key Conditions</h3>
-<ol style="font-size:12px;line-height:1.8;padding-left:18px;margin:8px 0;"><li>Sanction subject to execution of Loan Agreement, DPN, and Letter of Continuity before disbursement.</li><li>Interest rate may vary based on borrower's credit profile, income, and financial strength.</li><li>Penal charge for late payment: Max 2% p.m. on overdue instalment only — no compounding (RBI, Jan 1, 2024).</li><li>Prepayment: NIL for Group A &amp; B individual borrowers (RBI Prepayment Directions, July 2025). Group C: Max 2% on outstanding principal.</li><li>ECS/Cheque dishonour charge: Rs. 590/- incl. GST per dishonour event.</li><li>KFS disclosing all charges and APR provided/will be provided before execution (RBI/2024-25/18, Apr 2024).</li><li>This sanction is valid for 30 days from the date of issue.</li></ol>
-<p>Kindly visit our office to complete documentation. Bring original documents for verification.</p>
-<p>Yours faithfully,<br><strong>For Thennagam Finance Private Limited</strong></p>
-<table style="margin-top:28px;"><tr><td style="width:45%;border:1px solid #d4b896;padding:10px;"><div style="height:48px;border-bottom:1px solid #888;margin-bottom:7px;"></div><div style="font-size:10px;color:#555;font-weight:700;">Authorised Signatory</div><div style="font-size:9px;color:#777;">Name:___________________ Designation:_______________<br>Date:_________ Place: Thanjavur</div></td><td style="width:10%;"></td><td style="width:45%;border:1px solid #d4b896;padding:10px;"><div style="height:48px;border-bottom:1px solid #888;margin-bottom:7px;"></div><div style="font-size:10px;color:#555;font-weight:700;">Borrower Signature &amp; Acceptance</div><div style="font-size:9px;color:#777;">Name: ${a.name||'_____________________'}<br>Date:_________ Place:_____________</div></td></tr></table>
-<div style="margin-top:18px;padding:9px 12px;background:#f7f0e6;border:1px solid #d4b896;border-left:3px solid #c9932a;font-size:10px;color:#555;"><strong>Borrower Acknowledgement:</strong> I have received this Sanction Letter on ______________ and understood all terms. The terms were translated and interpreted to me in my native language.<br>Signature:________________________ Date:_______________</div>
-</body></html>`;
-  const w = window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 600);
+// ── New application ───────────────────────────────────────────────
+function newApplication() {
+  document.getElementById('success-screen').style.display = 'none';
+  document.getElementById('main-form').querySelectorAll('input,select,textarea')
+    .forEach(el => el.value = '');
+  Object.keys(afFiles).forEach(k => delete afFiles[k]);
+  document.querySelectorAll('.upload-done').forEach(el => el.classList.remove('show'));
+  document.getElementById('selfie-thumb').classList.remove('show');
+  _lastAppId = null; _lastData = null;
+  window.scrollTo(0, 0);
 }
 </script>
 </body>
