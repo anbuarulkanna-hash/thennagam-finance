@@ -255,7 +255,7 @@ tr:hover td{background:#f8f9ff}
 // ══════════════════════════════════════════════════════════════
 //  ⚠️  PASTE YOUR APPS SCRIPT URL HERE AFTER DEPLOYING
 // ══════════════════════════════════════════════════════════════
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0SnxjsDxyindH-zxnVvi3gWQz9nSPjjiW9yWUDetT_foJkEjkd-pUT-rfwi0Fwl0r/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1VxsrN4IeL7sXfkPO00GI48e3mMVzSJQ5aH7Afj8F5HDk1GxxzEkm8LsLpLtv-YfWmg/exec';
 
 // ── Staff accounts ─────────────────────────────────────────────
 var STAFF = [
@@ -277,14 +277,13 @@ var S = {
   syncing:  false,
 };
 
+// These MUST match Code.gs COLS exactly — same order, same names
 var GCOLS = [
-  'app_id','group','name','mobile','email','dob','gender','father_name',
-  'marital','address','city','district','pincode','aadhar_no','pan_no',
-  'voter_id','ration_card','occupation','income','employer',
-  'bank_name','account_no','ifsc','branch',
-  'loan_amount','tenure','purpose','purpose_detail',
-  'nominee_name','nominee_rel','nominee_age','nominee_mobile',
-  'nominee_aadhar','nominee_address','ref_name','ref_mobile',
+  'app_id','group','name','mobile','email','dob','gender',
+  'father_name','address','city','district','pincode',
+  'aadhar_no','pan_no','occupation','income',
+  'loan_amount','tenure','purpose',
+  'nominee_name','nominee_rel','nominee_mobile',
   'status','submitted_at'
 ];
 
@@ -315,15 +314,17 @@ function login(){
   $('su-name').textContent=u.name;
   $('su-role').textContent=u.role;
   $('tbdate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  // Load local cache first, then sync from sheet
+  // Load local cache immediately so UI shows data right away
   var raw=localStorage.getItem('tf_apps');
   if(raw){try{S.apps=JSON.parse(raw);}catch(e){}}
   go('dash');
-  syncFromSheet();
+  // Always sync from sheet on every login to get latest data
+  setTimeout(function(){ syncFromSheet(); }, 500);
 }
 
 function logout(){
-  S.user=null; S.apps=[];
+  S.user=null;
+  // Keep S.apps in memory and localStorage — so data shows immediately on next login
   $('app').style.display='none';
   $('login-page').style.display='flex';
 }
@@ -367,6 +368,7 @@ function onFrameLoad(){
   if(!frame._loading) return;
   frame._loading = false;
   S.syncing = false;
+  frame.src = 'about:blank'; // reset iframe
   try {
     var pre = frame.contentDocument && frame.contentDocument.getElementById('data');
     if(!pre){ toast('Sheet sync failed — check URL in Settings','err'); return; }
@@ -384,8 +386,10 @@ function onFrameLoad(){
       toast('Sheet returned no data','info');
     }
   } catch(e){
-    toast('Error reading sheet data: '+e.message,'err',5000);
+    S.syncing = false;
     console.error('Frame load error:', e);
+    // If iframe read fails, still show localStorage data
+    toast('Using locally saved data (sheet sync blocked by browser)','info',4000);
   }
 }
 
@@ -777,8 +781,10 @@ async function submitForm(){
     setTimeout(function(){
       spin.classList.remove('on');
       showSuccess(appId, localApp);
-      // Sync from sheet after 3 seconds to get server-assigned ID
-      setTimeout(syncFromSheet, 3000);
+      // Sync from sheet after 5 seconds to get server-confirmed data
+      setTimeout(function(){
+        syncFromSheet();
+      }, 5000);
     },400);
 
   } catch(ex){
