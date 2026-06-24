@@ -310,9 +310,10 @@ function $(id){ return document.getElementById(id); }
 function gv(id){ var el=$(id); return el?el.value.trim():''; }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtN(n){ return Number(n||0).toLocaleString('en-IN'); }
+function cleanSt(s){ return (s||'').replace(/<[^>]*>/g,'').trim()||'NEW'; }
 function stBadge(s){
   var m={NEW:'st-NEW','UNDER REVIEW':'st-REVIEW',APPROVED:'st-APPROVED',REJECTED:'st-REJECTED',DISBURSED:'st-DISBURSED'};
-  return m[s]||'st-NEW';
+  return m[cleanSt(s)]||'st-NEW';
 }
 function toast(msg,type,dur){
   var t=$('toast'); t.textContent=msg; t.className='on '+(type||'');
@@ -424,7 +425,7 @@ function renderDash(){
       '<td>'+esc(x.name)+'</td><td>'+esc(x.mobile)+'</td>'+
       '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
       '<td>₹'+fmtN(x.loan_amount)+'</td>'+
-      '<td><span class="badge '+stBadge(x.status)+'">'+x.status+'</span></td>'+
+      '<td><span class="badge '+stBadge(cleanSt(x.status))+'">'+cleanSt(x.status)+'</span></td>'+
       '<td>'+esc(x.submitted_at)+'</td>'+
       '<td><button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button></td>'+
     '</tr>';
@@ -465,7 +466,7 @@ function renderApps(){
       '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
       '<td>₹'+fmtN(x.loan_amount)+'</td>'+
       '<td>'+esc(x.purpose)+'</td>'+
-      '<td><span class="badge '+stBadge(x.status)+'">'+x.status+'</span></td>'+
+      '<td><span class="badge '+stBadge(cleanSt(x.status))+'">'+cleanSt(x.status)+'</span></td>'+
       '<td>'+esc(x.submitted_at)+'</td>'+
       '<td style="display:flex;gap:4px">'+
         '<button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button>'+
@@ -497,6 +498,9 @@ function viewApp(id){
       '<td style="padding:7px 10px;border-bottom:1px solid var(--border)">'+esc(v||'—')+'</td>'+
     '</tr>';
   }
+  // Clean status — strip any HTML tags (in case old data has HTML)
+  var cleanStatus = (a.status||'NEW').replace(/<[^>]*>/g,'').trim()||'NEW';
+  a.status = cleanStatus;
   $('vmod-title').textContent='📋 '+a.app_id+' — '+a.name;
   $('vmod-body').innerHTML=
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">'+
@@ -536,19 +540,34 @@ function closeModal(){ $('vmod').classList.remove('on'); }
 
 // Update status — saves to Google Sheet directly
 async function setStatus(id, status){
-  closeModal();
-  showLoad('Updating status…','Saving to Google Sheet…',50);
+  // Update locally immediately for instant UI feedback
+  var a = S.apps.find(function(x){return x.app_id===id;});
+  if(a) a.status = status;
+
+  // Re-render the status buttons inside modal immediately
+  var btnContainer = document.querySelector('#vmod-body .status-btns');
+  if(btnContainer){
+    btnContainer.innerHTML = ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
+      var on = status===st;
+      return '<button class="btn btn-sm" style="background:'+(on?'var(--navy)':'var(--cream-d)')+
+        ';color:'+(on?'var(--gold-l)':'var(--text)')+
+        '" onclick="setStatus(''+id+'',''+st+'')">'+st+'</button>';
+    }).join('');
+  }
+
+  toast('Saving status…','info',2000);
+
+  // Save to sheet
   try {
     await fetch(SCRIPT_URL,{
       method:'POST', mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({action:'update', app_id:id, status:status})
     });
-    hideLoad();
-    toast('✅ Status updated — refreshing…','ok');
-    loadApps();
+    toast('✅ Status updated to '+status,'ok');
+    // Reload in background to sync sheet
+    setTimeout(function(){ loadApps(); }, 3000);
   } catch(e){
-    hideLoad();
     toast('❌ Update failed: '+e.message,'err');
   }
 }
