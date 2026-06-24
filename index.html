@@ -211,9 +211,30 @@ tr:hover td{background:#f8f9ff}
       <button class="btn btn-sm btn-o" onclick="closeModal()">✕</button>
     </div>
     <div id="vmod-body"></div>
+    <div class="mft" style="justify-content:space-between">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-r btn-sm" onclick="deleteApp()">🗑️ Delete</button>
+        <button class="btn btn-o btn-sm" onclick="openEditModal()">✏️ Edit</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" onclick="closeModal()">Close</button>
+        <button class="btn btn-gold" onclick="genPDF()">🖨️ Generate PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="mbg" id="emod">
+  <div class="mbox" style="width:760px">
+    <div class="mtitle">
+      <span id="emod-title">✏️ Edit Application</span>
+      <button class="btn btn-sm btn-o" onclick="closeEditModal()">✕</button>
+    </div>
+    <div id="emod-body"></div>
     <div class="mft">
-      <button class="btn btn-o" onclick="closeModal()">Close</button>
-      <button class="btn btn-gold" onclick="genPDF()">🖨️ Generate PDF</button>
+      <button class="btn btn-o" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveEdit()">💾 Save Changes</button>
     </div>
   </div>
 </div>
@@ -248,7 +269,7 @@ tr:hover td{background:#f8f9ff}
 // ══════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQRxHDCVTUtA_FJvMoytGPRKFD2gOX16lNCt0Wa7TTsbzGNJr19YhctxZ3e0i4u2Gy/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPXkITDJ26difEnmchhyAlwk7Ezb7-k2uSHh918bXQqAH36rkEfObXcUwULGWdZMIS/exec';
 
 var STAFF = [
   {email:'admin@thennagam.com',     pass:'admin123', name:'Admin', role:'Administrator'},
@@ -913,6 +934,122 @@ function buildPDF(d,appId){
   doc.setTextColor(245,215,139); doc.setFontSize(7);
   doc.text('Thennagam Finance Private Limited  |  CIN: U64990TN2025PTC179499  |  Tamil Nadu, India',105,291.5,{align:'center'});
   return doc.output('blob');
+}
+
+// ── DELETE APPLICATION ────────────────────────────────────────
+async function deleteApp(){
+  var id = S.viewId;
+  if(!id){ toast('No application selected','err'); return; }
+  var a = S.apps.find(function(x){return x.app_id===id;});
+  if(!confirm('Delete application '+id+' ('+( a?a.name:'')+')?\nThis cannot be undone.')) return;
+  closeModal();
+  showLoad('Deleting…','Removing from Google Sheet…',50);
+  try {
+    await fetch(SCRIPT_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'delete', app_id:id})
+    });
+    showLoad('Deleted!','Reloading data…',80);
+    await new Promise(function(r){setTimeout(r,3000);});
+    hideLoad();
+    toast('✅ Application deleted','ok');
+    loadApps();
+  } catch(e){
+    hideLoad();
+    toast('❌ Delete failed: '+e.message,'err');
+  }
+}
+
+// ── EDIT APPLICATION ───────────────────────────────────────────
+function openEditModal(){
+  var id = S.viewId;
+  var a  = S.apps.find(function(x){return x.app_id===id;});
+  if(!a){ toast('Not found','err'); return; }
+
+  $('emod-title').textContent = '✏️ Edit — '+a.app_id+' ('+a.name+')';
+
+  function fi(label, key, type){
+    type = type||'text';
+    return '<div class="fg"><label style="font-size:.78rem;font-weight:600;color:var(--navy)">'+label+'</label>'+
+      '<input type="'+type+'" id="ef_'+key+'" value="'+esc(a[key]||'')+'" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.87rem;width:100%"></div>';
+  }
+  function fs(label, key, opts){
+    var options = opts.map(function(o){
+      return '<option value="'+o+'"'+(a[key]===o?' selected':'')+'>'+o+'</option>';
+    }).join('');
+    return '<div class="fg"><label style="font-size:.78rem;font-weight:600;color:var(--navy)">'+label+'</label>'+
+      '<select id="ef_'+key+'" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.87rem;width:100%">'+
+      '<option value="">Select</option>'+options+'</select></div>';
+  }
+
+  $('emod-body').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">'+
+      fi('Full Name','name')+
+      fi('Mobile','mobile','tel')+
+      fi('Email','email','email')+
+      fi('Date of Birth','dob','date')+
+      fs('Gender','gender',['Female','Male','Transgender'])+
+      fi('Father Name','father_name')+
+      fi('Address','address')+
+      fi('City','city')+
+      fs('District','district',['Madurai','Chennai','Coimbatore','Tiruchirappalli','Salem','Tirunelveli','Erode','Vellore','Thoothukudi','Dindigul','Thanjavur','Kanyakumari','Other'])+
+      fi('Pincode','pincode')+
+      fi('Aadhaar No','aadhar_no')+
+      fi('PAN No','pan_no')+
+      fs('Occupation','occupation',['Petty Business','Agriculture/Farming','Salaried — Private','Salaried — Government','Daily Wages','Self Employed','Auto/Taxi Driver','Tailor/Weaver','Domestic Worker','Others'])+
+      fi('Monthly Income','income','number')+
+      fi('Loan Amount','loan_amount','number')+
+      fs('Tenure','tenure',['6','12','18','24','36','48','60'])+
+      fs('Purpose','purpose',['Business Working Capital','Agriculture/Farming','Medical Emergency','Education','Housing Repair/Construction','Purchase of Equipment/Vehicle','Marriage/Family Function','Personal/Family Needs','Others'])+
+      fs('Status','status',['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'])+
+      fi('Nominee Name','nominee_name')+
+      fs('Nominee Relation','nominee_rel',['Spouse','Father','Mother','Son','Daughter','Brother','Sister','Other'])+
+      fi('Nominee Mobile','nominee_mobile','tel')+
+    '</div>';
+
+  closeModal();
+  $('emod').classList.add('on');
+}
+
+function closeEditModal(){ $('emod').classList.remove('on'); }
+
+// ── SAVE EDIT ──────────────────────────────────────────────────
+async function saveEdit(){
+  var id = S.viewId;
+  var a  = S.apps.find(function(x){return x.app_id===id;});
+  if(!a){ toast('Not found','err'); return; }
+
+  // Collect all edited values
+  var fields = ['name','mobile','email','dob','gender','father_name',
+    'address','city','district','pincode','aadhar_no','pan_no',
+    'occupation','income','loan_amount','tenure','purpose','status',
+    'nominee_name','nominee_rel','nominee_mobile'];
+
+  var updated = {action:'editSave', app_id:id};
+  fields.forEach(function(f){
+    var el = $('ef_'+f);
+    if(el) updated[f] = el.value.trim();
+  });
+
+  closeEditModal();
+  showLoad('Saving changes…','Updating Google Sheet…',50);
+
+  try {
+    await fetch(SCRIPT_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(updated)
+    });
+    showLoad('Saved!','Reloading data…',85);
+    await new Promise(function(r){setTimeout(r,4000);});
+    hideLoad();
+    toast('✅ Application updated successfully','ok');
+    loadApps();
+  } catch(e){
+    hideLoad();
+    toast('❌ Save failed: '+e.message,'err');
+  }
 }
 
 window.onload=function(){
