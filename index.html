@@ -248,7 +248,7 @@ tr:hover td{background:#f8f9ff}
 // ══════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZkICK47YNrRZyDkQods5aLyQPDYCdm9ZNKuQ1usYTR-wDawPAUlgvE6Fzu-Wo4RnajQ/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQRxHDCVTUtA_FJvMoytGPRKFD2gOX16lNCt0Wa7TTsbzGNJr19YhctxZ3e0i4u2Gy/exec';
 
 var STAFF = [
   {email:'admin@thennagam.com',     pass:'admin123', name:'Admin', role:'Administrator'},
@@ -330,32 +330,30 @@ function logout(){
 }
 
 // ── LOAD FROM GOOGLE SHEET via JSONP ──────────────────────────
-// JSONP = load as <script> tag = zero CORS restriction = works everywhere
 function loadApps(){
   showLoad('Loading from Google Sheet…','Fetching all applications…',20);
   var cbName = '_tfLoad_' + Date.now();
   var script = document.createElement('script');
-  var timer  = setTimeout(function(){
+
+  var timer = setTimeout(function(){
     cleanup();
     hideLoad();
-    S.apps=[];
-    toast('❌ Sheet load timeout — check URL in Settings','err',6000);
+    S.apps = [];
+    toast('❌ Timeout — check URL in Settings','err',5000);
     go(S.page==='dash'?'dash':'apps');
-  }, 12000);
+  }, 15000);
 
   window[cbName] = function(result){
     cleanup();
-    if(result && result.success){
-      S.apps = result.applications || [];
-      hideLoad();
-      toast('✅ '+S.apps.length+' applications loaded','ok');
-      go(S.page==='dash'?'dash':'apps');
+    hideLoad();
+    if(result && result.ok){
+      S.apps = result.rows || [];
+      toast('✅ '+S.apps.length+' records loaded from Sheet','ok');
     } else {
-      hideLoad();
-      S.apps=[];
-      toast('❌ Sheet error: '+(result&&result.message||'unknown'),'err',5000);
-      go(S.page==='dash'?'dash':'apps');
+      S.apps = [];
+      toast('❌ '+(result&&result.message||'Sheet error'),'err',5000);
     }
+    go(S.page==='dash'?'dash':'apps');
   };
 
   function cleanup(){
@@ -364,10 +362,8 @@ function loadApps(){
   }
 
   script.onerror = function(){
-    cleanup();
-    hideLoad();
-    S.apps=[];
-    toast('❌ Cannot reach Apps Script — check URL in Settings','err',6000);
+    cleanup(); hideLoad(); S.apps = [];
+    toast('❌ Cannot reach Apps Script','err',5000);
     go(S.page==='dash'?'dash':'apps');
   };
 
@@ -525,12 +521,11 @@ async function setStatus(id, status){
     await fetch(SCRIPT_URL,{
       method:'POST', mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'updateStatus', app_id:id, status:status})
+      body:JSON.stringify({action:'update', app_id:id, status:status})
     });
     hideLoad();
     toast('✅ Status updated — refreshing…','ok');
-    // Reload from sheet to show updated status
-    await loadApps();
+    loadApps();
   } catch(e){
     hideLoad();
     toast('❌ Update failed: '+e.message,'err');
@@ -727,28 +722,30 @@ async function submitForm(){
       body:JSON.stringify(data)
     });
 
-    // Wait for sheet to write, then reload via JSONP
-    showLoad('Saved!','Confirming with Google Sheet…',70);
-    await new Promise(function(r){setTimeout(r,4000);}); // give sheet 4 sec to write
+    // Wait 5 seconds for Apps Script to write to sheet
+    showLoad('Saving…','Waiting for Google Sheet…',60);
+    await new Promise(function(r){ setTimeout(r, 5000); });
 
-    // Read back via JSONP
-    var cbName2 = '_tfSave_' + Date.now();
+    // Read back via JSONP to get real App ID
+    showLoad('Confirming…','Loading updated data…',85);
     var savedResult = await new Promise(function(resolve){
-      var s2 = document.createElement('script');
-      var t2 = setTimeout(function(){ resolve(null); s2.remove(); }, 8000);
-      window[cbName2] = function(res){ clearTimeout(t2); delete window[cbName2]; s2.remove(); resolve(res); };
+      var cb2 = '_tfSave_' + Date.now();
+      var s2  = document.createElement('script');
+      var t2  = setTimeout(function(){ try{delete window[cb2];s2.remove();}catch(e){} resolve(null); }, 8000);
+      window[cb2] = function(res){ clearTimeout(t2); try{delete window[cb2];s2.remove();}catch(e){} resolve(res); };
       s2.onerror = function(){ clearTimeout(t2); resolve(null); };
-      s2.src = SCRIPT_URL+'?action=getAll&callback='+cbName2+'&t='+Date.now();
+      s2.src = SCRIPT_URL + '?action=getAll&callback=' + cb2 + '&t=' + Date.now();
       document.head.appendChild(s2);
     });
 
-    if(savedResult && savedResult.success){
-      S.apps = savedResult.applications || [];
-      var newApp = S.apps[0] || {};
-      S.lastData = Object.assign({}, data, newApp);
-      S.lastId   = newApp.app_id || ('TF-'+new Date().getFullYear()+'-'+data.group+'-XXXXX');
+    if(savedResult && savedResult.ok && savedResult.rows && savedResult.rows.length > 0){
+      S.apps    = savedResult.rows;
+      var newApp = S.apps[0];
+      S.lastId   = newApp.app_id;
+      S.lastData = newApp;
     } else {
-      S.lastId = 'TF-'+new Date().getFullYear()+'-'+data.group+'-SAVED';
+      S.lastId   = 'TF-' + new Date().getFullYear() + '-' + data.group + '-SAVED';
+      S.lastData = data;
     }
 
     hideLoad();
@@ -824,7 +821,11 @@ function testConnection(){
   window[cbName]=function(r){
     clearTimeout(timer);
     try{delete window[cbName];script.remove();}catch(e){}
-    res.innerHTML='<span style="color:var(--green)">✅ Connected! v'+(r.version||'?')+' — JSONP working</span>';
+    if(r.ok||r.success){
+      res.innerHTML='<span style="color:var(--green)">✅ Connected! v'+(r.version||'?')+' — Working!</span>';
+    } else {
+      res.innerHTML='<span style="color:var(--red)">⚠️ Connected but error: '+(r.message||'unknown')+'</span>';
+    }
   };
   script.onerror=function(){
     clearTimeout(timer);
