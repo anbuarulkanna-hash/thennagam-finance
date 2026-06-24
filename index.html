@@ -248,7 +248,7 @@ tr:hover td{background:#f8f9ff}
 // ══════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1VxsrN4IeL7sXfkPO00GI48e3mMVzSJQ5aH7Afj8F5HDk1GxxzEkm8LsLpLtv-YfWmg/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZkICK47YNrRZyDkQods5aLyQPDYCdm9ZNKuQ1usYTR-wDawPAUlgvE6Fzu-Wo4RnajQ/exec';
 
 var STAFF = [
   {email:'admin@thennagam.com',     pass:'admin123', name:'Admin', role:'Administrator'},
@@ -329,41 +329,50 @@ function logout(){
   $('login-page').style.justifyContent='center';
 }
 
-// ── LOAD FROM GOOGLE SHEET ─────────────────────────────────────
-// Always fetches fresh from sheet — zero localStorage
-async function loadApps(){
+// ── LOAD FROM GOOGLE SHEET via JSONP ──────────────────────────
+// JSONP = load as <script> tag = zero CORS restriction = works everywhere
+function loadApps(){
   showLoad('Loading from Google Sheet…','Fetching all applications…',20);
-  try {
-    var url  = SCRIPT_URL + '?action=getAll&t=' + Date.now();
-    var resp = await fetch(url, {method:'GET', redirect:'follow'});
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    var text = await resp.text();
-    var result = parseResponse(text);
-    if(result.success){
+  var cbName = '_tfLoad_' + Date.now();
+  var script = document.createElement('script');
+  var timer  = setTimeout(function(){
+    cleanup();
+    hideLoad();
+    S.apps=[];
+    toast('❌ Sheet load timeout — check URL in Settings','err',6000);
+    go(S.page==='dash'?'dash':'apps');
+  }, 12000);
+
+  window[cbName] = function(result){
+    cleanup();
+    if(result && result.success){
       S.apps = result.applications || [];
       hideLoad();
       toast('✅ '+S.apps.length+' applications loaded','ok');
       go(S.page==='dash'?'dash':'apps');
     } else {
-      throw new Error(result.message || 'Server error');
+      hideLoad();
+      S.apps=[];
+      toast('❌ Sheet error: '+(result&&result.message||'unknown'),'err',5000);
+      go(S.page==='dash'?'dash':'apps');
     }
-  } catch(e){
-    hideLoad();
-    toast('❌ Failed to load: '+e.message,'err',6000);
-    // Show empty state so UI doesn't hang
-    S.apps=[];
-    if(S.page==='dash') go('dash');
-    console.error('loadApps error:',e);
-  }
-}
+  };
 
-// Parse response — handles both plain JSON and HTML-wrapped JSON
-function parseResponse(text){
-  text = text.trim();
-  if(text.charAt(0)==='{' || text.charAt(0)==='[') return JSON.parse(text);
-  var m = text.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-  if(m) return JSON.parse(m[1].trim());
-  throw new Error('Unexpected response format');
+  function cleanup(){
+    clearTimeout(timer);
+    try{ delete window[cbName]; script.remove(); }catch(e){}
+  }
+
+  script.onerror = function(){
+    cleanup();
+    hideLoad();
+    S.apps=[];
+    toast('❌ Cannot reach Apps Script — check URL in Settings','err',6000);
+    go(S.page==='dash'?'dash':'apps');
+  };
+
+  script.src = SCRIPT_URL + '?action=getAll&callback=' + cbName + '&t=' + Date.now();
+  document.head.appendChild(script);
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────
@@ -718,19 +727,28 @@ async function submitForm(){
       body:JSON.stringify(data)
     });
 
-    // Wait for sheet to save, then reload all apps
-    showLoad('Saved!','Loading updated data from Sheet…',70);
-    await new Promise(function(r){setTimeout(r,3000);}); // give sheet 3 sec to write
-    var url  = SCRIPT_URL+'?action=getAll&t='+Date.now();
-    var resp = await fetch(url,{method:'GET',redirect:'follow'});
-    var text = await resp.text();
-    var result = parseResponse(text);
-    if(result.success){
-      S.apps = result.applications || [];
-      // Find the newly saved app — it's the first one (newest)
+    // Wait for sheet to write, then reload via JSONP
+    showLoad('Saved!','Confirming with Google Sheet…',70);
+    await new Promise(function(r){setTimeout(r,4000);}); // give sheet 4 sec to write
+
+    // Read back via JSONP
+    var cbName2 = '_tfSave_' + Date.now();
+    var savedResult = await new Promise(function(resolve){
+      var s2 = document.createElement('script');
+      var t2 = setTimeout(function(){ resolve(null); s2.remove(); }, 8000);
+      window[cbName2] = function(res){ clearTimeout(t2); delete window[cbName2]; s2.remove(); resolve(res); };
+      s2.onerror = function(){ clearTimeout(t2); resolve(null); };
+      s2.src = SCRIPT_URL+'?action=getAll&callback='+cbName2+'&t='+Date.now();
+      document.head.appendChild(s2);
+    });
+
+    if(savedResult && savedResult.success){
+      S.apps = savedResult.applications || [];
       var newApp = S.apps[0] || {};
-      S.lastData = newApp;
+      S.lastData = Object.assign({}, data, newApp);
       S.lastId   = newApp.app_id || ('TF-'+new Date().getFullYear()+'-'+data.group+'-XXXXX');
+    } else {
+      S.lastId = 'TF-'+new Date().getFullYear()+'-'+data.group+'-SAVED';
     }
 
     hideLoad();
@@ -794,18 +812,26 @@ function saveUrl(){
   SCRIPT_URL=url; toast('✅ URL saved','ok');
 }
 
-async function testConnection(){
+function testConnection(){
   var res=$('test-result');
-  res.textContent='Testing…';
-  try {
-    var url=gv('cfg-url')+'?action=ping&t='+Date.now();
-    var resp=await fetch(url,{method:'GET',redirect:'follow'});
-    var text=await resp.text();
-    var r=parseResponse(text);
-    res.innerHTML='<span style="color:var(--green)">✅ Connected! Version: '+(r.version||'ok')+'</span>';
-  } catch(e){
-    res.innerHTML='<span style="color:var(--red)">❌ Failed: '+e.message+'</span>';
-  }
+  res.textContent='Testing via JSONP…';
+  var cbName='_tfTest_'+Date.now();
+  var script=document.createElement('script');
+  var timer=setTimeout(function(){
+    try{delete window[cbName];script.remove();}catch(e){}
+    res.innerHTML='<span style="color:var(--red)">❌ Timeout — not deployed or URL wrong</span>';
+  },8000);
+  window[cbName]=function(r){
+    clearTimeout(timer);
+    try{delete window[cbName];script.remove();}catch(e){}
+    res.innerHTML='<span style="color:var(--green)">✅ Connected! v'+(r.version||'?')+' — JSONP working</span>';
+  };
+  script.onerror=function(){
+    clearTimeout(timer);
+    res.innerHTML='<span style="color:var(--red)">❌ Script load failed — check URL</span>';
+  };
+  script.src=gv('cfg-url')+'?action=ping&callback='+cbName+'&t='+Date.now();
+  document.head.appendChild(script);
 }
 
 // ── PDF ────────────────────────────────────────────────────────
