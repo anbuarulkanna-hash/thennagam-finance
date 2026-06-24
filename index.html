@@ -424,7 +424,7 @@ function renderDash(){
       '<td>'+esc(x.name)+'</td><td>'+esc(x.mobile)+'</td>'+
       '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
       '<td>₹'+fmtN(x.loan_amount)+'</td>'+
-      '<td><span class="badge '+stBadge(x.status)+'">'+esc(x.status)+'</span></td>'+
+      '<td><span class="badge '+stBadge(x.status)+'">'+x.status+'</span></td>'+
       '<td>'+esc(x.submitted_at)+'</td>'+
       '<td><button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button></td>'+
     '</tr>';
@@ -465,7 +465,7 @@ function renderApps(){
       '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
       '<td>₹'+fmtN(x.loan_amount)+'</td>'+
       '<td>'+esc(x.purpose)+'</td>'+
-      '<td><span class="badge '+stBadge(x.status)+'">'+esc(x.status)+'</span></td>'+
+      '<td><span class="badge '+stBadge(x.status)+'">'+x.status+'</span></td>'+
       '<td>'+esc(x.submitted_at)+'</td>'+
       '<td style="display:flex;gap:4px">'+
         '<button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button>'+
