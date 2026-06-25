@@ -308,9 +308,20 @@ var GINFO = {
 // ── Helpers ────────────────────────────────────────────────────
 function $(id){ return document.getElementById(id); }
 function gv(id){ var el=$(id); return el?el.value.trim():''; }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s){ var s2=String(s||''); s2=s2.replace(/&/g,'&amp;'); s2=s2.replace(/\x3C/g,'&lt;'); s2=s2.replace(/\x3E/g,'&gt;'); s2=s2.replace(/"/g,'&quot;'); return s2; }
 function fmtN(n){ return Number(n||0).toLocaleString('en-IN'); }
-function cleanSt(s){ return (s||'').replace(/<[^>]*>/g,'').trim()||'NEW'; }
+function cleanSt(s){ return (s||'').replace(/\x3C[^\x3E]*\x3E/g,'').trim()||'NEW'; }
+function formatDOB(s){
+  if(!s||s==='—') return '—';
+  // Already formatted like 15/01/1990 or 1990-01-15
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)||/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Ugly JS Date string — parse and reformat
+  try{
+    var d=new Date(s);
+    if(isNaN(d.getTime())) return s;
+    return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+  }catch(e){ return s; }
+}
 function stBadge(s){
   var m={NEW:'st-NEW','UNDER REVIEW':'st-REVIEW',APPROVED:'st-APPROVED',REJECTED:'st-REJECTED',DISBURSED:'st-DISBURSED'};
   return m[cleanSt(s)]||'st-NEW';
@@ -419,7 +430,7 @@ function renderDash(){
   var gA=a.filter(function(x){return x.group==='A';}).length;
   var gB=a.filter(function(x){return x.group==='B';}).length;
 
-  var rows=a.slice(0,10).map(function(x){
+  var rows=a.slice(0,10).map(function(x,i){
     return '<tr>'+
       '<td><strong style="color:var(--navy)">'+esc(x.app_id)+'</strong></td>'+
       '<td>'+esc(x.name)+'</td><td>'+esc(x.mobile)+'</td>'+
@@ -427,7 +438,7 @@ function renderDash(){
       '<td>₹'+fmtN(x.loan_amount)+'</td>'+
       '<td><span class="badge '+stBadge(cleanSt(x.status))+'">'+cleanSt(x.status)+'</span></td>'+
       '<td>'+esc(x.submitted_at)+'</td>'+
-      '<td><button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button></td>'+
+      '<td><button class="btn btn-sm btn-o" onclick="viewAppIdx('+i+')">View</button></td>'+
     '</tr>';
   }).join('');
 
@@ -459,7 +470,7 @@ function sc(ico,bg,num,lbl){
 // ── ALL APPLICATIONS ───────────────────────────────────────────
 function renderApps(){
   var a=S.apps;
-  var rows=a.map(function(x){
+  var rows=a.map(function(x,i){
     return '<tr>'+
       '<td><strong style="color:var(--navy)">'+esc(x.app_id)+'</strong></td>'+
       '<td>'+esc(x.name)+'</td><td>'+esc(x.mobile)+'</td>'+
@@ -469,8 +480,8 @@ function renderApps(){
       '<td><span class="badge '+stBadge(cleanSt(x.status))+'">'+cleanSt(x.status)+'</span></td>'+
       '<td>'+esc(x.submitted_at)+'</td>'+
       '<td style="display:flex;gap:4px">'+
-        '<button class="btn btn-sm btn-o" onclick="viewApp(\''+esc(x.app_id)+'\')">View</button>'+
-        '<button class="btn btn-sm btn-gold" onclick="quickPDF(\''+esc(x.app_id)+'\')">PDF</button>'+
+        '<button class="btn btn-sm btn-o" onclick="viewAppIdx('+i+')">View</button>'+
+        '<button class="btn btn-sm btn-gold" onclick="quickPDFIdx('+i+')">PDF</button>'+
       '</td>'+
     '</tr>';
   }).join('');
@@ -488,10 +499,21 @@ function renderApps(){
 }
 
 // ── VIEW APPLICATION ───────────────────────────────────────────
-function viewApp(id){
-  var a=S.apps.find(function(x){return x.app_id===id;});
-  if(!a){toast('Not found — refresh first','err');return;}
+function viewAppIdx(idx){
+  // View by array index — works even with duplicate app IDs
+  var a = S.apps[idx];
+  if(!a){toast('Not found — click Refresh','err');return;}
+  viewApp(a.app_id, a);
+}
+function quickPDFIdx(idx){
+  var a=S.apps[idx]; if(a) genPDFForApp(a);
+}
+function viewApp(id, appObj){
+  // Find by app_id — use passed object if available (avoids duplicate issue)
+  var a = appObj || S.apps.find(function(x){return x.app_id===id;});
+  if(!a){toast('Not found — click Refresh and try again','err');return;}
   S.viewId=id;
+  S._viewApp=a; // store full object
   function r(l,v){
     return '<tr>'+
       '<td style="font-weight:600;color:var(--navy);padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap;width:35%">'+l+'</td>'+
@@ -499,7 +521,7 @@ function viewApp(id){
     '</tr>';
   }
   // Clean status — strip any HTML tags (in case old data has HTML)
-  var cleanStatus = (a.status||'NEW').replace(/<[^>]*>/g,'').trim()||'NEW';
+  var cleanStatus = (a.status||'NEW').replace(/\x3C[^\x3E]*\x3E/g,'').trim()||'NEW';
   a.status = cleanStatus;
   $('vmod-title').textContent='📋 '+a.app_id+' — '+a.name;
   $('vmod-body').innerHTML=
@@ -508,7 +530,7 @@ function viewApp(id){
       r('App ID',a.app_id)+r('Group',a.group)+
       r('Status','<span class="badge '+stBadge(a.status)+'">'+a.status+'</span>')+
       r('Name',a.name)+r('Mobile',a.mobile)+r('Email',a.email)+
-      r('Date of Birth',a.dob)+r('Gender',a.gender)+
+      r('Date of Birth',formatDOB(a.dob))+r('Gender',a.gender)+
       r('Father Name',a.father_name)+
       r('Aadhaar No',a.aadhar_no)+r('PAN No',a.pan_no)+
       r('Address',a.address)+r('City',a.city)+
