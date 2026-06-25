@@ -549,9 +549,7 @@ async function setStatus(id, status){
   if(btnContainer){
     btnContainer.innerHTML = ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
       var on = status===st;
-      return '<button class="btn btn-sm" style="background:'+(on?'var(--navy)':'var(--cream-d)')+
-        ';color:'+(on?'var(--gold-l)':'var(--text)')+
-        '" onclick="setStatus(''+id+'',''+st+'')">'+st+'</button>';
+      return '<button class="btn btn-sm" style="background:'+(on?'var(--navy)':'var(--cream-d)')+';color:'+(on?'var(--gold-l)':'var(--text)')+'" onclick="setStatus(\''+id+'\',\''+st+'\')">'+st+'</button>';
     }).join('');
   }
 
