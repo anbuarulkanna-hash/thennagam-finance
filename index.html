@@ -294,9 +294,8 @@ tr:hover td{background:#f8f9ff}
 
 <!-- TOAST -->
 <div id="toast"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════════
 //  CONFIG
@@ -1676,15 +1675,26 @@ function quickPDF(id){ var a=S.apps.find(function(x){return x.app_id===id;}); if
 
 async function genPDFForApp(d){
   toast('Generating PDF…','info',3000);
+
   try{
-    await loadJsPDF();
-    var blob=buildPDF(d,d.app_id||S.lastId||'TF-XXXX');
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download='Application_'+(d.app_id||'form')+'.pdf'; a.click();
-    URL.revokeObjectURL(url);
+    var blob = buildPDF(d);
+    var url = URL.createObjectURL(blob);
+
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'Application_' + (d.app_id || 'form') + '.pdf';
+    a.click();
+
+    setTimeout(function(){
+      URL.revokeObjectURL(url);
+    },1000);
+
     toast('✅ PDF downloaded','ok');
-  }catch(e){toast('PDF error: '+e.message,'err',5000);}
+
+  }catch(e){
+    toast('PDF error: ' + e.message,'err',5000);
+    console.error(e);
+  }
 }
 
 function loadJsPDF(){
@@ -1713,9 +1723,12 @@ function money(v){
 
 
 function buildPDF(d){
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF('p', 'mm', 'a4');
 
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('p','mm','a4');
+if (window.jspdf && window.jspdf.autoTable) {
+    doc.autoTable = window.jspdf.autoTable;
+}
 
   let y=10;
 
@@ -2177,7 +2190,23 @@ setTimeout(function(){
     toast('❌ Save failed: '+e.message,'err');
   }
 }
+function quickPreview(){
 
+   try{
+
+      var data = collectData();
+
+      // temporary application id for preview
+      data.app_id = 'PREVIEW';
+
+      genPDFForApp(data);
+
+   }catch(e){
+
+      toast('Preview failed : ' + e.message,'err');
+
+   }
+}
 window.onload=function(){
   // Nothing from localStorage — all data comes from Google Sheet on login
 };
