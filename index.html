@@ -139,6 +139,36 @@ tr:hover td{background:#f8f9ff}
 .succ-row .l{color:var(--muted)}
 .succ-row .v{font-weight:600;color:var(--navy)}
 
+.psteps{
+    display:flex;
+    overflow-x:auto;
+    gap:6px;
+    margin-bottom:20px;
+    padding-bottom:5px;
+}
+
+.pstep{
+    min-width:110px;
+    padding:10px;
+    text-align:center;
+    font-size:.75rem;
+    border-radius:8px;
+    background:var(--cream);
+    border:1px solid var(--border);
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+.pstep.on{
+    background:var(--navy);
+    color:var(--gold-l);
+}
+
+.pstep.done{
+    background:#e8f5e9;
+    color:#2e7d32;
+}
+
 /* TOAST */
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1c1917;color:#fff;padding:9px 20px;border-radius:30px;font-size:.84rem;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 #toast.on{display:block}
@@ -264,7 +294,9 @@ tr:hover td{background:#f8f9ff}
 
 <!-- TOAST -->
 <div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════════
 //  CONFIG
@@ -279,12 +311,50 @@ var STAFF = [
 
 // COLS must match Code.gs COLS exactly
 var COLS = [
-  'app_id','group','name','mobile','email','dob','gender',
+  'app_id','group','name','mobile','email','dob','gender','alt_mobile','state','residence_type',
   'father_name','address','city','district','pincode',
   'aadhar_no','pan_no','occupation','income',
   'loan_amount','tenure','purpose',
   'nominee_name','nominee_rel','nominee_mobile',
-  'status','submitted_at'
+  'status','submitted_at',
+  'employer_name',
+'work_experience',
+'work_address',
+'bank_name',
+'account_number',
+'ifsc_code',
+'branch',
+'account_type',
+'banking_since',
+'verification_officer',
+'verification_designation',
+'visit_date',
+'visit_time',
+'residence_verification',
+'business_verification',
+'house_type',
+'neighbour_feedback',
+'verification_remarks',
+'recommendation',
+'supervisor_approval',
+'nominee_age',
+'ref1_name',
+'ref1_mobile',
+'ref1_relationship',
+'ref1_occupation',
+'ref1_address',
+
+'ref2_name',
+'ref2_mobile',
+'ref2_relationship',
+'ref2_occupation',
+'ref2_address',
+'emi_date',
+'existing_emi',
+'other_income',
+'current_employer_years',
+'nominee_aadhar',
+'nominee_address',
 ];
 
 // ── State — NO localStorage, everything from sheet ─────────────
@@ -424,9 +494,11 @@ function go(page){
 // ── DASHBOARD ──────────────────────────────────────────────────
 function renderDash(){
   var a=S.apps;
-  var nw=a.filter(function(x){return x.status==='NEW';}).length;
-  var ap=a.filter(function(x){return x.status==='APPROVED';}).length;
-  var dis=a.filter(function(x){return x.status==='DISBURSED';}).length;
+  var nw=a.filter(function(x){return cleanSt(x.status)==='NEW';}).length;
+ // var ap=a.filter(function(x){return x.status==='APPROVED';}).length;
+  var ap=a.filter(function(x){return cleanSt(x.status)==='APPROVED';}).length;
+ // var dis=a.filter(function(x){return x.status==='DISBURSED';}).length;
+  var dis=a.filter(function(x){return  cleanSt(x.status)==='DISBURSED';}).length;
   var gA=a.filter(function(x){return x.group==='A';}).length;
   var gB=a.filter(function(x){return x.group==='B';}).length;
 
@@ -523,39 +595,141 @@ function viewApp(id, appObj){
   // Clean status — strip any HTML tags (in case old data has HTML)
   var cleanStatus = (a.status||'NEW').replace(/\x3C[^\x3E]*\x3E/g,'').trim()||'NEW';
   a.status = cleanStatus;
-  $('vmod-title').textContent='📋 '+a.app_id+' — '+a.name;
-  $('vmod-body').innerHTML=
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">'+
-    '<table style="width:100%;border-collapse:collapse;font-size:.84rem">'+
-      r('App ID',a.app_id)+r('Group',a.group)+
-      r('Status','<span class="badge '+stBadge(a.status)+'">'+a.status+'</span>')+
-      r('Name',a.name)+r('Mobile',a.mobile)+r('Email',a.email)+
-      r('Date of Birth',formatDOB(a.dob))+r('Gender',a.gender)+
-      r('Father Name',a.father_name)+
-      r('Aadhaar No',a.aadhar_no)+r('PAN No',a.pan_no)+
-      r('Address',a.address)+r('City',a.city)+
-      r('District',a.district)+r('Pincode',a.pincode)+
-    '</table>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:.84rem">'+
-      r('Occupation',a.occupation)+r('Income','₹'+fmtN(a.income))+
-      r('Loan Amount','₹'+fmtN(a.loan_amount))+
-      r('Tenure',a.tenure?a.tenure+' months':'—')+
-      r('Purpose',a.purpose)+
-      r('Nominee',a.nominee_name)+
-      r('Relation',a.nominee_rel)+
-      r('Nominee Mobile',a.nominee_mobile)+
-      r('Submitted',a.submitted_at)+
-    '</table></div>'+
-    '<div style="margin-top:14px;background:var(--cream);border-radius:var(--rs);padding:12px">'+
-      '<div style="font-size:.79rem;font-weight:700;color:var(--navy);margin-bottom:8px">Update Status:</div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
-          var on=a.status===st;
-          return '<button class="btn btn-sm" style="background:'+(on?'var(--navy)':'var(--cream-d)')+';color:'+(on?'var(--gold-l)':'var(--text)')+'" onclick="setStatus(\''+id+'\',\''+st+'\')">'+st+'</button>';
-        }).join('')+
-      '</div>'+
-    '</div>';
-  $('vmod').classList.add('on');
+$('vmod-title').textContent='📋 '+a.app_id+' — '+a.name;
+
+function row(label,value){
+  return '<tr>'+
+    '<td style="font-weight:600;color:var(--navy);width:35%">'+label+'</td>'+
+    '<td>'+(value || '—')+'</td>'+
+  '</tr>';
+}
+
+$('vmod-body').innerHTML =
+
+'<div class="card">'+
+'<div class="ctitle">Borrower Details</div>'+
+'<table class="table">'+
+row('Application ID',a.app_id)+
+row('Group',a.group)+
+row('Name',a.name)+
+row('Mobile',a.mobile)+
+row('Alternate Mobile',a.alt_mobile)+
+row('Email',a.email)+
+row('DOB',formatDOB(a.dob))+
+row('Gender',a.gender)+
+row('Father/Husband',a.father_name)+
+row('Address',a.address)+
+row('City',a.city)+
+row('District',a.district)+
+row('State',a.state)+
+row('Pincode',a.pincode)+
+row('Residence Type',a.residence_type)+
+row('Aadhaar',a.aadhar_no)+
+row('PAN',a.pan_no)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Employment & Income</div>'+
+'<table class="table">'+
+row('Occupation',a.occupation)+
+row('Monthly Income','₹'+fmtN(a.income))+
+row('Employer',a.employer_name)+
+row('Experience',a.work_experience)+
+row('Work Address',a.work_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Bank Details</div>'+
+'<table class="table">'+
+row('Bank',a.bank_name)+
+row('Account No',a.account_number)+
+row('IFSC',a.ifsc_code)+
+row('Branch',a.branch)+
+row('Account Type',a.account_type)+
+row('Banking Since',a.banking_since)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Loan Details</div>'+
+'<table class="table">'+
+row('Loan Amount','₹'+fmtN(a.loan_amount))+
+row('Tenure',a.tenure)+
+row('Purpose',a.purpose)+
+row('EMI Date',a.emi_date)+
+row('Existing EMI',a.existing_emi)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Nominee Details</div>'+
+'<table class="table">'+
+row('Nominee',a.nominee_name)+
+row('Relationship',a.nominee_rel)+
+row('Age',a.nominee_age)+
+row('Mobile',a.nominee_mobile)+
+row('Aadhaar',a.nominee_aadhar)+
+row('Address',a.nominee_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Reference 1</div>'+
+'<table class="table">'+
+row('Name',a.ref1_name)+
+row('Relationship',a.ref1_relationship)+
+row('Mobile',a.ref1_mobile)+
+row('Occupation',a.ref1_occupation)+
+row('Address',a.ref1_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Reference 2</div>'+
+'<table class="table">'+
+row('Name',a.ref2_name)+
+row('Relationship',a.ref2_relationship)+
+row('Mobile',a.ref2_mobile)+
+row('Occupation',a.ref2_occupation)+
+row('Address',a.ref2_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Field Verification</div>'+
+'<table class="table">'+
+row('Officer',a.verification_officer)+
+row('Designation',a.verification_designation)+
+row('Visit Date',a.visit_date)+
+row('Visit Time',a.visit_time)+
+row('Residence Verification',a.residence_verification)+
+row('Business Verification',a.business_verification)+
+row('House Type',a.house_type)+
+row('Neighbour Feedback',a.neighbour_feedback)+
+row('Remarks',a.verification_remarks)+
+row('Recommendation',a.recommendation)+
+row('Supervisor Approval',a.supervisor_approval)+
+row('Status',a.status)+
+'</table>'+
+
+'<div style="margin-top:15px">'+
+'<div style="font-weight:600;color:var(--navy);margin-bottom:8px">Change Status</div>'+
+
+'<div class="status-btns" style="display:flex;gap:8px;flex-wrap:wrap">'+
+
+['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
+
+   var active = a.status===st;
+
+   return '<button class="btn btn-sm" '+
+          'style="background:'+(active?'var(--navy)':'var(--cream-d)')+';'+
+          'color:'+(active?'var(--gold-l)':'var(--text)')+'" '+
+          'onclick="setStatus(\''+a.app_id+'\',\''+st+'\')">'+
+          st+
+          '</button>';
+
+}).join('')+
+
+'</div>'+
+'</div>'+
+
+'</div>';
+$('vmod').classList.add('on');
 }
 
 function closeModal(){ $('vmod').classList.remove('on'); }
@@ -596,10 +770,14 @@ async function setStatus(id, status){
 function renderForm(){
   return '<div class="card">'+
   '<div class="psteps">'+
-    '<div class="pstep on" id="ps1">1 · Personal</div>'+
-    '<div class="pstep" id="ps2">2 · Employment</div>'+
-    '<div class="pstep" id="ps3">3 · Loan</div>'+
-    '<div class="pstep" id="ps4">4 · Nominee</div>'+
+'<div class="pstep on" id="ps1">1<br>Borrower</div>'+
+'<div class="pstep" id="ps2">2<br>Employment</div>'+
+'<div class="pstep" id="ps3">3<br>Loan</div>'+
+'<div class="pstep" id="ps4">4<br>Nominee</div>'+
+'<div class="pstep" id="ps5">5<br>References</div>'+
+'<div class="pstep" id="ps6">6<br>Verification</div>'+
+'<div class="pstep" id="ps7">7<br>Review</div>'+
+'<div class="pstep" id="ps8">8<br>Submit</div>'+
   '</div>'+
 
   // STEP 1
@@ -613,10 +791,14 @@ function renderForm(){
     '<div class="gbadge" id="gbadge">'+GINFO.A.desc+'</div>'+
     '<div class="divider">Personal Information</div>'+
     '<div class="fgrid f1"><div class="fg"><label>Full Name (as per Aadhaar)<span class="req">*</span></label><input type="text" id="fn" placeholder="Full name"><div class="ferr" id="e-fn">Required</div></div></div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>Mobile<span class="req">*</span></label><input type="tel" id="fm" maxlength="10" placeholder="10-digit"><div class="ferr" id="e-fm">Valid 10-digit number required</div></div>'+
-      '<div class="fg"><label>Email</label><input type="email" id="fe" placeholder="Optional"></div>'+
-    '</div>'+
+'<div class="fgrid">'+
+  '<div class="fg"><label>Mobile<span class="req">*</span></label><input type="tel" id="fm" maxlength="10" placeholder="10-digit"><div class="ferr" id="e-fm">Valid 10-digit number required</div></div>'+
+  '<div class="fg"><label>Alternate Mobile</label><input type="tel" id="faltmob" maxlength="10" placeholder="Optional"></div>'+
+'</div>'+
+
+'<div class="fgrid f1">'+
+  '<div class="fg"><label>Email</label><input type="email" id="fe" placeholder="Optional"></div>'+
+'</div>'+
     '<div class="fgrid">'+
       '<div class="fg"><label>Date of Birth<span class="req">*</span></label><input type="date" id="fdob"><div class="ferr" id="e-fdob">Required</div></div>'+
       '<div class="fg"><label>Gender<span class="req">*</span></label><select id="fgend"><option value="">Select</option><option>Female</option><option>Male</option><option>Transgender</option></select><div class="ferr" id="e-fgend">Required</div></div>'+
@@ -629,6 +811,10 @@ function renderForm(){
       '<div class="fg"><label>District</label><select id="fdist"><option value="">Select</option><option>Madurai</option><option>Chennai</option><option>Coimbatore</option><option>Tiruchirappalli</option><option>Salem</option><option>Tirunelveli</option><option>Erode</option><option>Vellore</option><option>Thoothukudi</option><option>Dindigul</option><option>Thanjavur</option><option>Kanyakumari</option><option>Other</option></select></div>'+
       '<div class="fg"><label>Pincode</label><input type="text" id="fpin" maxlength="6"></div>'+
     '</div>'+
+    '<div class="fgrid">'+
+  '<div class="fg"><label>State</label><input type="text" id="fstate" value="Tamil Nadu"></div>'+
+  '<div class="fg"><label>Residence Type</label><select id="fresidence"><option value="">Select</option><option>Own</option><option>Rented</option><option>Family</option></select></div>'+
+'</div>'+
     '<div class="divider">Identity</div>'+
     '<div class="fgrid">'+
       '<div class="fg"><label>Aadhaar Number<span class="req">*</span></label><input type="text" id="faad" maxlength="14" placeholder="XXXX XXXX XXXX"><div class="ferr" id="e-faad">Valid 12-digit Aadhaar required</div></div>'+
@@ -637,73 +823,537 @@ function renderForm(){
     '<div class="nav-row"><button class="btn btn-p" onclick="nextStep(1)" style="margin-left:auto">Next →</button></div>'+
   '</div>'+
 
-  // STEP 2
-  '<div class="step-content" id="sc2">'+
-    '<div class="divider">Employment</div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>Occupation<span class="req">*</span></label><select id="focc"><option value="">Select</option><option>Petty Business</option><option>Agriculture/Farming</option><option>Salaried — Private</option><option>Salaried — Government</option><option>Daily Wages</option><option>Self Employed</option><option>Auto/Taxi Driver</option><option>Tailor/Weaver</option><option>Domestic Worker</option><option>Others</option></select><div class="ferr" id="e-focc">Required</div></div>'+
-      '<div class="fg"><label>Monthly Income (₹)<span class="req">*</span></label><input type="number" id="finc" placeholder="e.g. 12000"><div class="ferr" id="e-finc">Required</div></div>'+
+
+// STEP 2
+'<div class="step-content" id="sc2">'+
+  '<div class="divider">Employment Details</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Occupation<span class="req">*</span></label>'+
+    '<select id="focc">'+
+    '<option value="">Select</option>'+
+    '<option>Petty Business</option>'+
+    '<option>Agriculture/Farming</option>'+
+    '<option>Salaried - Private</option>'+
+    '<option>Salaried - Government</option>'+
+    '<option>Daily Wages</option>'+
+    '<option>Self Employed</option>'+
+    '<option>Auto/Taxi Driver</option>'+
+    '<option>Tailor/Weaver</option>'+
+    '<option>Domestic Worker</option>'+
+    '<option>Others</option>'+
+    '</select>'+
+    '<div class="ferr" id="e-focc">Required</div></div>'+
+
+    '<div class="fg"><label>Monthly Income (₹)<span class="req">*</span></label>'+
+    '<input type="number" id="finc">'+
+    '<div class="ferr" id="e-finc">Required</div></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Employer / Business Name</label>'+
+    '<input type="text" id="femp"></div>'+
+
+    '<div class="fg"><label>Work Experience (Years)</label>'+
+    '<input type="number" id="fexp"></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Business Address / Office Address</label>'+
+    '<textarea id="fworkaddr"></textarea></div>'+
+  '</div>'+
+
+  '<div class="divider">Bank Details</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Bank Name</label>'+
+    '<input type="text" id="fbnk"></div>'+
+
+    '<div class="fg"><label>Account Number</label>'+
+    '<input type="text" id="facc"></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>IFSC Code</label>'+
+    '<input type="text" id="fifc" oninput="this.value=this.value.toUpperCase()"></div>'+
+
+    '<div class="fg"><label>Branch</label>'+
+    '<input type="text" id="fbrn"></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Account Type</label>'+
+    '<select id="factype">'+
+    '<option value="">Select</option>'+
+    '<option>Savings</option>'+
+    '<option>Current</option>'+
+    '</select></div>'+
+
+    '<div class="fg"><label>Banking Since (Year)</label>'+
+    '<input type="number" id="fbankyrs"></div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(2)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(2)" style="flex:2">Next →</button>'+
+  '</div>'+
+'</div>'+
+
+
+// STEP 3
+'<div class="step-content" id="sc3">'+
+  '<div class="divider">Loan Requirement</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Loan Amount (₹)<span class="req">*</span></label>'+
+      '<input type="number" id="fla" placeholder="Amount required">'+
+      '<div class="ferr" id="e-fla">Required</div>'+
     '</div>'+
-    '<div class="fgrid f1"><div class="fg"><label>Employer / Business Name</label><input type="text" id="femp" placeholder="Employer or business name"></div></div>'+
-    '<div class="divider">Bank Details</div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>Bank Name</label><input type="text" id="fbnk" placeholder="e.g. Indian Bank"></div>'+
-      '<div class="fg"><label>Account Number</label><input type="text" id="facc"></div>'+
+
+    '<div class="fg">'+
+      '<label>Tenure<span class="req">*</span></label>'+
+      '<select id="ften">'+
+        '<option value="">Select</option>'+
+        '<option value="6">6 Months</option>'+
+        '<option value="12">12 Months</option>'+
+        '<option value="18">18 Months</option>'+
+        '<option value="24">24 Months</option>'+
+        '<option value="36">36 Months</option>'+
+        '<option value="48">48 Months</option>'+
+        '<option value="60">60 Months</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-ften">Required</div>'+
     '</div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>IFSC Code</label><input type="text" id="fifc" placeholder="IDIB000M123" oninput="this.value=this.value.toUpperCase()"></div>'+
-      '<div class="fg"><label>Branch</label><input type="text" id="fbrn"></div>'+
-    '</div>'+
-    '<div class="nav-row">'+
-      '<button class="btn btn-o" onclick="prevStep(2)">← Back</button>'+
-      '<button class="btn btn-p" onclick="nextStep(2)" style="flex:2">Next →</button>'+
+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Purpose of Loan<span class="req">*</span></label>'+
+      '<select id="fpurp">'+
+        '<option value="">Select</option>'+
+        '<option>Business Working Capital</option>'+
+        '<option>Agriculture/Farming</option>'+
+        '<option>Medical Emergency</option>'+
+        '<option>Education</option>'+
+        '<option>Housing Repair/Construction</option>'+
+        '<option>Purchase of Vehicle</option>'+
+        '<option>Marriage / Family Function</option>'+
+        '<option>Personal / Family Needs</option>'+
+        '<option>Others</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fpurp">Required</div>'+
     '</div>'+
   '</div>'+
 
-  // STEP 3
-  '<div class="step-content" id="sc3">'+
-    '<div class="divider">Loan Requirement</div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>Loan Amount (₹)<span class="req">*</span></label><input type="number" id="fla" placeholder="Amount required"><div class="ferr" id="e-fla">Required</div></div>'+
-      '<div class="fg"><label>Tenure<span class="req">*</span></label><select id="ften"><option value="">Select</option><option value="6">6 months</option><option value="12">12 months</option><option value="18">18 months</option><option value="24">24 months</option><option value="36">36 months</option><option value="48">48 months</option><option value="60">60 months</option></select><div class="ferr" id="e-ften">Required</div></div>'+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Preferred EMI Date</label>'+
+      '<select id="femidate">'+
+        '<option value="">Select</option>'+
+        '<option>5</option>'+
+        '<option>10</option>'+
+        '<option>15</option>'+
+        '<option>20</option>'+
+        '<option>25</option>'+
+      '</select>'+
     '</div>'+
-    '<div class="fgrid f1"><div class="fg"><label>Purpose<span class="req">*</span></label><select id="fpurp"><option value="">Select</option><option>Business Working Capital</option><option>Agriculture/Farming</option><option>Medical Emergency</option><option>Education</option><option>Housing Repair/Construction</option><option>Purchase of Equipment/Vehicle</option><option>Marriage/Family Function</option><option>Personal/Family Needs</option><option>Others</option></select><div class="ferr" id="e-fpurp">Required</div></div></div>'+
-    '<div class="nav-row">'+
-      '<button class="btn btn-o" onclick="prevStep(3)">← Back</button>'+
-      '<button class="btn btn-p" onclick="nextStep(3)" style="flex:2">Next →</button>'+
+
+    '<div class="fg">'+
+      '<label>Existing EMI Amount</label>'+
+      '<input type="number" id="fexistingemi">'+
     '</div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(3)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(3)" style="flex:2">Next →</button>'+
+  '</div>'+
   '</div>'+
 
   // STEP 4
-  '<div class="step-content" id="sc4">'+
-    '<div class="divider">Nominee Details</div>'+
-    '<div class="fgrid f1"><div class="fg"><label>Nominee Name<span class="req">*</span></label><input type="text" id="fnn"><div class="ferr" id="e-fnn">Required</div></div></div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>Relation<span class="req">*</span></label><select id="fnrel"><option value="">Select</option><option>Spouse</option><option>Father</option><option>Mother</option><option>Son</option><option>Daughter</option><option>Brother</option><option>Sister</option><option>Other</option></select><div class="ferr" id="e-fnrel">Required</div></div>'+
-      '<div class="fg"><label>Nominee Age</label><input type="number" id="fnage" placeholder="Age"></div>'+
-    '</div>'+
-    '<div class="fgrid">'+
-      '<div class="fg"><label>Nominee Mobile<span class="req">*</span></label><input type="tel" id="fnmob" maxlength="10"><div class="ferr" id="e-fnmob">Valid 10-digit number required</div></div>'+
-      '<div class="fg"><label>Nominee Aadhaar</label><input type="text" id="fnaad" maxlength="14" placeholder="XXXX XXXX XXXX"></div>'+
-    '</div>'+
-    '<div style="background:#fffbf0;border:1px solid var(--gold);border-radius:var(--rs);padding:12px;margin-top:8px;font-size:.8rem;color:#78580a;line-height:1.6">'+
-      '⚠️ I declare that all information is true and correct. I authorise Thennagam Finance Pvt Ltd to verify and process my application.'+
-    '</div>'+
-    '<div class="nav-row">'+
-      '<button class="btn btn-o" onclick="prevStep(4)">← Back</button>'+
-      '<button class="btn btn-g" onclick="submitForm()" style="flex:2;font-size:.95rem">✅ Submit Application</button>'+
+  // STEP 4
+'<div class="step-content" id="sc4">'+
+
+  '<div class="divider">Nominee Details</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Nominee Name<span class="req">*</span></label>'+
+      '<input type="text" id="fnn">'+
+      '<div class="ferr" id="e-fnn">Required</div>'+
     '</div>'+
   '</div>'+
-  '</div>';
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Relationship<span class="req">*</span></label>'+
+      '<select id="fnrel">'+
+        '<option value="">Select</option>'+
+        '<option>Spouse</option>'+
+        '<option>Father</option>'+
+        '<option>Mother</option>'+
+        '<option>Son</option>'+
+        '<option>Daughter</option>'+
+        '<option>Brother</option>'+
+        '<option>Sister</option>'+
+        '<option>Other</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fnrel">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Nominee Age</label>'+
+      '<input type="number" id="fnage">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Nominee Mobile<span class="req">*</span></label>'+
+      '<input type="tel" id="fnmob" maxlength="10">'+
+      '<div class="ferr" id="e-fnmob">Valid 10-digit number required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Nominee Aadhaar</label>'+
+      '<input type="text" id="fnaad" maxlength="14" placeholder="XXXX XXXX XXXX">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Nominee Address</label>'+
+      '<textarea id="fnaddr"></textarea>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(4)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(4)" style="flex:2">Next →</button>'+
+  '</div>'+
+'</div>'+
+
+// STEP 5
+'<div class="step-content" id="sc5">'+
+  '<div class="divider">Reference 1</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Reference Name<span class="req">*</span></label>'+
+      '<input type="text" id="fr1name">'+
+      '<div class="ferr" id="e-fr1name">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Mobile Number<span class="req">*</span></label>'+
+      '<input type="tel" id="fr1mob" maxlength="10">'+
+      '<div class="ferr" id="e-fr1mob">Valid 10-digit number required</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Relationship<span class="req">*</span></label>'+
+      '<select id="fr1rel">'+
+        '<option value="">Select</option>'+
+        '<option>Father</option>'+
+        '<option>Mother</option>'+
+        '<option>Brother</option>'+
+        '<option>Sister</option>'+
+        '<option>Relative</option>'+
+        '<option>Friend</option>'+
+        '<option>Neighbour</option>'+
+        '<option>Employer</option>'+
+        '<option>Business Associate</option>'+
+        '<option>Village Leader</option>'+
+        '<option>Other</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fr1rel">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Occupation</label>'+
+      '<input type="text" id="fr1occ">'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Address</label>'+
+      '<textarea id="fr1addr"></textarea>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="divider">Reference 2</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Reference Name<span class="req">*</span></label>'+
+      '<input type="text" id="fr2name">'+
+      '<div class="ferr" id="e-fr2name">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Mobile Number<span class="req">*</span></label>'+
+      '<input type="tel" id="fr2mob" maxlength="10">'+
+      '<div class="ferr" id="e-fr2mob">Valid 10-digit number required</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Relationship<span class="req">*</span></label>'+
+      '<select id="fr2rel">'+
+        '<option value="">Select</option>'+
+        '<option>Father</option>'+
+        '<option>Mother</option>'+
+        '<option>Brother</option>'+
+        '<option>Sister</option>'+
+        '<option>Relative</option>'+
+        '<option>Friend</option>'+
+        '<option>Neighbour</option>'+
+        '<option>Employer</option>'+
+        '<option>Business Associate</option>'+
+        '<option>Village Leader</option>'+
+        '<option>Other</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fr2rel">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Occupation</label>'+
+      '<input type="text" id="fr2occ">'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Address</label>'+
+      '<textarea id="fr2addr"></textarea>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(5)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(5)" style="flex:2">Next →</button>'+
+  '</div>'+
+'</div>'+
+
+// STEP 6 - FIELD VERIFICATION
+'<div class="step-content" id="sc6">'+
+
+  '<div class="divider">Field Verification</div>'+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Verification Officer</label>'+
+      '<input type="text" id="fvofficer" placeholder="Officer Name">'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Designation</label>'+
+      '<input type="text" id="fvdesg" placeholder="Field Officer">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Date of Visit</label>'+
+      '<input type="date" id="fvdate">'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Time of Visit</label>'+
+      '<input type="time" id="fvtime">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Residence Verification</label>'+
+      '<select id="fvres">'+
+        '<option value="">Select</option>'+
+        '<option>Verified</option>'+
+        '<option>Not Verified</option>'+
+        '<option>Applicant Not Available</option>'+
+        '<option>Address Mismatch</option>'+
+      '</select>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Business Verification</label>'+
+      '<select id="fvbiz">'+
+        '<option value="">Select</option>'+
+        '<option>Verified</option>'+
+        '<option>Not Verified</option>'+
+        '<option>Business Closed</option>'+
+        '<option>Business Shifted</option>'+
+      '</select>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>House Type</label>'+
+      '<select id="fvhouse">'+
+        '<option value="">Select</option>'+
+        '<option>Own House</option>'+
+        '<option>Rental House</option>'+
+        '<option>Family House</option>'+
+      '</select>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Neighbour Feedback</label>'+
+      '<select id="fvneighbour">'+
+        '<option value="">Select</option>'+
+        '<option>Positive</option>'+
+        '<option>Average</option>'+
+        '<option>Negative</option>'+
+      '</select>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+
+    '<div class="fg">'+
+      '<label>Verification Remarks</label>'+
+      '<textarea id="fvremarks" placeholder="Officer observations"></textarea>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Recommendation</label>'+
+      '<select id="fvrecommend">'+
+        '<option value="">Select</option>'+
+        '<option>Recommended</option>'+
+        '<option>Recommended with Conditions</option>'+
+        '<option>Not Recommended</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fvrecommend">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Supervisor Approval</label>'+
+      '<select id="fvsuper">'+
+        '<option value="">Select</option>'+
+        '<option>Approved</option>'+
+        '<option>Rejected</option>'+
+        '<option>Pending</option>'+
+      '</select>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(6)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(6)" style="flex:2">Next →</button>'+
+  '</div>'+
+
+'</div>'+
+
+// STEP 7 - REVIEW
+'<div class="step-content" id="sc7">'+
+
+  '<div class="divider">Review Application</div>'+
+
+  '<div class="card">'+
+
+    '<div id="reviewBox">'+
+      '<div style="text-align:center;padding:30px;color:#666">'+
+      'Click Refresh Review to load application summary'+
+      '</div>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(7)">← Back</button>'+
+
+    '<button class="btn btn-gold" onclick="loadReview()">'+
+    'Refresh Review'+
+    '</button>'+
+
+    '<button class="btn btn-p" onclick="nextStep(7)" style="flex:2">'+
+    'Next →'+
+    '</button>'+
+  '</div>'+
+
+'</div>'+
+
+// STEP 8 - DECLARATION
+'<div class="step-content" id="sc8">'+
+
+  '<div class="divider">Declaration</div>'+
+
+  '<div class="card">'+
+
+    '<label style="display:flex;gap:10px;align-items:flex-start">'+
+
+      '<input type="checkbox" id="fdecl">'+
+
+      '<span>'+
+      'I hereby declare that all information provided in this application is true and correct to the best of my knowledge. I agree to the terms and conditions of Thennagam Finance.'+
+      '</span>'+
+
+    '</label>'+
+
+  '</div>'+
+
+  '<div class="divider">Application Actions</div>'+
+
+  '<div class="fgrid">'+
+
+    '<button class="btn btn-o" onclick="prevStep(8)">'+
+    '← Back'+
+    '</button>'+
+
+    '<button class="btn btn-gold" onclick="quickPreview()">'+
+    'Preview PDF'+
+    '</button>'+
+
+    '<button class="btn btn-p" onclick="finalSubmit()" style="flex:2">'+
+    'Submit Application'+
+    '</button>'+
+
+  '</div>'+
+
+'</div>';
 }
 
 // ── STEP CONTROLS ──────────────────────────────────────────────
 function updateSteps(){
-  for(var i=1;i<=4;i++){
-    var ps=$('ps'+i), sc=$('sc'+i); if(!ps||!sc) continue;
-    ps.className='pstep'+(i===S.step?' on':i<S.step?' done':'');
-    sc.className='step-content'+(i===S.step?' on':'');
+  for(var i=1;i<=8;i++){
+    var ps=$('ps'+i),
+        sc=$('sc'+i);
+
+    if(!ps || !sc) continue;
+
+    ps.className='pstep'+
+      (i===S.step ? ' on' :
+       i<S.step ? ' done' : '');
+
+    sc.className='step-content'+
+      (i===S.step ? ' on' : '');
   }
+
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -714,7 +1364,18 @@ function selGrp(g,btn){
   var gb=$('gbadge'); if(gb) gb.textContent=GINFO[g].desc;
 }
 
-function nextStep(from){ if(validateStep(from)){S.step=from+1; updateSteps();} }
+function nextStep(n){
+
+  if(!validateStep(n)) return;
+
+  if(S.step < 8){
+      S.step++;
+      updateSteps();
+
+      if(S.step===7)
+          setTimeout(loadReview,300);
+  }
+}
 function prevStep(from){ S.step=from-1; updateSteps(); }
 
 // ── VALIDATION ─────────────────────────────────────────────────
@@ -739,17 +1400,54 @@ function validateStep(step){
     if(!req('focc','e-focc','Required')) ok=false;
     if(!req('finc','e-finc','Required')) ok=false;
   }
-  if(step===3){
+if(step===3){
     if(!req('fla','e-fla','Required')) ok=false;
     if(!req('ften','e-ften','Required')) ok=false;
     if(!req('fpurp','e-fpurp','Required')) ok=false;
-  }
-  if(step===4){
+}
+
+if(step===4){
     if(!req('fnn','e-fnn','Required')) ok=false;
     if(!req('fnrel','e-fnrel','Required')) ok=false;
+
     var nm=gv('fnmob');
-    if(!nm||nm.length!==10||!/^\d+$/.test(nm)){showE('e-fnmob','Valid 10-digit number required');ok=false;}else clearE('e-fnmob');
-  }
+    if(!nm || nm.length!==10 || !/^\d+$/.test(nm)){
+        showE('e-fnmob','Valid 10-digit number required');
+        ok=false;
+    } else clearE('e-fnmob');
+}
+if(step===5){
+  if(!req('fr1name','e-fr1name','Required')) ok=false;
+  if(!req('fr1rel','e-fr1rel','Required')) ok=false;
+
+  var r1=gv('fr1mob');
+  if(!r1 || r1.length!==10 || !/^\d+$/.test(r1)){
+    showE('e-fr1mob','Valid 10-digit number required');
+    ok=false;
+  } else clearE('e-fr1mob');
+
+  if(!req('fr2name','e-fr2name','Required')) ok=false;
+  if(!req('fr2rel','e-fr2rel','Required')) ok=false;
+
+  var r2=gv('fr2mob');
+  if(!r2 || r2.length!==10 || !/^\d+$/.test(r2)){
+    showE('e-fr2mob','Valid 10-digit number required');
+    ok=false;
+  } else clearE('e-fr2mob');
+}
+if(step===6){
+  if(!req('fvrecommend','e-fvrecommend','Required'))
+      ok=false;
+}
+if(step===8){
+
+   if(!$('fdecl').checked){
+
+      toast('Accept declaration');
+      ok=false;
+   }
+
+}
   if(!ok) toast('Please fill all required fields','err');
   return ok;
 }
@@ -757,19 +1455,82 @@ function validateStep(step){
 // ── COLLECT FORM DATA ──────────────────────────────────────────
 function collectData(){
   return {
-    group:S.group, name:gv('fn'), mobile:gv('fm'), email:gv('fe'),
+      group:S.group,
+  name:gv('fn'),
+  mobile:gv('fm'),
+  alt_mobile:gv('faltmob'),
+  email:gv('fe'),
+  state:gv('fstate'),
+  residence_type:gv('fresidence'),
     dob:gv('fdob'), gender:gv('fgend'), father_name:gv('ffn'),
     address:gv('fadr'), city:gv('fcity'), district:gv('fdist'), pincode:gv('fpin'),
     aadhar_no:gv('faad'), pan_no:gv('fpan'),
     occupation:gv('focc'), income:gv('finc'),
     loan_amount:gv('fla'), tenure:gv('ften'), purpose:gv('fpurp'),
     nominee_name:gv('fnn'), nominee_rel:gv('fnrel'), nominee_mobile:gv('fnmob'),
+    employer_name: gv('femp'),
+work_experience: gv('fexp'),
+work_address: gv('fworkaddr'),
+bank_name: gv('fbnk'),
+account_number: gv('facc'),
+ifsc_code: gv('fifc'),
+branch: gv('fbrn'),
+account_type: gv('factype'),
+banking_since: gv('fbankyrs'),
+emi_date: gv('femidate'),
+existing_emi: gv('fexistingemi'),
+
+nominee_age: gv('fnage'),
+
+nominee_aadhar: gv('fnaad'),
+nominee_address: gv('fnaddr'),
+ref1_name: gv('fr1name'),
+ref1_mobile: gv('fr1mob'),
+ref1_relationship: gv('fr1rel'),
+ref1_occupation: gv('fr1occ'),
+ref1_address: gv('fr1addr'),
+
+ref2_name: gv('fr2name'),
+ref2_mobile: gv('fr2mob'),
+ref2_relationship: gv('fr2rel'),
+ref2_occupation: gv('fr2occ'),
+ref2_address: gv('fr2addr'),
+verification_officer: gv('fvofficer'),
+verification_designation: gv('fvdesg'),
+visit_date: gv('fvdate'),
+visit_time: gv('fvtime'),
+residence_verification: gv('fvres'),
+business_verification: gv('fvbiz'),
+house_type: gv('fvhouse'),
+neighbour_feedback: gv('fvneighbour'),
+verification_remarks: gv('fvremarks'),
+recommendation: gv('fvrecommend'),
+supervisor_approval: gv('fvsuper'),
   };
+}
+
+function loadReview(){
+
+  var d = collectData();
+
+  var h='';
+
+  Object.keys(d).forEach(function(k){
+
+    h +=
+      '<div style="padding:8px;border-bottom:1px solid #eee">'+
+      '<b>'+k.replaceAll('_',' ').toUpperCase()+'</b><br>'+
+      (d[k] || '-')+
+      '</div>';
+
+  });
+
+  $('reviewBox').innerHTML = h;
 }
 
 // ── SUBMIT ─────────────────────────────────────────────────────
 async function submitForm(){
-  if(!validateStep(4)) return;
+if(!validateStep(8)) return;
   showLoad('Saving Application…','Sending to Google Sheet…',30);
   try {
     var data    = collectData();
@@ -808,6 +1569,7 @@ async function submitForm(){
       S.lastData = data;
     }
 
+
     hideLoad();
     showSuccess(S.lastId, data);
   } catch(e){
@@ -815,6 +1577,16 @@ async function submitForm(){
     toast('❌ Error: '+e.message,'err',6000);
     console.error('Submit error:',e);
   }
+}
+
+function finalSubmit(){
+
+   if(!$('fdecl').checked){
+      toast('Please accept declaration','err');
+      return;
+   }
+
+   submitForm();
 }
 
 function showSuccess(appId, d){
@@ -840,7 +1612,9 @@ function renderRpt(){
     }).join('')+'</div>'+
     '<div class="tw"><table><tr><th>Status</th><th>Count</th><th>Total Amount</th></tr>'+
     ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
-      var f=a.filter(function(x){return x.status===st;});
+     var f=a.filter(function(x){
+   return cleanSt(x.status)===st;
+});
       return '<tr><td><span class="badge '+stBadge(st)+'">'+st+'</span></td>'+
         '<td>'+f.length+'</td><td>₹'+fmtN(sum(f))+'</td></tr>';
     }).join('')+'</table></div></div>';
@@ -922,8 +1696,318 @@ function loadJsPDF(){
     document.head.appendChild(s);
   });
 }
+function section(doc,title,y){
 
-function buildPDF(d,appId){
+  doc.setFillColor(220,220,220);
+  doc.rect(10,y,190,7,'F');
+
+  doc.setFontSize(10);
+  doc.setFont(undefined,'bold');
+  doc.text(title,12,y+5);
+}
+
+function money(v){
+   return v ? 'Rs. '+Number(v).toLocaleString('en-IN') : '';
+}
+
+
+
+function buildPDF(d){
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('p','mm','a4');
+
+  let y=10;
+
+  //====================================================
+  // HEADER
+  //====================================================
+
+  doc.setFontSize(14);
+  doc.setFont(undefined,'bold');
+  doc.text('THENNAGAM FINANCE PRIVATE LIMITED',105,y,{align:'center'});
+
+  y+=6;
+
+  doc.setFontSize(9);
+  doc.setFont(undefined,'normal');
+
+  doc.text(
+   'CIN: U64990TN2025PTC179499 | Reg. No. B-14.00700 (RBI)',
+   105,y,{align:'center'}
+  );
+
+  y+=5;
+
+  doc.text(
+   '26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram,',
+   105,y,{align:'center'}
+  );
+
+  y+=4;
+
+  doc.text(
+   'Thanjavur, Papanasam, Tamil Nadu - 614205',
+   105,y,{align:'center'}
+  );
+
+  y+=8;
+
+  doc.setFontSize(13);
+  doc.setFont(undefined,'bold');
+doc.text('GROUP '+(d.group||'A')+' LOAN',105,y,{align:'center'});
+
+  y+=6;
+
+  doc.text('LOAN APPLICATION FORM',105,y,{align:'center'});
+
+  y+=5;
+
+  doc.setFontSize(10);
+
+  doc.text(
+    'Loan Category: Small Loan - Up to Rs.50,000',
+    14,y
+  );
+
+  y+=8;
+
+  doc.text('Application No : '+(d.app_id||''),14,y);
+  doc.text('Application Date : '+(d.created_at||new Date().toLocaleDateString()),120,y);
+
+  y+=8;
+
+  //====================================================
+  // SECTION 1
+  //====================================================
+
+  section(doc,'SECTION 1 - BORROWER DETAILS',y);
+
+  y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    styles:{fontSize:9},
+    body:[
+      ['Full Name',d.name||''],
+      ['Date of Birth',d.dob||''],
+      ['Gender',d.gender||''],
+      ['Father/Spouse Name',d.father_name||''],
+    ['Aadhaar Number',d.aadhar_no||d.aadhaar_no||''],
+['PAN Number',d.pan_no||''],
+      ['Mobile Number',d.mobile||''],
+      ['Alternate Mobile',d.alt_mobile||''],
+      ['Email Address',d.email||''],
+      ['Residential Address',d.address||''],
+      ['City',d.city||''],
+      ['District',d.district||''],
+      ['Pin Code',d.pincode||''],
+      ['State',d.state||''],
+      ['Residence Type',d.residence_type||'']
+    ]
+  });
+
+  y=doc.lastAutoTable.finalY+6;
+
+  //====================================================
+  // SECTION 2
+  //====================================================
+
+  section(doc,'SECTION 2 - EMPLOYMENT & INCOME DETAILS',y);
+
+  y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    styles:{fontSize:9},
+    body:[
+      ['Occupation Type',d.occupation||''],
+      ['Employer / Business Name',d.employer_name||''],
+      ['Monthly Income',money(d.income)],
+      ['Other Monthly Income',money(d.other_income)],
+      ['Employer Address',d.work_address||''],
+      ['Total Work Experience',d.work_experience||''],
+      ['Years with Current Employer',d.current_employer_years||'']
+    ]
+  });
+
+  y=doc.lastAutoTable.finalY+6;
+
+  //====================================================
+  // SECTION 3
+  //====================================================
+
+  section(doc,'SECTION 3 - BANK ACCOUNT DETAILS',y);
+
+  y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    styles:{fontSize:9},
+    body:[
+      ['Bank Name',d.bank_name||''],
+      ['Branch Name',d.branch||''],
+      ['Account Number',d.account_number||''],
+      ['Account Type',d.account_type||''],
+      ['IFSC Code',d.ifsc_code||''],
+      ['Existing Loan EMI',money(d.existing_emi)]
+    ]
+  });
+
+  y=doc.lastAutoTable.finalY+6;
+
+  //====================================================
+  // SECTION 4
+  //====================================================
+
+  section(doc,'SECTION 4 - LOAN REQUEST DETAILS',y);
+
+  y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    styles:{fontSize:9},
+    body:[
+      ['Loan Amount Requested',money(d.loan_amount)],
+      ['Purpose of Loan',d.purpose||''],
+      ['Preferred Tenure',d.tenure||''],
+      ['Preferred Instalment Date',d.emi_date||'']
+    ]
+  });
+
+  //====================================================
+  // NEW PAGE
+  //====================================================
+
+  doc.addPage();
+
+  y=10;
+
+  //====================================================
+  // SECTION 5
+  //====================================================
+
+  section(doc,'SECTION 5 - NOMINEE DETAILS',y);
+
+  y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    styles:{fontSize:9},
+    body:[
+      ['Nominee Full Name',d.nominee_name||''],
+      ['Relationship',d.nominee_rel||''],
+      ['Nominee Aadhaar',d.nominee_aadhar||''],
+      ['Nominee Mobile',d.nominee_mobile||''],
+      ['Nominee Address',d.nominee_address||'']
+    ]
+  });
+
+  y=doc.lastAutoTable.finalY+6;
+
+  //====================================================
+  // SECTION 6 REFERENCES
+  //====================================================
+
+  section(doc,'SECTION 6 - REFERENCES',y);
+
+  y+=5;
+
+  doc.autoTable({
+    startY:y,
+    head:[[
+      'Ref',
+      'Full Name',
+      'Relationship',
+      'Mobile',
+      'Address'
+    ]],
+    body:[
+      [
+        '1',
+        d.ref1_name||'',
+        d.ref1_relationship||'',
+        d.ref1_mobile||'',
+        d.ref1_address||''
+      ],
+      [
+        '2',
+        d.ref2_name||'',
+        d.ref2_relationship||'',
+        d.ref2_mobile||'',
+        d.ref2_address||''
+      ]
+    ]
+  });
+
+  y=doc.lastAutoTable.finalY+6;
+
+  //====================================================
+  // SECTION 7 VERIFICATION
+  //====================================================
+
+  section(doc,'SECTION 7 - FIELD VISIT & VERIFICATION',y);
+
+  y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    styles:{fontSize:9},
+    body:[
+      ['Verification Officer',d.verification_officer||''],
+      ['Designation',d.verification_designation||''],
+      ['Date of Visit',d.visit_date||''],
+      ['Time of Visit',d.visit_time||''],
+      ['Observations',d.verification_remarks||''],
+      ['Verification Status',d.recommendation||''],
+      ['Supervisor Approval',d.supervisor_approval||'']
+    ]
+  });
+
+  y=doc.lastAutoTable.finalY+8;
+
+  //====================================================
+  // DECLARATION
+  //====================================================
+
+  section(doc,'SECTION 8 - BORROWER DECLARATION',y);
+
+  y+=8;
+
+  doc.setFontSize(9);
+
+  const txt=
+  'I/We hereby declare that all information furnished above is true and correct to the best of my/our knowledge. I/We authorise THENNAGAM FINANCE PRIVATE LIMITED to verify the information provided and conduct field verification.';
+
+  doc.text(txt,14,y,{maxWidth:180});
+
+  y+=25;
+
+  doc.line(20,y,70,y);
+  doc.line(80,y,130,y);
+  doc.line(145,y,195,y);
+
+  y+=5;
+
+  doc.text('Borrower Signature',25,y);
+  doc.text('Nominee Signature',85,y);
+  doc.text('Authorised Signatory',148,y);
+
+  //====================================================
+  // SAVE
+  //====================================================
+
+  //doc.save((d.app_id||'Application')+'.pdf');
+  return doc.output('blob');
+}
+
+/*function buildPDF(d,appId){
   var jsPDF=window.jspdf.jsPDF;
   var doc=new jsPDF({unit:'mm',format:'a4'});
   doc.setFillColor(26,35,126); doc.rect(0,0,210,30,'F');
@@ -973,7 +2057,7 @@ function buildPDF(d,appId){
   doc.setTextColor(245,215,139); doc.setFontSize(7);
   doc.text('Thennagam Finance Private Limited  |  CIN: U64990TN2025PTC179499  |  Tamil Nadu, India',105,291.5,{align:'center'});
   return doc.output('blob');
-}
+}*/
 
 // ── DELETE APPLICATION ────────────────────────────────────────
 async function deleteApp(){
@@ -1084,7 +2168,10 @@ async function saveEdit(){
     await new Promise(function(r){setTimeout(r,4000);});
     hideLoad();
     toast('✅ Application updated successfully','ok');
-    loadApps();
+
+setTimeout(function(){
+   loadApps();
+},1000);
   } catch(e){
     hideLoad();
     toast('❌ Save failed: '+e.message,'err');
