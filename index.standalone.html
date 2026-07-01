@@ -1,0 +1,2518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- SINGLE-FILE BUILD — safe to open by double-click; all CSS+JS inlined -->
+<title>Thennagam Finance — Loan Management</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a237e;--navy2:#283593;--navy-l:#e8eaf6;
+  --gold:#c9a84c;--gold-l:#f5d78b;
+  --cream:#fdf8f0;--cream-d:#f0e8d8;--border:#e0d8cc;
+  --muted:#6b6860;--text:#1c1917;--surface:#fff;
+  --red:#c62828;--green:#2e7d32;
+  --sw:230px;--r:12px;--rs:8px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);font-size:15px}
+
+/* LOGIN */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a237e,#283593)}
+.lbox{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.lico{width:60px;height:60px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;color:var(--navy);margin:0 auto 12px}
+.lbox h2{text-align:center;color:var(--navy);font-size:1.1rem;margin-bottom:2px}
+.lbox p{text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:24px}
+.lbox label{display:block;font-size:.8rem;font-weight:600;color:var(--navy);margin-bottom:5px}
+.lbox input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;margin-bottom:14px}
+.lbox input:focus{outline:none;border-color:var(--navy)}
+.lbtn{width:100%;padding:12px;background:var(--navy);color:var(--gold-l);font-weight:700;font-size:1rem;border:none;border-radius:var(--rs);cursor:pointer}
+.lerr{color:var(--red);font-size:.82rem;text-align:center;margin-top:8px;display:none}
+.lhint{background:var(--cream);border-radius:var(--rs);padding:8px 12px;font-size:.75rem;color:var(--muted);margin-top:14px;text-align:center;line-height:1.7}
+
+/* APP */
+#app{display:none;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--navy);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.slogo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.slogo .ico{display:inline-flex;width:32px;height:32px;background:var(--gold);border-radius:50%;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:var(--navy);margin-right:8px;vertical-align:middle}
+.slogo .co{font-size:.88rem;font-weight:700;color:var(--gold-l);vertical-align:middle}
+.slogo .tg{font-size:.68rem;color:rgba(255,255,255,.42);padding-left:40px;margin-top:3px}
+.nsec{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);padding:14px 16px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;font-size:.86rem;color:rgba(255,255,255,.7);border-radius:6px;margin:1px 8px;transition:all .15s}
+.ni:hover,.ni.on{background:rgba(255,255,255,.1);color:#fff}
+.ni.on{background:rgba(201,168,76,.18);color:var(--gold-l)}
+.suser{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:.78rem;color:rgba(255,255,255,.5)}
+.suser strong{display:block;color:#fff;margin-bottom:1px}
+
+.main{margin-left:var(--sw);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.topbar h2{font-size:1rem;font-weight:700;color:var(--navy)}
+.pg{padding:22px;flex:1}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.ctitle{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold)}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.scard{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.sico{width:44px;height:44px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.snum{font-size:1.5rem;font-weight:700;color:var(--navy);line-height:1}
+.slbl{font-size:.74rem;color:var(--muted);margin-top:2px}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{background:var(--navy);color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;font-size:.78rem}
+td{padding:8px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#f8f9ff}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700}
+.st-NEW{background:#e3f2fd;color:#1565c0}
+.st-REVIEW{background:#fff3e0;color:#e65100}
+.st-APPROVED{background:#e8f5e9;color:#2e7d32}
+.st-REJECTED{background:#ffebee;color:#c62828}
+.st-DISBURSED{background:#f3e5f5;color:#6a1b9a}
+.gr-A{background:#e8f5e9;color:#1b5e20}
+.gr-B{background:#e3f2fd;color:#0d47a1}
+.gr-C{background:#fff3e0;color:#e65100}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);cursor:pointer;font-weight:600;font-size:.82rem;transition:all .15s;font-family:inherit}
+.btn-p{background:var(--navy);color:var(--gold-l)}
+.btn-p:hover{background:var(--navy2)}
+.btn-sm{padding:4px 9px;font-size:.75rem}
+.btn-o{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}
+.btn-g{background:var(--green);color:#fff}
+.btn-r{background:var(--red);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:700}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fgrid.f1{grid-template-columns:1fr}
+.fgrid.f3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:600px){.fgrid,.fgrid.f3{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:.78rem;font-weight:600;color:var(--navy)}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.88rem;font-family:inherit;background:#fff;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,35,126,.07)}
+.fg input.err,.fg select.err{border-color:var(--red)}
+.req{color:var(--red)}
+.ferr{font-size:.72rem;color:var(--red);margin-top:2px;display:none}
+.ferr.on{display:block}
+.divider{display:flex;align-items:center;gap:10px;margin:8px 0 14px;font-size:.71rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.gtabs{display:flex;gap:8px;margin-bottom:10px}
+.gtab{flex:1;padding:12px 8px;border:2px solid var(--border);border-radius:var(--rs);cursor:pointer;text-align:center;background:var(--cream);transition:all .15s}
+.gtab:hover{border-color:var(--navy);background:var(--navy-l)}
+.gtab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.gtab .gl{font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.gtab .gr{font-size:.7rem;opacity:.75;margin-top:1px}
+.gbadge{background:var(--navy-l);border-left:3px solid var(--navy);padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;font-size:.8rem;color:var(--navy);font-weight:600;margin-bottom:16px}
+.psteps{display:flex;gap:0;margin-bottom:22px;background:var(--cream);border-radius:var(--rs);padding:4px}
+.pstep{flex:1;padding:8px 4px;text-align:center;font-size:.72rem;font-weight:600;color:var(--muted);border-radius:6px;cursor:pointer;transition:all .15s}
+.pstep.on{background:var(--navy);color:var(--gold-l)}
+.pstep.done{color:var(--green)}
+.step-content{display:none}
+.step-content.on{display:block}
+.nav-row{display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+.mbg.on{display:flex}
+.mbox{background:#fff;border-radius:var(--r);padding:26px;width:720px;max-width:96vw}
+.mtitle{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--gold);display:flex;justify-content:space-between;align-items:center}
+.mft{margin-top:16px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:14px;flex-wrap:wrap}
+
+/* LOADING OVERLAY */
+#loading{display:none;position:fixed;inset:0;background:rgba(26,35,126,.6);backdrop-filter:blur(3px);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+#loading.on{display:flex}
+.ldring{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ldtxt{color:#fff;font-weight:600;font-size:.95rem}
+.ldstep{color:rgba(255,255,255,.7);font-size:.82rem}
+.ldbar{width:220px;height:3px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden}
+.ldfill{height:100%;background:#fff;border-radius:4px;transition:width .35s ease;width:0%}
+
+/* SUCCESS */
+#succ-screen{display:none;position:fixed;inset:0;background:var(--cream);z-index:998;overflow-y:auto;padding:36px 16px}
+.succbox{max-width:500px;margin:0 auto;background:#fff;border-radius:var(--r);padding:36px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1);border:1px solid var(--border)}
+.succ-id{font-size:1.4rem;font-weight:700;color:var(--navy);background:var(--navy-l);padding:10px 24px;border-radius:var(--rs);display:inline-block;margin:10px 0;letter-spacing:3px;border:2px solid var(--navy)}
+.succ-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.succ-row:last-child{border:none}
+.succ-row .l{color:var(--muted)}
+.succ-row .v{font-weight:600;color:var(--navy)}
+
+.psteps{
+    display:flex;
+    overflow-x:auto;
+    gap:6px;
+    margin-bottom:20px;
+    padding-bottom:5px;
+}
+
+.pstep{
+    min-width:110px;
+    padding:10px;
+    text-align:center;
+    font-size:.75rem;
+    border-radius:8px;
+    background:var(--cream);
+    border:1px solid var(--border);
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+.pstep.on{
+    background:var(--navy);
+    color:var(--gold-l);
+}
+
+.pstep.done{
+    background:#e8f5e9;
+    color:#2e7d32;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+}
+
+th,
+td{
+    border:1px solid #ccc;
+    padding:8px;
+    vertical-align:middle;
+    word-wrap:break-word;
+}
+
+.section-title{
+    width:100%;
+    box-sizing:border-box;
+    background:#d9d9d9;
+    font-weight:bold;
+    padding:8px;
+    margin:20px 0 0;
+}
+
+.section{
+    width:100%;
+    margin-bottom:20px;
+}
+/* TOAST */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1c1917;color:#fff;padding:9px 20px;border-radius:30px;font-size:.84rem;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+#toast.on{display:block}
+#toast.err{background:var(--red)}
+#toast.ok{background:var(--green)}
+#toast.info{background:var(--navy)}
+</style>
+</head>
+<body>
+
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="lbox">
+    <div class="lico">₹</div>
+    <h2>Thennagam Finance</h2>
+    <p>Private Limited — Staff Login</p>
+    <label>Email</label>
+    <input type="email" id="l-email" value="admin@thennagam.com" onkeydown="if(event.key==='Enter')login()">
+    <label>Password</label>
+    <input type="password" id="l-pass" value="admin123" onkeydown="if(event.key==='Enter')login()">
+    <button class="lbtn" onclick="login()">Sign In →</button>
+    <div class="lerr" id="l-err">Invalid email or password</div>
+    <div class="lhint">admin@thennagam.com / admin123<br>staff@thennagam.com / staff123</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="slogo">
+      <span class="ico">₹</span><span class="co">Thennagam Finance</span>
+      <div class="tg">Loan Management System v6.0</div>
+    </div>
+    <div class="nsec">Overview</div>
+    <div class="ni on" id="n-dash" onclick="go('dash')">📊 Dashboard</div>
+    <div class="nsec">Applications</div>
+    <div class="ni" id="n-apps" onclick="go('apps')">📋 All Applications</div>
+    <div class="ni" id="n-new"  onclick="go('new')">➕ New Application</div>
+    <div class="nsec">Reports</div>
+    <div class="ni" id="n-rpt"  onclick="go('rpt')">📈 Summary Report</div>
+    <div class="nsec">System</div>
+    <div class="ni" id="n-cfg"  onclick="go('cfg')">⚙️ Settings</div>
+    <div class="suser">
+      <strong id="su-name">Admin</strong>
+      <span id="su-role">Administrator</span> ·
+      <a href="#" onclick="logout()" style="color:var(--gold-l)">Logout</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="tbtitle">Dashboard</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:.76rem;color:var(--muted)" id="tbdate"></span>
+        <button class="btn btn-o btn-sm" onclick="loadApps()">🔄 Refresh</button>
+        <button class="btn btn-p btn-sm" onclick="go('new')">+ New Application</button>
+      </div>
+    </div>
+    <div class="pg" id="pg">
+      <div style="text-align:center;padding:60px;color:var(--muted)">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="mbg" id="vmod">
+  <div class="mbox">
+    <div class="mtitle">
+      <span id="vmod-title">Application Details</span>
+      <button class="btn btn-sm btn-o" onclick="closeModal()">✕</button>
+    </div>
+    <div id="vmod-body"></div>
+    <div class="mft" style="justify-content:space-between">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-r btn-sm" onclick="deleteApp()">🗑️ Delete</button>
+        <button class="btn btn-o btn-sm" onclick="openEditModal()">✏️ Edit</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" onclick="closeModal()">Close</button>
+        <button class="btn btn-o" onclick="genAgreement()">📄 Agreement Pack</button>
+        <button class="btn btn-gold" onclick="genPDF()">🖨️ Application PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="mbg" id="emod">
+  <div class="mbox" style="width:760px">
+    <div class="mtitle">
+      <span id="emod-title">✏️ Edit Application</span>
+      <button class="btn btn-sm btn-o" onclick="closeEditModal()">✕</button>
+    </div>
+    <div id="emod-body"></div>
+    <div class="mft">
+      <button class="btn btn-o" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="ldring"></div>
+  <div class="ldtxt" id="ld-title">Please wait…</div>
+  <div class="ldstep" id="ld-step"></div>
+  <div class="ldbar"><div class="ldfill" id="ld-fill"></div></div>
+</div>
+
+<!-- SUCCESS -->
+<div id="succ-screen">
+  <div class="succbox">
+    <div style="font-size:3rem">🎉</div>
+    <div style="font-size:1.2rem;font-weight:700;color:var(--green);margin:8px 0">Application Submitted!</div>
+    <div class="succ-id" id="succ-id"></div>
+    <div style="font-size:.84rem;color:var(--muted);margin:8px 0" id="succ-msg"></div>
+    <div id="succ-detail" style="background:var(--cream);border-radius:var(--rs);padding:14px;text-align:left;margin:12px 0"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="genPDFFromLast()">🖨️ Application PDF</button>
+      <button class="btn btn-o" onclick="genAgreementFromLast()">📄 Agreement Pack</button>
+      <button class="btn btn-p" onclick="go('apps')">← View All Applications</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- jsPDF (PDF generation) -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+<!-- App modules — load order matters (config first, bootstrap last) -->
+<script>
+/* ===== js/config.js ===== */
+// Thennagam Finance LMS — config: SCRIPT_URL, STAFF, COLS, state (S), GINFO, TITLES
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+// ══════════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════════
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPXkITDJ26difEnmchhyAlwk7Ezb7-k2uSHh918bXQqAH36rkEfObXcUwULGWdZMIS/exec';
+
+var STAFF = [
+  {email:'admin@thennagam.com',     pass:'admin123', name:'Admin', role:'Administrator'},
+  {email:'staff@thennagam.com',     pass:'staff123', name:'Staff', role:'Staff'},
+  {email:'anbuarulkanna@gmail.com', pass:'admin123', name:'Anbu',  role:'Administrator'},
+];
+
+// COLS must match Code.gs COLS exactly
+var COLS = [
+  'app_id','group','name','mobile','email','dob','gender','alt_mobile','state','residence_type',
+  'father_name','address','city','district','pincode',
+  'aadhar_no','pan_no','occupation','income',
+  'loan_amount','tenure','purpose',
+  'nominee_name','nominee_rel','nominee_mobile',
+  'status','submitted_at',
+  'employer_name',
+'work_experience',
+'work_address',
+'bank_name',
+'account_number',
+'ifsc_code',
+'branch',
+'account_type',
+'banking_since',
+'verification_officer',
+'verification_designation',
+'visit_date',
+'visit_time',
+'residence_verification',
+'business_verification',
+'house_type',
+'neighbour_feedback',
+'verification_remarks',
+'recommendation',
+'supervisor_approval',
+'nominee_age',
+'ref1_name',
+'ref1_mobile',
+'ref1_relationship',
+'ref1_occupation',
+'ref1_address',
+
+'ref2_name',
+'ref2_mobile',
+'ref2_relationship',
+'ref2_occupation',
+'ref2_address',
+'emi_date',
+'existing_emi',
+'other_income',
+'current_employer_years',
+'nominee_aadhar',
+'nominee_address',
+];
+
+// ── State — NO localStorage, everything from sheet ─────────────
+var S = {
+  user:     null,
+  page:     'dash',
+  apps:     [],       // always loaded fresh from Google Sheet
+  group:    'A',
+  step:     1,
+  lastData: null,
+  lastId:   null,
+  viewId:   null,
+};
+
+var GINFO = {
+  A:{desc:'Group A — Small loan up to ₹50,000'},
+  B:{desc:'Group B — Medium loan ₹50,001 – ₹3,00,000'},
+  C:{desc:'Group C — Large loan above ₹3,00,001'},
+};
+var TITLES={dash:'Dashboard',apps:'All Applications',new:'New Application',rpt:'Summary Report',cfg:'Settings'};
+</script>
+<script>
+/* ===== js/helpers.js ===== */
+// Thennagam Finance LMS — helpers: DOM/util ($ gv esc fmtN cleanSt formatDOB stBadge toast load)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+
+// ── Helpers ────────────────────────────────────────────────────
+function $(id){ return document.getElementById(id); }
+function gv(id){ var el=$(id); return el?el.value.trim():''; }
+function esc(s){ var s2=String(s||''); s2=s2.replace(/&/g,'&amp;'); s2=s2.replace(/\x3C/g,'&lt;'); s2=s2.replace(/\x3E/g,'&gt;'); s2=s2.replace(/"/g,'&quot;'); return s2; }
+function fmtN(n){ return Number(n||0).toLocaleString('en-IN'); }
+function cleanSt(s){ return (s||'').replace(/\x3C[^\x3E]*\x3E/g,'').trim()||'NEW'; }
+function formatDOB(s){
+  if(!s||s==='—') return '—';
+  // Already formatted like 15/01/1990 or 1990-01-15
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)||/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Ugly JS Date string — parse and reformat
+  try{
+    var d=new Date(s);
+    if(isNaN(d.getTime())) return s;
+    return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+  }catch(e){ return s; }
+}
+function stBadge(s){
+  var m={NEW:'st-NEW','UNDER REVIEW':'st-REVIEW',APPROVED:'st-APPROVED',REJECTED:'st-REJECTED',DISBURSED:'st-DISBURSED'};
+  return m[cleanSt(s)]||'st-NEW';
+}
+function toast(msg,type,dur){
+  var t=$('toast'); t.textContent=msg; t.className='on '+(type||'');
+  clearTimeout(t._t); t._t=setTimeout(function(){t.className='';},dur||3000);
+}
+function showLoad(title,step,pct){
+  $('loading').classList.add('on');
+  $('ld-title').textContent=title||'Please wait…';
+  $('ld-step').textContent=step||'';
+  $('ld-fill').style.width=(pct||0)+'%';
+}
+function hideLoad(){ $('loading').classList.remove('on'); }
+
+// ── LOGIN ──────────────────────────────────────────────────────
+</script>
+<script>
+/* ===== js/auth.js ===== */
+// Thennagam Finance LMS — auth: login / logout
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+function login(){
+  var e=gv('l-email'), p=gv('l-pass'), u=null;
+  for(var i=0;i<STAFF.length;i++){if(STAFF[i].email===e&&STAFF[i].pass===p){u=STAFF[i];break;}}
+  if(!u){$('l-err').style.display='block';return;}
+  S.user=u;
+  $('login-page').style.display='none';
+  $('app').style.display='block';
+  $('su-name').textContent=u.name;
+  $('su-role').textContent=u.role;
+  $('tbdate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  // Load apps from sheet every time
+  loadApps();
+}
+
+function logout(){
+  S.user=null;
+  S.apps=[];  // clear memory — no persistence
+  $('app').style.display='none';
+  $('login-page').style.display='flex';
+  $('login-page').style.alignItems='center';
+  $('login-page').style.justifyContent='center';
+}
+
+// ── LOAD FROM GOOGLE SHEET via JSONP ──────────────────────────
+</script>
+<script>
+/* ===== js/data.js ===== */
+// Thennagam Finance LMS — data: Google Sheet I/O (loadApps, setStatus, deleteApp, saveEdit)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+function loadApps(){
+  showLoad('Loading from Google Sheet…','Fetching all applications…',20);
+  var cbName = '_tfLoad_' + Date.now();
+  var script = document.createElement('script');
+
+  var timer = setTimeout(function(){
+    cleanup();
+    hideLoad();
+    S.apps = [];
+    toast('❌ Timeout — check URL in Settings','err',5000);
+    go(S.page==='dash'?'dash':'apps');
+  }, 15000);
+
+  window[cbName] = function(result){
+    cleanup();
+    hideLoad();
+    if(result && result.ok){
+      S.apps = result.rows || [];
+      toast('✅ '+S.apps.length+' records loaded from Sheet','ok');
+    } else {
+      S.apps = [];
+      toast('❌ '+(result&&result.message||'Sheet error'),'err',5000);
+    }
+    go(S.page==='dash'?'dash':'apps');
+  };
+
+  function cleanup(){
+    clearTimeout(timer);
+    try{ delete window[cbName]; script.remove(); }catch(e){}
+  }
+
+  script.onerror = function(){
+    cleanup(); hideLoad(); S.apps = [];
+    toast('❌ Cannot reach Apps Script','err',5000);
+    go(S.page==='dash'?'dash':'apps');
+  };
+
+  script.src = SCRIPT_URL + '?action=getAll&callback=' + cbName + '&t=' + Date.now();
+  document.head.appendChild(script);
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────
+async function setStatus(id, status){
+  // Update locally immediately for instant UI feedback
+  var a = S.apps.find(function(x){return x.app_id===id;});
+  if(a) a.status = status;
+
+  // Re-render the status buttons inside modal immediately
+  var btnContainer = document.querySelector('#vmod-body .status-btns');
+  if(btnContainer){
+    btnContainer.innerHTML = ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
+      var on = status===st;
+      return '<button class="btn btn-sm" style="background:'+(on?'var(--navy)':'var(--cream-d)')+';color:'+(on?'var(--gold-l)':'var(--text)')+'" onclick="setStatus(\''+id+'\',\''+st+'\')">'+st+'</button>';
+    }).join('');
+  }
+
+  toast('Saving status…','info',2000);
+
+  // Save to sheet
+  try {
+    await fetch(SCRIPT_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'update', app_id:id, status:status})
+    });
+    toast('✅ Status updated to '+status,'ok');
+    // Reload in background to sync sheet
+    setTimeout(function(){ loadApps(); }, 3000);
+  } catch(e){
+    toast('❌ Update failed: '+e.message,'err');
+  }
+}
+
+// ── NEW APPLICATION FORM ───────────────────────────────────────
+async function deleteApp(){
+  var id = S.viewId;
+  if(!id){ toast('No application selected','err'); return; }
+  var a = S.apps.find(function(x){return x.app_id===id;});
+  if(!confirm('Delete application '+id+' ('+( a?a.name:'')+')?\nThis cannot be undone.')) return;
+  closeModal();
+  showLoad('Deleting…','Removing from Google Sheet…',50);
+  try {
+    await fetch(SCRIPT_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'delete', app_id:id})
+    });
+    showLoad('Deleted!','Reloading data…',80);
+    await new Promise(function(r){setTimeout(r,3000);});
+    hideLoad();
+    toast('✅ Application deleted','ok');
+    loadApps();
+  } catch(e){
+    hideLoad();
+    toast('❌ Delete failed: '+e.message,'err');
+  }
+}
+
+// ── EDIT APPLICATION ───────────────────────────────────────────
+async function saveEdit(){
+  var id = S.viewId;
+  var a  = S.apps.find(function(x){return x.app_id===id;});
+  if(!a){ toast('Not found','err'); return; }
+
+  // Collect all edited values
+  var fields = ['name','mobile','alt_mobile','email','dob','gender','father_name','address','city','district','state','pincode','residence_type','aadhar_no','pan_no','occupation','income','employer_name','work_experience','work_address','bank_name','account_number','ifsc_code','branch','account_type','banking_since','loan_amount','tenure','purpose','emi_date','existing_emi','status','nominee_name','nominee_rel','nominee_age','nominee_mobile','nominee_aadhar','nominee_address','ref1_name','ref1_relationship','ref1_mobile','ref1_occupation','ref1_address','ref2_name','ref2_relationship','ref2_mobile','ref2_occupation','ref2_address','verification_officer','verification_designation','visit_date','visit_time','residence_verification','business_verification','house_type','neighbour_feedback','verification_remarks','recommendation','supervisor_approval'];
+
+  var updated = {action:'editSave', app_id:id};
+  fields.forEach(function(f){
+    var el = $('ef_'+f);
+    if(el) updated[f] = el.value.trim();
+  });
+
+  closeEditModal();
+  showLoad('Saving changes…','Updating Google Sheet…',50);
+
+  try {
+    await fetch(SCRIPT_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(updated)
+    });
+    showLoad('Saved!','Reloading data…',85);
+    await new Promise(function(r){setTimeout(r,4000);});
+    hideLoad();
+    toast('✅ Application updated successfully','ok');
+
+setTimeout(function(){
+   loadApps();
+},1000);
+  } catch(e){
+    hideLoad();
+    toast('❌ Save failed: '+e.message,'err');
+  }
+}
+</script>
+<script>
+/* ===== js/navigation.js ===== */
+// Thennagam Finance LMS — navigation: routing + dashboard + applications list (go, renderDash, sc, renderApps)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+function go(page){
+  S.page=page;
+  document.querySelectorAll('.ni').forEach(function(el){el.classList.remove('on');});
+  var n=$('n-'+page); if(n) n.classList.add('on');
+  $('tbtitle').textContent=TITLES[page]||page;
+  $('succ-screen').style.display='none';
+  var c=$('pg');
+  if(page==='dash')  c.innerHTML=renderDash();
+  else if(page==='apps') c.innerHTML=renderApps();
+  else if(page==='new')  {c.innerHTML=renderForm(); S.step=1; S.group='A'; updateSteps();}
+  else if(page==='rpt')  c.innerHTML=renderRpt();
+  else if(page==='cfg')  c.innerHTML=renderCfg();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────
+function renderDash(){
+  var a=S.apps;
+  var nw=a.filter(function(x){return cleanSt(x.status)==='NEW';}).length;
+ // var ap=a.filter(function(x){return x.status==='APPROVED';}).length;
+  var ap=a.filter(function(x){return cleanSt(x.status)==='APPROVED';}).length;
+ // var dis=a.filter(function(x){return x.status==='DISBURSED';}).length;
+  var dis=a.filter(function(x){return  cleanSt(x.status)==='DISBURSED';}).length;
+  var gA=a.filter(function(x){return x.group==='A';}).length;
+  var gB=a.filter(function(x){return x.group==='B';}).length;
+
+  var rows=a.slice(0,10).map(function(x,i){
+    return '<tr>'+
+      '<td><strong style="color:var(--navy)">'+esc(x.app_id)+'</strong></td>'+
+      '<td>'+esc(x.name)+'</td><td>'+esc(x.mobile)+'</td>'+
+      '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
+      '<td>₹'+fmtN(x.loan_amount)+'</td>'+
+      '<td><span class="badge '+stBadge(cleanSt(x.status))+'">'+cleanSt(x.status)+'</span></td>'+
+      '<td>'+esc(x.submitted_at)+'</td>'+
+      '<td><button class="btn btn-sm btn-o" onclick="viewAppIdx('+i+')">View</button></td>'+
+    '</tr>';
+  }).join('');
+
+  return '<div class="sgrid">'+
+    sc('📋','#e3f2fd',a.length,'Total Applications')+
+    sc('🔔','#fff3e0',nw,'New / Pending')+
+    sc('✅','#e8f5e9',ap,'Approved')+
+    sc('💸','#f3e5f5',dis,'Disbursed')+
+    sc('A','#e8f5e9',gA,'Group A')+
+    sc('B','#e3f2fd',gB,'Group B')+
+  '</div>'+
+  '<div class="card">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+      '<div class="ctitle" style="margin:0;border:none;padding:0">Recent Applications</div>'+
+      '<button class="btn btn-sm btn-o" onclick="loadApps()">🔄 Refresh from Sheet</button>'+
+    '</div>'+
+    (a.length===0
+      ? '<div style="text-align:center;padding:32px;color:var(--muted)">No applications yet. <a href="#" onclick="go(\'new\')" style="color:var(--navy)">Add first →</a></div>'
+      : '<div class="tw"><table><tr><th>App ID</th><th>Name</th><th>Mobile</th><th>Group</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr>'+rows+'</table></div>'
+    )+
+  '</div>';
+}
+
+function sc(ico,bg,num,lbl){
+  return '<div class="scard"><div class="sico" style="background:'+bg+'">'+ico+'</div>'+
+    '<div><div class="snum">'+num+'</div><div class="slbl">'+lbl+'</div></div></div>';
+}
+
+// ── ALL APPLICATIONS ───────────────────────────────────────────
+function renderApps(){
+  var a=S.apps;
+  var rows=a.map(function(x,i){
+    return '<tr>'+
+      '<td><strong style="color:var(--navy)">'+esc(x.app_id)+'</strong></td>'+
+      '<td>'+esc(x.name)+'</td><td>'+esc(x.mobile)+'</td>'+
+      '<td><span class="badge gr-'+esc(x.group)+'">'+esc(x.group)+'</span></td>'+
+      '<td>₹'+fmtN(x.loan_amount)+'</td>'+
+      '<td>'+esc(x.purpose)+'</td>'+
+      '<td><span class="badge '+stBadge(cleanSt(x.status))+'">'+cleanSt(x.status)+'</span></td>'+
+      '<td>'+esc(x.submitted_at)+'</td>'+
+      '<td style="display:flex;gap:4px">'+
+        '<button class="btn btn-sm btn-o" onclick="viewAppIdx('+i+')">View</button>'+
+        '<button class="btn btn-sm btn-gold" onclick="quickPDFIdx('+i+')">PDF</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+
+  return '<div class="card">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+      '<div class="ctitle" style="margin:0;border:none;padding:0">All Applications ('+a.length+')</div>'+
+      '<button class="btn btn-sm btn-p" onclick="loadApps()">🔄 Refresh</button>'+
+    '</div>'+
+    (a.length===0
+      ? '<div style="text-align:center;padding:32px;color:var(--muted)">No applications yet.<br><a href="#" onclick="go(\'new\')" style="color:var(--navy)">Add first →</a></div>'
+      : '<div class="tw"><table><tr><th>App ID</th><th>Name</th><th>Mobile</th><th>Group</th><th>Amount</th><th>Purpose</th><th>Status</th><th>Date</th><th>Actions</th></tr>'+rows+'</table></div>'
+    )+
+  '</div>';
+}
+
+// ── VIEW APPLICATION ───────────────────────────────────────────
+</script>
+<script>
+/* ===== js/view.js ===== */
+// Thennagam Finance LMS — view: application view + edit modals (viewApp, row, edit modal)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+function viewAppIdx(idx){
+  // View by array index — works even with duplicate app IDs
+  var a = S.apps[idx];
+  if(!a){toast('Not found — click Refresh','err');return;}
+  viewApp(a.app_id, a);
+}
+function quickPDFIdx(idx){
+  var a=S.apps[idx]; if(a) genPDFForApp(a);
+}
+function viewApp(id, appObj){
+  // Find by app_id — use passed object if available (avoids duplicate issue)
+  var a = appObj || S.apps.find(function(x){return x.app_id===id;});
+  if(!a){toast('Not found — click Refresh and try again','err');return;}
+  S.viewId=id;
+  S._viewApp=a; // store full object
+  function r(l,v){
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--navy);padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap;width:35%">'+l+'</td>'+
+      '<td style="padding:7px 10px;border-bottom:1px solid var(--border)">'+esc(v||'—')+'</td>'+
+    '</tr>';
+  }
+  // Clean status — strip any HTML tags (in case old data has HTML)
+  var cleanStatus = (a.status||'NEW').replace(/\x3C[^\x3E]*\x3E/g,'').trim()||'NEW';
+  a.status = cleanStatus;
+$('vmod-title').textContent='📋 '+a.app_id+' — '+a.name;
+
+function row(label,value){
+  return '<tr>'+
+    '<td style="font-weight:600;color:var(--navy);width:35%">'+label+'</td>'+
+    '<td>'+(value || '—')+'</td>'+
+  '</tr>';
+}
+
+$('vmod-body').innerHTML =
+
+'<div class="card">'+
+'<div class="ctitle">Borrower Details</div>'+
+'<table class="table">'+
+row('Application ID',a.app_id)+
+row('Group',a.group)+
+row('Name',a.name)+
+row('Mobile',a.mobile)+
+row('Alternate Mobile',a.alt_mobile)+
+row('Email',a.email)+
+row('DOB',formatDOB(a.dob))+
+row('Gender',a.gender)+
+row('Father/Husband',a.father_name)+
+row('Address',a.address)+
+row('City',a.city)+
+row('District',a.district)+
+row('State',a.state)+
+row('Pincode',a.pincode)+
+row('Residence Type',a.residence_type)+
+row('Aadhaar',a.aadhar_no)+
+row('PAN',a.pan_no)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Employment & Income</div>'+
+'<table class="table">'+
+row('Occupation',a.occupation)+
+row('Monthly Income','₹'+fmtN(a.income))+
+row('Employer',a.employer_name)+
+row('Experience',a.work_experience)+
+row('Work Address',a.work_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Bank Details</div>'+
+'<table class="table">'+
+row('Bank',a.bank_name)+
+row('Account No',a.account_number)+
+row('IFSC',a.ifsc_code)+
+row('Branch',a.branch)+
+row('Account Type',a.account_type)+
+row('Banking Since',a.banking_since)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Loan Details</div>'+
+'<table class="table">'+
+row('Loan Amount','₹'+fmtN(a.loan_amount))+
+row('Tenure',a.tenure)+
+row('Purpose',a.purpose)+
+row('EMI Date',a.emi_date)+
+row('Existing EMI',a.existing_emi)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Nominee Details</div>'+
+'<table class="table">'+
+row('Nominee',a.nominee_name)+
+row('Relationship',a.nominee_rel)+
+row('Age',a.nominee_age)+
+row('Mobile',a.nominee_mobile)+
+row('Aadhaar',a.nominee_aadhar)+
+row('Address',a.nominee_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Reference 1</div>'+
+'<table class="table">'+
+row('Name',a.ref1_name)+
+row('Relationship',a.ref1_relationship)+
+row('Mobile',a.ref1_mobile)+
+row('Occupation',a.ref1_occupation)+
+row('Address',a.ref1_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Reference 2</div>'+
+'<table class="table">'+
+row('Name',a.ref2_name)+
+row('Relationship',a.ref2_relationship)+
+row('Mobile',a.ref2_mobile)+
+row('Occupation',a.ref2_occupation)+
+row('Address',a.ref2_address)+
+'</table></div>'+
+
+'<div class="card">'+
+'<div class="ctitle">Field Verification</div>'+
+'<table class="table">'+
+row('Officer',a.verification_officer)+
+row('Designation',a.verification_designation)+
+row('Visit Date',a.visit_date)+
+row('Visit Time',a.visit_time)+
+row('Residence Verification',a.residence_verification)+
+row('Business Verification',a.business_verification)+
+row('House Type',a.house_type)+
+row('Neighbour Feedback',a.neighbour_feedback)+
+row('Remarks',a.verification_remarks)+
+row('Recommendation',a.recommendation)+
+row('Supervisor Approval',a.supervisor_approval)+
+row('Status',a.status)+
+'</table>'+
+
+'<div style="margin-top:15px">'+
+'<div style="font-weight:600;color:var(--navy);margin-bottom:8px">Change Status</div>'+
+
+'<div class="status-btns" style="display:flex;gap:8px;flex-wrap:wrap">'+
+
+['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
+
+   var active = a.status===st;
+
+   return '<button class="btn btn-sm" '+
+          'style="background:'+(active?'var(--navy)':'var(--cream-d)')+';'+
+          'color:'+(active?'var(--gold-l)':'var(--text)')+'" '+
+          'onclick="setStatus(\''+a.app_id+'\',\''+st+'\')">'+
+          st+
+          '</button>';
+
+}).join('')+
+
+'</div>'+
+'</div>'+
+
+'</div>';
+$('vmod').classList.add('on');
+}
+
+function closeModal(){ $('vmod').classList.remove('on'); }
+
+// Update status — saves to Google Sheet directly
+function openEditModal(){
+  var id = S.viewId;
+  var a  = S.apps.find(function(x){return x.app_id===id;});
+  if(!a){ toast('Not found','err'); return; }
+
+  $('emod-title').textContent = 'Edit \u2014 '+a.app_id+' ('+a.name+')';
+
+  var IST='padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.87rem;width:100%';
+  var LBL='font-size:.78rem;font-weight:600;color:var(--navy)';
+
+  function fi(label,key,type,full){
+    type=type||'text';
+    return '<div class="fg"'+(full?' style="grid-column:1/-1"':'')+'>'+
+      '<label style="'+LBL+'">'+label+'</label>'+
+      '<input type="'+type+'" id="ef_'+key+'" value="'+esc(a[key]||'')+'" style="'+IST+'"></div>';
+  }
+  function fa(label,key,full){
+    return '<div class="fg"'+(full?' style="grid-column:1/-1"':'')+'>'+
+      '<label style="'+LBL+'">'+label+'</label>'+
+      '<textarea id="ef_'+key+'" rows="2" style="'+IST+';resize:vertical">'+esc(a[key]||'')+'</textarea></div>';
+  }
+  function fs(label,key,opts,full){
+    var cur=a[key]||'';
+    var list=opts.slice();
+    if(cur && list.indexOf(cur)===-1) list.unshift(cur);   // keep existing value even if not in preset list
+    var options=list.map(function(o){
+      return '<option value="'+esc(o)+'"'+(cur===o?' selected':'')+'>'+esc(o)+'</option>';
+    }).join('');
+    return '<div class="fg"'+(full?' style="grid-column:1/-1"':'')+'>'+
+      '<label style="'+LBL+'">'+label+'</label>'+
+      '<select id="ef_'+key+'" style="'+IST+'"><option value="">Select</option>'+options+'</select></div>';
+  }
+  function sec(t){
+    return '<div style="grid-column:1/-1;margin:12px 0 2px;font-weight:700;color:var(--navy);'+
+      'border-bottom:2px solid var(--gold);padding-bottom:4px;font-size:.92rem">'+t+'</div>';
+  }
+
+  var DIST=['Madurai','Chennai','Coimbatore','Tiruchirappalli','Salem','Tirunelveli','Erode','Vellore','Thoothukudi','Dindigul','Thanjavur','Kanyakumari','Other'];
+  var OCC=['Petty Business','Agriculture/Farming','Salaried \u2014 Private','Salaried \u2014 Government','Daily Wages','Self Employed','Auto/Taxi Driver','Tailor/Weaver','Domestic Worker','Others'];
+  var PURP=['Business Working Capital','Agriculture/Farming','Medical Emergency','Education','Housing Repair/Construction','Purchase of Equipment/Vehicle','Marriage/Family Function','Personal/Family Needs','Others'];
+
+  $('emod-body').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">'+
+
+      sec('Borrower Details')+
+      fi('Full Name (as per Aadhaar)','name',null,true)+
+      fi('Mobile','mobile','tel')+ fi('Alternate Mobile','alt_mobile','tel')+
+      fi('Email','email','email',true)+
+      fi('Date of Birth','dob','date')+ fs('Gender','gender',['Female','Male','Transgender'])+
+      fi('Father / Husband Name','father_name',null,true)+
+      fa('Address','address',true)+
+      fi('City','city')+ fs('District','district',DIST)+
+      fi('State','state')+ fi('Pincode','pincode')+
+      fs('Residence Type','residence_type',['Own','Rented','Family'])+ fi('Aadhaar No','aadhar_no')+
+      fi('PAN No','pan_no')+
+
+      sec('Employment & Income')+
+      fs('Occupation','occupation',OCC)+ fi('Monthly Income','income','number')+
+      fi('Employer / Business','employer_name')+ fi('Work Experience','work_experience')+
+      fa('Work Address','work_address',true)+
+
+      sec('Bank Details')+
+      fi('Bank Name','bank_name')+ fi('Branch','branch')+
+      fi('Account Number','account_number')+ fs('Account Type','account_type',['Savings','Current'])+
+      fi('IFSC Code','ifsc_code')+ fi('Banking Since (Year)','banking_since','number')+
+
+      sec('Loan Details')+
+      fi('Loan Amount','loan_amount','number')+ fs('Tenure (months)','tenure',['6','12','18','24','36','48','60'])+
+      fs('Purpose','purpose',PURP)+ fi('Preferred EMI Date','emi_date')+
+      fi('Existing EMI','existing_emi','number')+ fs('Status','status',['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'])+
+
+      sec('Nominee Details')+
+      fi('Nominee Name','nominee_name')+ fs('Relationship','nominee_rel',['Spouse','Father','Mother','Son','Daughter','Brother','Sister','Other'])+
+      fi('Nominee Age','nominee_age','number')+ fi('Nominee Mobile','nominee_mobile','tel')+
+      fi('Nominee Aadhaar','nominee_aadhar')+
+      fa('Nominee Address','nominee_address',true)+
+
+      sec('Reference 1')+
+      fi('Name','ref1_name')+ fi('Relationship','ref1_relationship')+
+      fi('Mobile','ref1_mobile','tel')+ fi('Occupation','ref1_occupation')+
+      fa('Address','ref1_address',true)+
+
+      sec('Reference 2')+
+      fi('Name','ref2_name')+ fi('Relationship','ref2_relationship')+
+      fi('Mobile','ref2_mobile','tel')+ fi('Occupation','ref2_occupation')+
+      fa('Address','ref2_address',true)+
+
+      sec('Field Verification')+
+      fi('Officer','verification_officer')+ fi('Designation','verification_designation')+
+      fi('Visit Date','visit_date')+ fi('Visit Time','visit_time')+
+      fs('Residence Verification','residence_verification',['Verified','Not Verified','Applicant Not Available','Address Mismatch'])+
+      fs('Business Verification','business_verification',['Verified','Not Verified','Business Closed','Business Shifted'])+
+      fs('House Type','house_type',['Own House','Rental House','Family House'])+
+      fi('Neighbour Feedback','neighbour_feedback')+
+      fa('Remarks','verification_remarks',true)+
+      fs('Recommendation','recommendation',['Recommended','Recommended with Conditions','Not Recommended'])+
+      fs('Supervisor Approval','supervisor_approval',['Approved','Rejected','Pending'])+
+
+    '</div>';
+
+  closeModal();
+  $('emod').classList.add('on');
+}
+
+function closeEditModal(){ $('emod').classList.remove('on'); }
+
+// ── SAVE EDIT ──────────────────────────────────────────────────
+</script>
+<script>
+/* ===== js/form.js ===== */
+// Thennagam Finance LMS — form: multi-step new-application form (render, validate, collect, submit, preview)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+function renderForm(){
+  return '<div class="card">'+
+  '<div class="psteps">'+
+'<div class="pstep on" id="ps1">1<br>Borrower</div>'+
+'<div class="pstep" id="ps2">2<br>Employment</div>'+
+'<div class="pstep" id="ps3">3<br>Loan</div>'+
+'<div class="pstep" id="ps4">4<br>Nominee</div>'+
+'<div class="pstep" id="ps5">5<br>References</div>'+
+'<div class="pstep" id="ps6">6<br>Verification</div>'+
+'<div class="pstep" id="ps7">7<br>Review</div>'+
+'<div class="pstep" id="ps8">8<br>Submit</div>'+
+  '</div>'+
+
+  // STEP 1
+  '<div class="step-content on" id="sc1">'+
+    '<div class="divider">Loan Group</div>'+
+    '<div class="gtabs">'+
+      '<div class="gtab on" onclick="selGrp(\'A\',this)"><div class="gl">Group A</div><div class="gr">Up to ₹50,000</div></div>'+
+      '<div class="gtab" onclick="selGrp(\'B\',this)"><div class="gl">Group B</div><div class="gr">₹50K–₹3L</div></div>'+
+      '<div class="gtab" onclick="selGrp(\'C\',this)"><div class="gl">Group C</div><div class="gr">Above ₹3L</div></div>'+
+    '</div>'+
+    '<div class="gbadge" id="gbadge">'+GINFO.A.desc+'</div>'+
+    '<div class="divider">Personal Information</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Full Name (as per Aadhaar)<span class="req">*</span></label><input type="text" id="fn" placeholder="Full name"><div class="ferr" id="e-fn">Required</div></div></div>'+
+'<div class="fgrid">'+
+  '<div class="fg"><label>Mobile<span class="req">*</span></label><input type="tel" id="fm" maxlength="10" placeholder="10-digit"><div class="ferr" id="e-fm">Valid 10-digit number required</div></div>'+
+  '<div class="fg"><label>Alternate Mobile</label><input type="tel" id="faltmob" maxlength="10" placeholder="Optional"></div>'+
+'</div>'+
+
+'<div class="fgrid f1">'+
+  '<div class="fg"><label>Email</label><input type="email" id="fe" placeholder="Optional"></div>'+
+'</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Date of Birth<span class="req">*</span></label><input type="date" id="fdob"><div class="ferr" id="e-fdob">Required</div></div>'+
+      '<div class="fg"><label>Gender<span class="req">*</span></label><select id="fgend"><option value="">Select</option><option>Female</option><option>Male</option><option>Transgender</option></select><div class="ferr" id="e-fgend">Required</div></div>'+
+    '</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Father / Husband Name</label><input type="text" id="ffn"></div></div>'+
+    '<div class="divider">Address</div>'+
+    '<div class="fgrid f1"><div class="fg"><label>Door No & Street<span class="req">*</span></label><input type="text" id="fadr" placeholder="e.g. 12/A Gandhi Street"><div class="ferr" id="e-fadr">Required</div></div></div>'+
+    '<div class="fgrid f3">'+
+      '<div class="fg"><label>City/Village<span class="req">*</span></label><input type="text" id="fcity"><div class="ferr" id="e-fcity">Required</div></div>'+
+      '<div class="fg"><label>District</label><select id="fdist"><option value="">Select</option><option>Madurai</option><option>Chennai</option><option>Coimbatore</option><option>Tiruchirappalli</option><option>Salem</option><option>Tirunelveli</option><option>Erode</option><option>Vellore</option><option>Thoothukudi</option><option>Dindigul</option><option>Thanjavur</option><option>Kanyakumari</option><option>Other</option></select></div>'+
+      '<div class="fg"><label>Pincode</label><input type="text" id="fpin" maxlength="6"></div>'+
+    '</div>'+
+    '<div class="fgrid">'+
+  '<div class="fg"><label>State</label><input type="text" id="fstate" value="Tamil Nadu"></div>'+
+  '<div class="fg"><label>Residence Type</label><select id="fresidence"><option value="">Select</option><option>Own</option><option>Rented</option><option>Family</option></select></div>'+
+'</div>'+
+    '<div class="divider">Identity</div>'+
+    '<div class="fgrid">'+
+      '<div class="fg"><label>Aadhaar Number<span class="req">*</span></label><input type="text" id="faad" maxlength="14" placeholder="XXXX XXXX XXXX"><div class="ferr" id="e-faad">Valid 12-digit Aadhaar required</div></div>'+
+      '<div class="fg"><label>PAN Number</label><input type="text" id="fpan" maxlength="10" placeholder="ABCDE1234F" oninput="this.value=this.value.toUpperCase()"></div>'+
+    '</div>'+
+    '<div class="nav-row"><button class="btn btn-p" onclick="nextStep(1)" style="margin-left:auto">Next →</button></div>'+
+  '</div>'+
+
+
+// STEP 2
+'<div class="step-content" id="sc2">'+
+  '<div class="divider">Employment Details</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Occupation<span class="req">*</span></label>'+
+    '<select id="focc">'+
+    '<option value="">Select</option>'+
+    '<option>Petty Business</option>'+
+    '<option>Agriculture/Farming</option>'+
+    '<option>Salaried - Private</option>'+
+    '<option>Salaried - Government</option>'+
+    '<option>Daily Wages</option>'+
+    '<option>Self Employed</option>'+
+    '<option>Auto/Taxi Driver</option>'+
+    '<option>Tailor/Weaver</option>'+
+    '<option>Domestic Worker</option>'+
+    '<option>Others</option>'+
+    '</select>'+
+    '<div class="ferr" id="e-focc">Required</div></div>'+
+
+    '<div class="fg"><label>Monthly Income (₹)<span class="req">*</span></label>'+
+    '<input type="number" id="finc">'+
+    '<div class="ferr" id="e-finc">Required</div></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Employer / Business Name</label>'+
+    '<input type="text" id="femp"></div>'+
+
+    '<div class="fg"><label>Work Experience (Years)</label>'+
+    '<input type="number" id="fexp"></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Business Address / Office Address</label>'+
+    '<textarea id="fworkaddr"></textarea></div>'+
+  '</div>'+
+
+  '<div class="divider">Bank Details</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Bank Name</label>'+
+    '<input type="text" id="fbnk"></div>'+
+
+    '<div class="fg"><label>Account Number</label>'+
+    '<input type="text" id="facc"></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>IFSC Code</label>'+
+    '<input type="text" id="fifc" oninput="this.value=this.value.toUpperCase()"></div>'+
+
+    '<div class="fg"><label>Branch</label>'+
+    '<input type="text" id="fbrn"></div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg"><label>Account Type</label>'+
+    '<select id="factype">'+
+    '<option value="">Select</option>'+
+    '<option>Savings</option>'+
+    '<option>Current</option>'+
+    '</select></div>'+
+
+    '<div class="fg"><label>Banking Since (Year)</label>'+
+    '<input type="number" id="fbankyrs"></div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(2)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(2)" style="flex:2">Next →</button>'+
+  '</div>'+
+'</div>'+
+
+
+// STEP 3
+'<div class="step-content" id="sc3">'+
+  '<div class="divider">Loan Requirement</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Loan Amount (₹)<span class="req">*</span></label>'+
+      '<input type="number" id="fla" placeholder="Amount required">'+
+      '<div class="ferr" id="e-fla">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Tenure<span class="req">*</span></label>'+
+      '<select id="ften">'+
+        '<option value="">Select</option>'+
+        '<option value="6">6 Months</option>'+
+        '<option value="12">12 Months</option>'+
+        '<option value="18">18 Months</option>'+
+        '<option value="24">24 Months</option>'+
+        '<option value="36">36 Months</option>'+
+        '<option value="48">48 Months</option>'+
+        '<option value="60">60 Months</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-ften">Required</div>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Purpose of Loan<span class="req">*</span></label>'+
+      '<select id="fpurp">'+
+        '<option value="">Select</option>'+
+        '<option>Business Working Capital</option>'+
+        '<option>Agriculture/Farming</option>'+
+        '<option>Medical Emergency</option>'+
+        '<option>Education</option>'+
+        '<option>Housing Repair/Construction</option>'+
+        '<option>Purchase of Vehicle</option>'+
+        '<option>Marriage / Family Function</option>'+
+        '<option>Personal / Family Needs</option>'+
+        '<option>Others</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fpurp">Required</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Preferred EMI Date</label>'+
+      '<select id="femidate">'+
+        '<option value="">Select</option>'+
+        '<option>5</option>'+
+        '<option>10</option>'+
+        '<option>15</option>'+
+        '<option>20</option>'+
+        '<option>25</option>'+
+      '</select>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Existing EMI Amount</label>'+
+      '<input type="number" id="fexistingemi">'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(3)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(3)" style="flex:2">Next →</button>'+
+  '</div>'+
+  '</div>'+
+
+  // STEP 4
+  // STEP 4
+'<div class="step-content" id="sc4">'+
+
+  '<div class="divider">Nominee Details</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Nominee Name<span class="req">*</span></label>'+
+      '<input type="text" id="fnn">'+
+      '<div class="ferr" id="e-fnn">Required</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Relationship<span class="req">*</span></label>'+
+      '<select id="fnrel">'+
+        '<option value="">Select</option>'+
+        '<option>Spouse</option>'+
+        '<option>Father</option>'+
+        '<option>Mother</option>'+
+        '<option>Son</option>'+
+        '<option>Daughter</option>'+
+        '<option>Brother</option>'+
+        '<option>Sister</option>'+
+        '<option>Other</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fnrel">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Nominee Age</label>'+
+      '<input type="number" id="fnage">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Nominee Mobile<span class="req">*</span></label>'+
+      '<input type="tel" id="fnmob" maxlength="10">'+
+      '<div class="ferr" id="e-fnmob">Valid 10-digit number required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Nominee Aadhaar</label>'+
+      '<input type="text" id="fnaad" maxlength="14" placeholder="XXXX XXXX XXXX">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Nominee Address</label>'+
+      '<textarea id="fnaddr"></textarea>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(4)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(4)" style="flex:2">Next →</button>'+
+  '</div>'+
+'</div>'+
+
+// STEP 5
+'<div class="step-content" id="sc5">'+
+  '<div class="divider">Reference 1</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Reference Name<span class="req">*</span></label>'+
+      '<input type="text" id="fr1name">'+
+      '<div class="ferr" id="e-fr1name">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Mobile Number<span class="req">*</span></label>'+
+      '<input type="tel" id="fr1mob" maxlength="10">'+
+      '<div class="ferr" id="e-fr1mob">Valid 10-digit number required</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Relationship<span class="req">*</span></label>'+
+      '<select id="fr1rel">'+
+        '<option value="">Select</option>'+
+        '<option>Father</option>'+
+        '<option>Mother</option>'+
+        '<option>Brother</option>'+
+        '<option>Sister</option>'+
+        '<option>Relative</option>'+
+        '<option>Friend</option>'+
+        '<option>Neighbour</option>'+
+        '<option>Employer</option>'+
+        '<option>Business Associate</option>'+
+        '<option>Village Leader</option>'+
+        '<option>Other</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fr1rel">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Occupation</label>'+
+      '<input type="text" id="fr1occ">'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Address</label>'+
+      '<textarea id="fr1addr"></textarea>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="divider">Reference 2</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Reference Name<span class="req">*</span></label>'+
+      '<input type="text" id="fr2name">'+
+      '<div class="ferr" id="e-fr2name">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Mobile Number<span class="req">*</span></label>'+
+      '<input type="tel" id="fr2mob" maxlength="10">'+
+      '<div class="ferr" id="e-fr2mob">Valid 10-digit number required</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid">'+
+    '<div class="fg">'+
+      '<label>Relationship<span class="req">*</span></label>'+
+      '<select id="fr2rel">'+
+        '<option value="">Select</option>'+
+        '<option>Father</option>'+
+        '<option>Mother</option>'+
+        '<option>Brother</option>'+
+        '<option>Sister</option>'+
+        '<option>Relative</option>'+
+        '<option>Friend</option>'+
+        '<option>Neighbour</option>'+
+        '<option>Employer</option>'+
+        '<option>Business Associate</option>'+
+        '<option>Village Leader</option>'+
+        '<option>Other</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fr2rel">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Occupation</label>'+
+      '<input type="text" id="fr2occ">'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+    '<div class="fg">'+
+      '<label>Address</label>'+
+      '<textarea id="fr2addr"></textarea>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(5)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(5)" style="flex:2">Next →</button>'+
+  '</div>'+
+'</div>'+
+
+// STEP 6 - FIELD VERIFICATION
+'<div class="step-content" id="sc6">'+
+
+  '<div class="divider">Field Verification</div>'+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Verification Officer</label>'+
+      '<input type="text" id="fvofficer" placeholder="Officer Name">'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Designation</label>'+
+      '<input type="text" id="fvdesg" placeholder="Field Officer">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Date of Visit</label>'+
+      '<input type="date" id="fvdate">'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Time of Visit</label>'+
+      '<input type="time" id="fvtime">'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Residence Verification</label>'+
+      '<select id="fvres">'+
+        '<option value="">Select</option>'+
+        '<option>Verified</option>'+
+        '<option>Not Verified</option>'+
+        '<option>Applicant Not Available</option>'+
+        '<option>Address Mismatch</option>'+
+      '</select>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Business Verification</label>'+
+      '<select id="fvbiz">'+
+        '<option value="">Select</option>'+
+        '<option>Verified</option>'+
+        '<option>Not Verified</option>'+
+        '<option>Business Closed</option>'+
+        '<option>Business Shifted</option>'+
+      '</select>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>House Type</label>'+
+      '<select id="fvhouse">'+
+        '<option value="">Select</option>'+
+        '<option>Own House</option>'+
+        '<option>Rental House</option>'+
+        '<option>Family House</option>'+
+      '</select>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Neighbour Feedback</label>'+
+      '<select id="fvneighbour">'+
+        '<option value="">Select</option>'+
+        '<option>Positive</option>'+
+        '<option>Average</option>'+
+        '<option>Negative</option>'+
+      '</select>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid f1">'+
+
+    '<div class="fg">'+
+      '<label>Verification Remarks</label>'+
+      '<textarea id="fvremarks" placeholder="Officer observations"></textarea>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="fgrid">'+
+
+    '<div class="fg">'+
+      '<label>Recommendation</label>'+
+      '<select id="fvrecommend">'+
+        '<option value="">Select</option>'+
+        '<option>Recommended</option>'+
+        '<option>Recommended with Conditions</option>'+
+        '<option>Not Recommended</option>'+
+      '</select>'+
+      '<div class="ferr" id="e-fvrecommend">Required</div>'+
+    '</div>'+
+
+    '<div class="fg">'+
+      '<label>Supervisor Approval</label>'+
+      '<select id="fvsuper">'+
+        '<option value="">Select</option>'+
+        '<option>Approved</option>'+
+        '<option>Rejected</option>'+
+        '<option>Pending</option>'+
+      '</select>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(6)">← Back</button>'+
+    '<button class="btn btn-p" onclick="nextStep(6)" style="flex:2">Next →</button>'+
+  '</div>'+
+
+'</div>'+
+
+// STEP 7 - REVIEW
+'<div class="step-content" id="sc7">'+
+
+  '<div class="divider">Review Application</div>'+
+
+  '<div class="card">'+
+
+    '<div id="reviewBox">'+
+      '<div style="text-align:center;padding:30px;color:#666">'+
+      'Click Refresh Review to load application summary'+
+      '</div>'+
+    '</div>'+
+
+  '</div>'+
+
+  '<div class="nav-row">'+
+    '<button class="btn btn-o" onclick="prevStep(7)">← Back</button>'+
+
+    '<button class="btn btn-gold" onclick="loadReview()">'+
+    'Refresh Review'+
+    '</button>'+
+
+    '<button class="btn btn-p" onclick="nextStep(7)" style="flex:2">'+
+    'Next →'+
+    '</button>'+
+  '</div>'+
+
+'</div>'+
+
+// STEP 8 - DECLARATION
+'<div class="step-content" id="sc8">'+
+
+  '<div class="divider">Declaration</div>'+
+
+  '<div class="card">'+
+
+    '<label style="display:flex;gap:10px;align-items:flex-start">'+
+
+      '<input type="checkbox" id="fdecl">'+
+
+      '<span>'+
+      'I hereby declare that all information provided in this application is true and correct to the best of my knowledge. I agree to the terms and conditions of Thennagam Finance.'+
+      '</span>'+
+
+    '</label>'+
+
+  '</div>'+
+
+  '<div class="divider">Application Actions</div>'+
+
+  '<div class="fgrid">'+
+
+    '<button class="btn btn-o" onclick="prevStep(8)">'+
+    '← Back'+
+    '</button>'+
+
+    '<button class="btn btn-gold" onclick="quickPreview()">'+
+    'Preview PDF'+
+    '</button>'+
+
+    '<button class="btn btn-p" onclick="finalSubmit()" style="flex:2">'+
+    'Submit Application'+
+    '</button>'+
+
+  '</div>'+
+
+'</div>';
+}
+
+// ── STEP CONTROLS ──────────────────────────────────────────────
+function updateSteps(){
+  for(var i=1;i<=8;i++){
+    var ps=$('ps'+i),
+        sc=$('sc'+i);
+
+    if(!ps || !sc) continue;
+
+    ps.className='pstep'+
+      (i===S.step ? ' on' :
+       i<S.step ? ' done' : '');
+
+    sc.className='step-content'+
+      (i===S.step ? ' on' : '');
+  }
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function selGrp(g,btn){
+  S.group=g;
+  document.querySelectorAll('.gtab').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var gb=$('gbadge'); if(gb) gb.textContent=GINFO[g].desc;
+}
+
+function nextStep(n){
+
+  if(!validateStep(n)) return;
+
+  if(S.step < 8){
+      S.step++;
+      updateSteps();
+
+      if(S.step===7)
+          setTimeout(loadReview,300);
+  }
+}
+function prevStep(from){ S.step=from-1; updateSteps(); }
+
+// ── VALIDATION ─────────────────────────────────────────────────
+function showE(id,msg){ var el=$(id); if(el){el.textContent=msg; el.classList.add('on');} }
+function clearE(id){ var el=$(id); if(el) el.classList.remove('on'); }
+function req(fid,eid,msg){ var v=gv(fid); if(!v){showE(eid,msg);return false;} clearE(eid);return true; }
+
+function validateStep(step){
+  var ok=true;
+  if(step===1){
+    if(!req('fn','e-fn','Required')) ok=false;
+    var mob=gv('fm');
+    if(!mob||mob.length!==10||!/^\d+$/.test(mob)){showE('e-fm','Valid 10-digit number required');ok=false;}else clearE('e-fm');
+    if(!req('fdob','e-fdob','Required')) ok=false;
+    if(!req('fgend','e-fgend','Required')) ok=false;
+    if(!req('fadr','e-fadr','Required')) ok=false;
+    if(!req('fcity','e-fcity','Required')) ok=false;
+    var aad=gv('faad').replace(/\s/g,'');
+    if(!aad||aad.length!==12||!/^\d+$/.test(aad)){showE('e-faad','Valid 12-digit Aadhaar required');ok=false;}else clearE('e-faad');
+  }
+  if(step===2){
+    if(!req('focc','e-focc','Required')) ok=false;
+    if(!req('finc','e-finc','Required')) ok=false;
+  }
+if(step===3){
+    if(!req('fla','e-fla','Required')) ok=false;
+    if(!req('ften','e-ften','Required')) ok=false;
+    if(!req('fpurp','e-fpurp','Required')) ok=false;
+}
+
+if(step===4){
+    if(!req('fnn','e-fnn','Required')) ok=false;
+    if(!req('fnrel','e-fnrel','Required')) ok=false;
+
+    var nm=gv('fnmob');
+    if(!nm || nm.length!==10 || !/^\d+$/.test(nm)){
+        showE('e-fnmob','Valid 10-digit number required');
+        ok=false;
+    } else clearE('e-fnmob');
+}
+if(step===5){
+  if(!req('fr1name','e-fr1name','Required')) ok=false;
+  if(!req('fr1rel','e-fr1rel','Required')) ok=false;
+
+  var r1=gv('fr1mob');
+  if(!r1 || r1.length!==10 || !/^\d+$/.test(r1)){
+    showE('e-fr1mob','Valid 10-digit number required');
+    ok=false;
+  } else clearE('e-fr1mob');
+
+  if(!req('fr2name','e-fr2name','Required')) ok=false;
+  if(!req('fr2rel','e-fr2rel','Required')) ok=false;
+
+  var r2=gv('fr2mob');
+  if(!r2 || r2.length!==10 || !/^\d+$/.test(r2)){
+    showE('e-fr2mob','Valid 10-digit number required');
+    ok=false;
+  } else clearE('e-fr2mob');
+}
+if(step===6){
+  if(!req('fvrecommend','e-fvrecommend','Required'))
+      ok=false;
+}
+if(step===8){
+
+   if(!$('fdecl').checked){
+
+      toast('Accept declaration');
+      ok=false;
+   }
+
+}
+  if(!ok) toast('Please fill all required fields','err');
+  return ok;
+}
+
+// ── COLLECT FORM DATA ──────────────────────────────────────────
+function collectData(){
+  return {
+      group:S.group,
+  name:gv('fn'),
+  mobile:gv('fm'),
+  alt_mobile:gv('faltmob'),
+  email:gv('fe'),
+  state:gv('fstate'),
+  residence_type:gv('fresidence'),
+    dob:gv('fdob'), gender:gv('fgend'), father_name:gv('ffn'),
+    address:gv('fadr'), city:gv('fcity'), district:gv('fdist'), pincode:gv('fpin'),
+    aadhar_no:gv('faad'), pan_no:gv('fpan'),
+    occupation:gv('focc'), income:gv('finc'),
+    loan_amount:gv('fla'), tenure:gv('ften'), purpose:gv('fpurp'),
+    nominee_name:gv('fnn'), nominee_rel:gv('fnrel'), nominee_mobile:gv('fnmob'),
+    employer_name: gv('femp'),
+work_experience: gv('fexp'),
+work_address: gv('fworkaddr'),
+bank_name: gv('fbnk'),
+account_number: gv('facc'),
+ifsc_code: gv('fifc'),
+branch: gv('fbrn'),
+account_type: gv('factype'),
+banking_since: gv('fbankyrs'),
+emi_date: gv('femidate'),
+existing_emi: gv('fexistingemi'),
+
+nominee_age: gv('fnage'),
+
+nominee_aadhar: gv('fnaad'),
+nominee_address: gv('fnaddr'),
+ref1_name: gv('fr1name'),
+ref1_mobile: gv('fr1mob'),
+ref1_relationship: gv('fr1rel'),
+ref1_occupation: gv('fr1occ'),
+ref1_address: gv('fr1addr'),
+
+ref2_name: gv('fr2name'),
+ref2_mobile: gv('fr2mob'),
+ref2_relationship: gv('fr2rel'),
+ref2_occupation: gv('fr2occ'),
+ref2_address: gv('fr2addr'),
+verification_officer: gv('fvofficer'),
+verification_designation: gv('fvdesg'),
+visit_date: gv('fvdate'),
+visit_time: gv('fvtime'),
+residence_verification: gv('fvres'),
+business_verification: gv('fvbiz'),
+house_type: gv('fvhouse'),
+neighbour_feedback: gv('fvneighbour'),
+verification_remarks: gv('fvremarks'),
+recommendation: gv('fvrecommend'),
+supervisor_approval: gv('fvsuper'),
+  };
+}
+
+function loadReview(){
+
+  var d = collectData();
+
+  var h='';
+
+  Object.keys(d).forEach(function(k){
+
+    h +=
+      '<div style="padding:8px;border-bottom:1px solid #eee">'+
+      '<b>'+k.replaceAll('_',' ').toUpperCase()+'</b><br>'+
+      (d[k] || '-')+
+      '</div>';
+
+  });
+
+  $('reviewBox').innerHTML = h;
+}
+
+// ── SUBMIT ─────────────────────────────────────────────────────
+async function submitForm(){
+if(!validateStep(8)) return;
+  showLoad('Saving Application…','Sending to Google Sheet…',30);
+  try {
+    var data    = collectData();
+    data.action = 'save';
+
+    // POST to Apps Script — saves directly to Google Sheet
+    await fetch(SCRIPT_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(data)
+    });
+
+    // Wait 5 seconds for Apps Script to write to sheet
+    showLoad('Saving…','Waiting for Google Sheet…',60);
+    await new Promise(function(r){ setTimeout(r, 5000); });
+
+    // Read back via JSONP to get real App ID
+    showLoad('Confirming…','Loading updated data…',85);
+    var savedResult = await new Promise(function(resolve){
+      var cb2 = '_tfSave_' + Date.now();
+      var s2  = document.createElement('script');
+      var t2  = setTimeout(function(){ try{delete window[cb2];s2.remove();}catch(e){} resolve(null); }, 8000);
+      window[cb2] = function(res){ clearTimeout(t2); try{delete window[cb2];s2.remove();}catch(e){} resolve(res); };
+      s2.onerror = function(){ clearTimeout(t2); resolve(null); };
+      s2.src = SCRIPT_URL + '?action=getAll&callback=' + cb2 + '&t=' + Date.now();
+      document.head.appendChild(s2);
+    });
+
+    if(savedResult && savedResult.ok && savedResult.rows && savedResult.rows.length > 0){
+      S.apps    = savedResult.rows;
+      var newApp = S.apps[0];
+      S.lastId   = newApp.app_id;
+      S.lastData = newApp;
+    } else {
+      S.lastId   = 'TF-' + new Date().getFullYear() + '-' + data.group + '-SAVED';
+      S.lastData = data;
+    }
+
+
+    hideLoad();
+    showSuccess(S.lastId, data);
+  } catch(e){
+    hideLoad();
+    toast('❌ Error: '+e.message,'err',6000);
+    console.error('Submit error:',e);
+  }
+}
+
+function finalSubmit(){
+
+   if(!$('fdecl').checked){
+      toast('Please accept declaration','err');
+      return;
+   }
+
+   submitForm();
+}
+
+function showSuccess(appId, d){
+  $('succ-id').textContent = appId;
+  $('succ-msg').textContent = 'Application saved to Google Sheet.'+(d.email?' Confirmation sent to '+d.email+'.':'')+' Our team will contact you within 1–2 working days.';
+  $('succ-detail').innerHTML =
+    sr('Applicant',d.name)+sr('Mobile',d.mobile)+sr('Group',d.group)+
+    sr('Loan Amount','₹'+fmtN(d.loan_amount))+sr('Tenure',d.tenure+' months')+
+    sr('Purpose',d.purpose)+sr('Status','NEW');
+  $('succ-screen').style.display='block';
+}
+function sr(l,v){ return '<div class="succ-row"><span class="l">'+l+'</span><span class="v">'+esc(v||'')+'</span></div>'; }
+
+// ── REPORTS ────────────────────────────────────────────────────
+function quickPreview(){
+
+   try{
+
+      var data = collectData();
+
+      // temporary application id for preview
+      data.app_id = 'PREVIEW';
+
+      genPDFForApp(data);
+
+   }catch(e){
+
+      toast('Preview failed : ' + e.message,'err');
+
+   }
+}
+</script>
+<script>
+/* ===== js/reports.js ===== */
+// Thennagam Finance LMS — reports & settings (renderRpt, renderCfg, saveUrl, testConnection)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+function renderRpt(){
+  var a=S.apps;
+  var sum=function(arr){return arr.reduce(function(s,x){return s+Number(x.loan_amount||0);},0);};
+  return '<div class="card"><div class="ctitle">📈 Portfolio Summary</div>'+
+    '<div class="sgrid">'+['A','B','C'].map(function(g){
+      var f=a.filter(function(x){return x.group===g;});
+      var bg=g==='A'?'#e8f5e9':g==='B'?'#e3f2fd':'#fff3e0';
+      return sc(g,bg,f.length,'Group '+g+' — ₹'+(sum(f)/100000).toFixed(1)+'L');
+    }).join('')+'</div>'+
+    '<div class="tw"><table><tr><th>Status</th><th>Count</th><th>Total Amount</th></tr>'+
+    ['NEW','UNDER REVIEW','APPROVED','DISBURSED','REJECTED'].map(function(st){
+     var f=a.filter(function(x){
+   return cleanSt(x.status)===st;
+});
+      return '<tr><td><span class="badge '+stBadge(st)+'">'+st+'</span></td>'+
+        '<td>'+f.length+'</td><td>₹'+fmtN(sum(f))+'</td></tr>';
+    }).join('')+'</table></div></div>';
+}
+
+// ── SETTINGS ───────────────────────────────────────────────────
+function renderCfg(){
+  return '<div class="card"><div class="ctitle">⚙️ Apps Script URL</div>'+
+    '<div class="fg" style="margin-bottom:14px">'+
+      '<label>Current URL</label>'+
+      '<input type="text" id="cfg-url" value="'+esc(SCRIPT_URL)+'" style="font-size:.78rem;font-family:monospace">'+
+      '<div style="font-size:.73rem;color:var(--muted);margin-top:4px">Deploy as Web App → Execute as Me → Anyone. Paste new URL here after redeployment.</div>'+
+    '</div>'+
+    '<button class="btn btn-p" onclick="saveUrl()">💾 Save URL</button>'+
+    '<button class="btn btn-o" onclick="testConnection()" style="margin-left:8px">🔍 Test Connection</button>'+
+    '<div id="test-result" style="margin-top:12px;font-size:.83rem;min-height:20px"></div>'+
+  '</div>'+
+  '<div class="card"><div class="ctitle">📊 Google Sheet</div>'+
+    '<a href="https://docs.google.com/spreadsheets/d/1RcndhHjrS2fs1pnc5xHT-5nMSBxA7OyPRfRpYDkb8Yg" target="_blank" class="btn btn-o btn-sm" style="text-decoration:none">📊 Open Google Sheet</a>'+
+  '</div>';
+}
+
+function saveUrl(){
+  var url=gv('cfg-url');
+  if(!url||url.indexOf('script.google.com')===-1){toast('Enter valid Apps Script URL','err');return;}
+  SCRIPT_URL=url; toast('✅ URL saved','ok');
+}
+
+function testConnection(){
+  var res=$('test-result');
+  res.textContent='Testing via JSONP…';
+  var cbName='_tfTest_'+Date.now();
+  var script=document.createElement('script');
+  var timer=setTimeout(function(){
+    try{delete window[cbName];script.remove();}catch(e){}
+    res.innerHTML='<span style="color:var(--red)">❌ Timeout — not deployed or URL wrong</span>';
+  },8000);
+  window[cbName]=function(r){
+    clearTimeout(timer);
+    try{delete window[cbName];script.remove();}catch(e){}
+    if(r.ok||r.success){
+      res.innerHTML='<span style="color:var(--green)">✅ Connected! v'+(r.version||'?')+' — Working!</span>';
+    } else {
+      res.innerHTML='<span style="color:var(--red)">⚠️ Connected but error: '+(r.message||'unknown')+'</span>';
+    }
+  };
+  script.onerror=function(){
+    clearTimeout(timer);
+    res.innerHTML='<span style="color:var(--red)">❌ Script load failed — check URL</span>';
+  };
+  script.src=gv('cfg-url')+'?action=ping&callback='+cbName+'&t='+Date.now();
+  document.head.appendChild(script);
+}
+
+// ── PDF ────────────────────────────────────────────────────────
+</script>
+<script>
+/* ===== js/docgen.js ===== */
+/* ══════════════════════════════════════════════════════════════════════
+   Thennagam Finance — Document Generator (jsPDF)
+   Builds filled Application Form + Agreement Pack from a form-data object `d`.
+   Group-driven: DOCS[group] = { application, agreement }.  A now; B/C later.
+   Pure builders take (doc, d) and use jsPDF + jspdf-autotable (doc.autoTable).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ---- company constants ---- */
+var CO = {
+  name: 'THENNAGAM FINANCE PRIVATE LIMITED',
+  cin:  'CIN: U64990TN2025PTC179499  |  Certificate of Registration No. B-14.00700 (RBI)',
+  addr: '26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205'
+};
+var NAVY = [26, 35, 126], GOLD = [201, 168, 76], LBL = [244, 242, 235], INK = [28, 25, 20];
+var PW = 210, PH = 297, ML = 14, MR = 14, CW = PW - ML - MR;
+
+/* ---- tiny value helpers ---- */
+function V(v){ return (v === 0 || v) ? String(v).trim() : ''; }
+function BLANK(n){ var s=''; for(var i=0;i<(n||24);i++) s+='_'; return s; }
+function fill(v, n){ v = V(v); return v ? v : BLANK(n||20); }               // form value OR underscores
+function rs(v){ v = V(v); return v ? 'Rs. ' + Number(String(v).replace(/[^\d.]/g,'')||0).toLocaleString('en-IN') : 'Rs. ' + BLANK(11); }
+function fdate(s){
+  s = V(s); if(!s) return '';
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  var d = new Date(s); if(isNaN(d.getTime())) return s;
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+}
+
+/* ---- per-group labels & loan-category strings ---- */
+var GROUPS = {
+  A: { label: 'GROUP A LOAN', cat: 'Small Loan — Up to Rs. 50,000' },
+  B: { label: 'GROUP B LOAN', cat: 'Medium Loan — Rs. 50,001 to Rs. 3,00,000' },
+  C: { label: 'GROUP C LOAN', cat: 'Large Loan — Above Rs. 3,00,001' }
+};
+var _G = 'A';  // current group — set at the top of each builder; read by letterhead()
+
+/* ---- letterhead: draws company block + group + doc title, returns y below it ---- */
+function letterhead(doc, docTitle){
+  doc.setFillColor.apply(doc, NAVY); doc.rect(0, 0, PW, 26, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(12.5);
+  doc.text(CO.name, PW/2, 9, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(6.6);
+  doc.text(CO.cin, PW/2, 14, {align:'center'});
+  doc.setFontSize(6.2);
+  doc.text(doc.splitTextToSize(CO.addr, CW), PW/2, 18, {align:'center'});
+  doc.setDrawColor.apply(doc, GOLD); doc.setLineWidth(1.1); doc.line(0, 26, PW, 26);
+  var y = 33;
+  doc.setTextColor.apply(doc, GOLD); doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+  doc.text(GROUPS[_G].label, PW/2, y, {align:'center'});
+  y += 6.5;
+  doc.setTextColor.apply(doc, NAVY); doc.setFontSize(13);
+  doc.text(docTitle, PW/2, y, {align:'center'});
+  doc.setDrawColor.apply(doc, GOLD); doc.setLineWidth(0.5);
+  var tw = doc.getTextWidth(docTitle);
+  doc.line(PW/2 - tw/2, y+1.5, PW/2 + tw/2, y+1.5);
+  return y + 8;
+}
+
+/* ---- navy section bar ---- */
+function section(doc, title, y){
+  y = pagebreak(doc, y, 12);
+  doc.setFillColor.apply(doc, NAVY); doc.rect(ML, y, CW, 6.6, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8.6);
+  doc.text(title, ML+2.5, y+4.5);
+  doc.setTextColor.apply(doc, INK);
+  return y + 6.6;
+}
+
+/* ---- page break: add plain page if <h mm left; returns (possibly reset) y ---- */
+function pagebreak(doc, y, h){
+  if(y + (h||8) > PH - 12){ doc.addPage(); return 16; }
+  return y;
+}
+
+/* ---- label/value grid (4 logical cols). rows = arrays of cells (string | {content,colSpan}) ---- */
+function grid(doc, y, rows){
+  doc.autoTable({
+    startY: y, theme: 'grid', body: rows, margin: {left: ML, right: MR},
+    styles: {fontSize: 8.3, cellPadding: 2, lineColor: [208,203,193], lineWidth: 0.2, valign: 'middle', textColor: INK, overflow: 'linebreak'},
+    columnStyles: {
+      0: {cellWidth: 40, fontStyle: 'bold', fillColor: LBL},
+      1: {cellWidth: 55},
+      2: {cellWidth: 40, fontStyle: 'bold', fillColor: LBL},
+      3: {cellWidth: 'auto'}
+    },
+    didParseCell: function(h){ if(h.cell.raw && h.cell.raw.label){ h.cell.styles.fontStyle='bold'; h.cell.styles.fillColor=LBL; } }
+  });
+  return doc.lastAutoTable.finalY;
+}
+function L(t){ return {content: t, label: true}; }                 // force-label cell
+function FULL(v){ return {content: V(v), colSpan: 3}; }            // value spanning 3 cols
+
+/* ---- wrapped paragraph / bullet ---- */
+function para(doc, text, y, o){
+  o = o || {};
+  doc.setFont('helvetica', o.bold ? 'bold' : (o.italic ? 'italic' : 'normal'));
+  doc.setFontSize(o.size || 8.4); doc.setTextColor.apply(doc, o.color || INK);
+  var indent = o.indent || 0, w = CW - indent;
+  var lines = doc.splitTextToSize(text, w);
+  for(var i=0;i<lines.length;i++){
+    y = pagebreak(doc, y, 5);
+    doc.text(lines[i], ML + indent, y);
+    y += (o.lh || 4.3);
+  }
+  return y + (o.gap || 0);
+}
+function bullet(doc, text, y, o){
+  o = o || {}; y = pagebreak(doc, y, 5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(o.size||8.4); doc.setTextColor.apply(doc, INK);
+  doc.text('•', ML+2, y);
+  return para(doc, text, y, {size:o.size||8.4, indent:6, lh:o.lh||4.3, gap:o.gap||1});
+}
+function heading(doc, text, y){
+  y = pagebreak(doc, y, 9) + 2;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor.apply(doc, NAVY);
+  doc.text(text, ML, y); doc.setTextColor.apply(doc, INK);
+  return y + 4.5;
+}
+
+/* ---- three-column signature block (Borrower / Nominee / Lender) ---- */
+function signatures(doc, y, names){
+  names = names || {};
+  y = pagebreak(doc, y, 30) + 3;
+  doc.autoTable({
+    startY: y, theme: 'grid', margin:{left:ML,right:MR},
+    styles:{fontSize:7.8, cellPadding:2, lineColor:[208,203,193], lineWidth:0.2, minCellHeight:13, valign:'top', textColor:INK},
+    head:[[ 'Borrower Signature', 'Nominee Signature', 'Authorised Signatory (Lender)' ]],
+    headStyles:{fillColor:LBL, textColor:NAVY, fontStyle:'bold', halign:'center', fontSize:7.8},
+    columnStyles:{0:{cellWidth:CW/3},1:{cellWidth:CW/3},2:{cellWidth:CW/3}},
+    body:[[
+      'Name: '+fill(names.borrower,14)+'\nDate: ______________\nPlace: _____________',
+      'Name: '+fill(names.nominee,14)+'\nDate: ______________\nPlace: _____________',
+      'Name: ______________\nDate: ______________\nPlace: _____________'
+    ]]
+  });
+  return doc.lastAutoTable.finalY;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   GROUP A — APPLICATION FORM
+   ════════════════════════════════════════════════════════════════════════ */
+function buildApplication(doc, d, g){
+  _G = g;
+  var y = letterhead(doc, 'LOAN APPLICATION FORM');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.setTextColor(150,120,30);
+  doc.text('Loan Category: '+GROUPS[g].cat, PW/2, y-1, {align:'center'}); y += 3;
+  doc.setTextColor.apply(doc, INK);
+
+  y = grid(doc, y, [[ L('Application Serial No.'), V(d.app_id), L('Application Date'), fdate(d.submitted_at) ]]);
+
+  y = section(doc, 'SECTION 1 — BORROWER DETAILS', y);
+  y = grid(doc, y, [
+    [ L('Full Name (as per Aadhaar)'), FULL(d.name) ],
+    [ L('Date of Birth'), fdate(d.dob), L('Gender'), V(d.gender) ],
+    [ L("Father's / Spouse's Name"), FULL(d.father_name) ],
+    [ L('Aadhaar Number'), V(d.aadhar_no), L('PAN Number'), V(d.pan_no) ],
+    [ L('Mobile Number'), V(d.mobile), L('Alternate Mobile'), V(d.alt_mobile) ],
+    [ L('Email Address'), FULL(d.email) ],
+    [ L('Residential Address'), FULL(d.address) ],
+    [ L('City'), V(d.city), L('District'), V(d.district) ],
+    [ L('Pin Code'), V(d.pincode), L('State'), V(d.state) ],
+    [ L('Residence'), FULL(d.residence_type) ]
+  ]);
+
+  y = section(doc, 'SECTION 2 — EMPLOYMENT & INCOME DETAILS', y);
+  y = grid(doc, y, [
+    [ L('Occupation Type'), V(d.occupation), L('Employer / Business Name'), V(d.employer_name) ],
+    [ L('Monthly Net Income'), rs(d.income), L('Other Monthly Income'), (V(d.other_income)?rs(d.other_income):'') ],
+    [ L('Employer / Business Address'), FULL(d.work_address) ],
+    [ L('Total Work Experience'), V(d.work_experience), L('Years w/ Current Employer'), V(d.current_employer_years) ]
+  ]);
+
+  y = section(doc, 'SECTION 3 — BANK ACCOUNT DETAILS (FOR DISBURSEMENT)', y);
+  y = grid(doc, y, [
+    [ L('Bank Name'), V(d.bank_name), L('Branch Name'), V(d.branch) ],
+    [ L('Account Number'), V(d.account_number), L('Account Type'), V(d.account_type) ],
+    [ L('IFSC Code'), V(d.ifsc_code), L('Existing Loan EMI'), (V(d.existing_emi)?rs(d.existing_emi):'') ]
+  ]);
+
+  y = section(doc, 'SECTION 4 — LOAN REQUEST DETAILS', y);
+  var s4 = [
+    [ L('Loan Amount Requested'), rs(d.loan_amount), L('Purpose of Loan'), V(d.purpose) ],
+    [ L('Preferred Tenure'), V(d.tenure), L('Preferred Instalment Date'), V(d.emi_date) ]
+  ];
+  if(g==='B') s4.push([ L('Document Registration No.'), V(d.doc_reg_no), L('Registration Date'), fdate(d.reg_date) ]);
+  if(g==='C'){
+    s4.push([ L('Property / Security Details'), FULL(d.property_details) ]);
+    s4.push([ L('Title Document Reference'), V(d.title_doc_ref), L('MOD Status'), V(d.mod_status) ]);
+  }
+  y = grid(doc, y, s4);
+
+  y = section(doc, 'SECTION 5 — NOMINEE DETAILS', y);
+  y = grid(doc, y, [
+    [ L('Nominee Full Name'), V(d.nominee_name), L('Relationship'), V(d.nominee_rel) ],
+    [ L('Nominee Aadhaar Number'), V(d.nominee_aadhar), L('Nominee Mobile'), V(d.nominee_mobile) ],
+    [ L('Nominee Residential Address'), FULL(d.nominee_address) ]
+  ]);
+  y = pagebreak(doc, y + 2, 34);
+  y = para(doc, 'Nominee Consent & Declaration:', y, {bold:true, size:8.4, gap:1});
+  y = para(doc, 'I, '+fill(d.nominee_name,22)+' (Nominee), hereby consent to being appointed as Nominee for this Loan Account. I acknowledge: (a) I shall be informed by the Lender in the event of default, death, or incapacity of the Borrower; (b) I shall facilitate settlement of the outstanding loan in the event of the Borrower\'s death; (c) I do not assume personal liability for the Loan unless I have separately executed a guarantee; (d) I shall cooperate with the Lender\'s representatives in default proceedings. The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {size:7.9, lh:4, gap:2});
+
+  /* ---- continues (page 2 of the printed form) ---- */
+  y += 4;
+
+  y = section(doc, 'SECTION 6 — REFERENCES', y);
+  doc.autoTable({
+    startY: y, theme:'grid', margin:{left:ML,right:MR},
+    styles:{fontSize:7.8, cellPadding:2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, valign:'middle'},
+    head:[[ 'Ref.', 'Full Name', 'Relationship', 'Mobile No.', 'Residential Address' ]],
+    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.8},
+    columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:38},2:{cellWidth:30},3:{cellWidth:28},4:{cellWidth:'auto'}},
+    body:[
+      ['1', V(d.ref1_name), V(d.ref1_relationship), V(d.ref1_mobile), V(d.ref1_address)],
+      ['2', V(d.ref2_name), V(d.ref2_relationship), V(d.ref2_mobile), V(d.ref2_address)]
+    ]
+  });
+  y = doc.lastAutoTable.finalY;
+
+  y = section(doc, "SECTION 7 — FIELD VISIT & VERIFICATION  (Completed by Lender's Officer)", y);
+  y = grid(doc, y, [
+    [ L('Verification Officer Name'), V(d.verification_officer), L('Designation'), V(d.verification_designation) ],
+    [ L('Date of Visit'), fdate(d.visit_date), L('Time of Visit'), V(d.visit_time) ],
+    [ L('Residence Verification'), V(d.residence_verification), L('Business Verification'), V(d.business_verification) ],
+    [ L('House Type'), V(d.house_type), L('Neighbour Feedback'), V(d.neighbour_feedback) ],
+    [ L('Observations / Remarks'), FULL(d.verification_remarks) ],
+    [ L('Recommendation'), V(d.recommendation), L('Supervisor Approval'), V(d.supervisor_approval) ]
+  ]);
+
+  y = section(doc, 'SECTION 8 — BORROWER DECLARATION', y);
+  y = para(doc, 'I/We hereby declare and confirm the following:', y, {size:8, gap:1});
+  [
+    'All information provided in this Application Form is true, correct, and complete to the best of my/our knowledge.',
+    'I/We authorise THENNAGAM FINANCE PRIVATE LIMITED to verify the information provided, contact my employer and references, and conduct field verification.',
+    'I/We authorise the Lender to access my credit information from any credit bureau registered under the Credit Information Companies (Regulation) Act, 2005.',
+    'I/We understand that loan approval is at the sole discretion of the Lender and submission of this Application does not guarantee sanction.',
+    'The applicable rate of interest may differ based on various factors including the borrower\'s credit score, repayment history, income level, loan tenure, financial strength, and risk assessment carried out by the Lender.',
+    'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.',
+    'I/We understand that providing false information is an offence under the Bharatiya Nyaya Sanhita, 2023.'
+  ].forEach(function(t){ y = bullet(doc, t, y, {size:7.9, gap:1}); });
+
+  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+
+  y = section(doc, 'FOR OFFICE USE ONLY', y);
+  y = grid(doc, y, [
+    [ L('Received By'), '', L('Branch / Area'), '' ],
+    [ L('Verification Status'), '', L('Credit Decision'), '' ]
+  ]);
+  footer(doc);
+  return doc;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   GROUP A — AGREEMENT PACK  (Sanction Letter → Agreement → DPN → Continuity → Schedule B)
+   ════════════════════════════════════════════════════════════════════════ */
+function buildAgreement(doc, d, g){
+  _G = g;
+  var addrFull = [V(d.address), V(d.city), V(d.district), V(d.state)].filter(Boolean).join(', ');
+
+  // group-specific additions (RBI/registration/MOD) — appended where the templates place them
+  var kExtra =
+    g==='C' ? [
+      'The Borrower shall create a Memorandum of Deposit of Title Deeds (MOD) as per the Transfer of Property Act, 1882, and the Tamil Nadu Registration Act, 1908, depositing all original title documents of the property offered as security with the Lender. No further encumbrance shall be created on the said property without prior written consent of the Lender.',
+      'Where required by law or the Lender, the Borrower shall execute and register all relevant loan documents as per the Registration Act, 1908, the Indian Stamp Act, 1899, and the Tamil Nadu Stamp Act, 2018, and shall bear all costs thereof.'
+    ] :
+    g==='B' ? [
+      'Where required by law or the Lender, the Borrower shall execute and register all relevant loan documents as per the Registration Act, 1908, the Indian Stamp Act, 1899, and the Tamil Nadu Stamp Act, 2018, and shall bear all costs thereof.'
+    ] : [];
+  var schedExtra =
+    g==='C' ? [ ['12','MOD / Property Details', 'Property offered as security: '+fill(d.property_details,20)] ] :
+    g==='B' ? [ ['12','Document Registration (if applicable)', 'Registration No.: '+fill(d.doc_reg_no,20)+' / Not Applicable'] ] : [];
+
+  /* ---------- 1. LOAN SANCTION LETTER (Schedule A) ---------- */
+  var y = letterhead(doc, 'LOAN SANCTION LETTER');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.6); doc.setTextColor.apply(doc, NAVY);
+  doc.text('SCHEDULE "A"', ML, y); doc.setTextColor.apply(doc, INK); y += 6;
+  y = para(doc, 'To,', y, {size:8.4, gap:0.5});
+  y = para(doc, 'Mr./Ms. '+fill(d.name,26), y, {size:8.4});
+  y = para(doc, 'S/o | D/o | W/o: '+fill(d.father_name,24), y);
+  y = para(doc, 'Application No.: '+fill(d.app_id,18)+'      Reference No.: '+BLANK(18), y);
+  y = para(doc, 'Address: '+fill(addrFull,40)+',  Pin: '+fill(d.pincode,7), y);
+  y = para(doc, 'Email: '+fill(d.email,22)+'      Mobile: '+fill(d.mobile,14), y, {gap:2});
+  y = para(doc, 'Dear Borrower,', y, {gap:1});
+  y = para(doc, 'This Loan Sanction Letter is issued in reference to your Loan Application dated '+fill(fdate(d.submitted_at),12)+'. The sanction is based on the information provided by you in your application. We are pleased to inform you that your loan application has been approved subject to the following terms and conditions:', y, {size:8.2, gap:2});
+
+  doc.autoTable({
+    startY: y, theme:'grid', margin:{left:ML,right:MR},
+    styles:{fontSize:7.6, cellPadding:1.2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, valign:'middle'},
+    head:[[ 'Sl. No.', 'Particulars', 'Terms / Details' ]],
+    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:8},
+    columnStyles:{0:{cellWidth:14,halign:'center'},1:{cellWidth:70,fontStyle:'bold'},2:{cellWidth:'auto'}},
+    body:[
+      ['1','Loan Group', GROUPS[g].label],
+      ['2','Loan Sanctioned Amount', rs(d.loan_amount)],
+      ['3','Loan Date', BLANK(11)],
+      ['4','Rate of Interest (ROI)', BLANK(4)+'% per annum (flat)'],
+      ['5','Loan Tenure', fill(d.tenure,10)],
+      ['6','Processing Fee + GST (18%)', rs('')],
+      ['7','Instalment Amount', rs('')],
+      ['8','Number of Instalments', BLANK(9)],
+      ['9','Instalment Due Date', fill(d.emi_date,9)],
+      ['10','Instalment Frequency','Daily / Monthly'],
+      ['11','Disbursal Amount (after deductions)', rs('')],
+      ['12','Repayment Schedule','As prescribed in the Loan Agreement'],
+      ['13','Penal Charges','0.1% per day on principal outstanding'],
+      ['14','Bounce / Dishonour Charge','Rs. 590/- (GST Inclusive)'],
+      ['15','Annual Percentage Rate (APR)', BLANK(10)+'%']
+    ]
+  });
+  doc.addPage(); y = 16;
+  y = para(doc, 'Terms & Conditions:', y, {bold:true, gap:1});
+  [
+    'Loan disbursement will be made to the bank account provided in the Loan Agreement.',
+    'Processing fees (including GST at 18% under the Central Goods and Services Tax Act, 2017) will be deducted from the Loan Amount before disbursal.',
+    'This sanction may be revoked or cancelled at the sole discretion of the Company at any time before disbursal.',
+    'The repayment schedule shall depend upon the actual date of disbursement of the Loan.',
+    'Penal charges @0.1% per day on principal outstanding shall be levied in case of repayment overdue, calculated from the date of default under the Indian Contract Act, 1872.',
+    'The Borrower may make pre-payment or foreclose the Loan without any penalty by giving 30 days\' prior written notice to the Lender.',
+    'Applicable stamp duty and all statutory charges under the Indian Stamp Act, 1899, and the Tamil Nadu Stamp Act, 2018, shall be borne by the Borrower.',
+    'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.',
+    'Once the disbursement is made to the Borrower\'s bank account, the Loan cannot be withdrawn or reversed.'
+  ].forEach(function(t){ y = bullet(doc, t, y, {size:7.3, lh:3.85, gap:0.6}); });
+  y += 1;
+  y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:8, gap:3});
+  y = para(doc, '__________________________   Authorised Signatory', y, {size:8, gap:1});
+  signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+
+  /* ---------- 2. LOAN AGREEMENT ---------- */
+  doc.addPage(); y = letterhead(doc, 'LOAN AGREEMENT');
+  doc.setTextColor(150,120,30); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('Loan Category: '+GROUPS[g].cat, PW/2, y-1, {align:'center'}); y+=3;
+  doc.setTextColor.apply(doc, INK);
+  y = para(doc, 'This Loan Agreement is made and executed at Thanjavur on the date mentioned in Schedule "A" by THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), a Non-Banking Financial Company registered under the Reserve Bank of India Act, 1934, bearing CIN U64990TN2025PTC179499, Certificate of Registration No. B-14.00700, having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205; and', y, {size:8.1, gap:1.5});
+  y = para(doc, 'Mr./Ms. '+fill(d.name,24)+' (hereinafter the "Borrower"), whose details are mentioned in Schedule "A" and "B" of this Agreement.', y, {size:8.1, gap:1.5});
+  y = para(doc, 'The Lender and the Borrower are hereinafter collectively referred to as the "Parties", which expressions shall include their respective heirs, executors, administrators, legal representatives, successors, and permitted assigns.', y, {size:8.1, gap:1.5});
+  y = para(doc, 'WHEREAS, the Lender is an RBI-approved Non-Banking Financial Company engaged in the business of providing loans under the Reserve Bank of India (Non-Banking Financial Company) Directions, 2016; and WHEREAS, the Borrower has applied for a loan facility and the Lender, after due diligence, KYC verification, and credit assessment, has agreed to provide the Loan subject to the terms and conditions of this Agreement; NOW, THEREFORE, the Parties agree as follows:', y, {size:8.1, gap:2});
+
+  var AG = [
+    ['A. DEFINITIONS AND INTERPRETATION', [
+      '"Applicable Law" means any statute, regulation, notification, circular, ordinance, court order, decree, or direction having the force of law in India, including the Reserve Bank of India Act, 1934; Indian Contract Act, 1872; Transfer of Property Act, 1882; Limitation Act, 1963; SARFAESI Act, 2002; Information Technology Act, 2000; Payment and Settlement Systems Act, 2007; and all applicable Tamil Nadu State enactments.',
+      '"Automated Fund Transfer" means transfer of funds through ECS, NACH, UPI, or any other permissible digital payment mode.',
+      '"Due Date" means the date on or before which the Instalment(s) become due and repayable as specified in the Loan Documents.',
+      '"Effective Date" means the date on which the Borrower consents to obtain the Loan from the Lender.',
+      '"Loan Documents" means this Agreement, the Loan Application, the Sanction Letter, the Demand Promissory Note, the Letter of Continuity, the Repayment Schedule, and all other documents executed in connection with the Loan.',
+      '"Outstanding Balance" means the total amount outstanding, including principal, interest, fees, costs, and charges payable by the Borrower to the Lender.'
+    ]],
+    ['B. LOAN AMOUNT', [
+      'The Lender shall provide the Loan strictly in accordance with the terms of this Agreement and other Loan Documents. The Loan amount shall be as stated in the Sanction Letter.',
+      'The Lender may disburse the Loan in one lump sum or in such instalments as decided at its sole discretion.',
+      'The Lender reserves the right to recall the entire Loan and all monies due if any information supplied by the Borrower is found to be incorrect or false, or if the Borrower commits any default.',
+      'The Borrower has confirmed the following Bank Account details for receipt of Loan disbursement:  Bank Name: '+fill(d.bank_name,20)+' ;  Account Number: '+fill(d.account_number,18)+' ;  IFSC Code: '+fill(d.ifsc_code,14)+' .'
+    ]],
+    ['C. RATE OF INTEREST', [
+      'The applicable rate of interest may differ based on various factors including the borrower\'s credit score, repayment history, income level, loan tenure, financial strength, and risk assessment carried out by the Lender.',
+      'The Interest Amount shall be calculated on a flat rate basis and shall remain fixed during the Loan tenure as stated in the Loan Documents.',
+      'Interest shall accrue from the Effective Date until full repayment of all amounts due and shall be computed on a daily, monthly, or yearly basis as applicable.'
+    ]],
+    ['D. LOAN REPAYMENT', [
+      'The Borrower undertakes to repay the Loan together with the Interest Amount in the number of Instalments specified in the Loan Documents, not later than the respective Due Dates.',
+      'The Lender is entitled to present NACH/e-Mandate for collection of Loan/EMI amounts without prior intimation. The Borrower shall continue to pay Instalments on the respective Due Dates regardless of any dispute.',
+      'The Borrower shall maintain sufficient balance in the linked bank account and shall neither close the account nor stop payments without prior written consent of the Lender. Bounce/dishonour and late payment charges shall be borne by the Borrower.',
+      'NACH/ECS Mandate shall not be withdrawn without at least 30 days\' prior written notice and shall remain valid until complete repayment.',
+      'Any amount paid shall be adjusted first towards penalties and charges, then overdue instalments, then interest, and finally the principal outstanding. Payments shall only be made to the Lender\'s official accounts.'
+    ]],
+    ['E. FEES AND CHARGES', [
+      'The Borrower shall pay Processing Fee, Documentation Fee, Credit Assessment Fee, or any other applicable charges as specified in the Loan Documents, on time and without default.',
+      'Late Payment Charges, Direct Debit Bounce Fee, and other charges shall be borne by the Borrower. The Lender reserves the right to revise such charges from time to time by notifying the Borrower on its official website.'
+    ]],
+    ['F. PRE-PAYMENT OF LOAN', [
+      'The Borrower shall give at least 30 days\' prior written notice before making any pre-payment of the Loan.',
+      'Pre-payment shall include all due instalments, applicable penalties, charges, and the outstanding principal balance as on the date of pre-payment.',
+      'The Loan is repayable on demand made by the Lender, including upon any regulatory or court order.'
+    ]],
+    ['G. DEMAND PROMISSORY NOTE', [
+      'Where the Borrower has executed a Demand Promissory Note (DPN), the Lender shall be entitled to negotiate the DPN under the Negotiable Instruments Act, 1881.',
+      'The Borrower waives presentment and notice of dishonour of the Demand Promissory Note.'
+    ]],
+    ['H. MODE OF COMMUNICATIONS', [
+      'All communications through telephone, email, SMS, WhatsApp, mobile applications, or online portal shall be valid and binding as per the Information Technology Act, 2000.',
+      'The Borrower irrevocably consents to the Lender recording all electronic communications, which may be used as evidence under the Bharatiya Sakshya Adhiniyam, 2023.',
+      'Only the Borrower shall communicate instructions to the Lender. Instructions from any other person shall not be binding.'
+    ]],
+    ['I. ASSIGNMENT AND TRANSFER', [
+      'The Lender may sell, transfer, assign, or securitise any of its rights and obligations to any person without the consent of the Borrower, under the SARFAESI Act, 2002.',
+      'The Borrower shall not assign or transfer any rights or obligations without prior written consent of the Lender.',
+      'The Lender may share all information relating to the Borrower and the Loan with any transferee or assignee.'
+    ]],
+    ['J. EVENTS OF DEFAULT', [
+      'Misrepresentation or provision of false information; utilisation of the Loan for any illegal, anti-social, or speculative purpose; failure to comply with any covenant; commencement of insolvency proceedings under the IBC, 2016; prosecution for any criminal offence; failure to pay any instalment, interest, or penal charge on the Due Date; or any event that in the Lender\'s opinion jeopardises its interests.'
+    ]],
+    ['K. REMEDIES IN CASE OF DEFAULT', [
+      'The Lender may demand penal charges on delayed payment, recall the entire Outstanding Balance, exercise a paramount lien and right of set-off, require salary deduction by the employer, and initiate proceedings before an arbitrator or courts under the Arbitration and Conciliation Act, 1996.',
+      'The Borrower shall reimburse all costs of legal proceedings. In default, the Lender and/or RBI may disclose the Borrower\'s information to banks, financial institutions, and credit information companies under the CIC (Regulation) Act, 2005.'
+    ].concat(kExtra)],
+    ['L. NOTICE & COOLING-OFF', [
+      'Any notice by the Lender is deemed served if delivered personally (immediately), by post/courier (two days), or by email/WhatsApp/SMS (immediately). Notice by the Borrower is deemed delivered only when actually received by the Lender.',
+      'Cooling-Off / Look-Up Period: one (1) day for loan tenor of 7 days or less; three (3) days for tenor of more than 7 days. No penalty for repayment of principal and proportionate interest during the cooling-off period.'
+    ]],
+    ['M. USE OF LOAN', [
+      'No part of the Loan shall be used for any illegal, immoral, gambling, lottery, or speculative activity. Any dispute relating to goods purchased with the Loan shall not entitle the Borrower to withhold payment to the Lender.'
+    ]],
+    ['N. NOMINEE — ROLE, RESPONSIBILITIES AND CONSENT', [
+      'The Nominee shall be informed by the Lender in the event of default, death, or incapacity of the Borrower, and shall facilitate settlement of the outstanding loan from the Borrower\'s estate or insurance proceeds.',
+      'The Nominee does not assume personal liability unless a separate guarantee has been executed, and shall cooperate with the Lender\'s representatives in any default proceedings.',
+      'Nominee Consent: I, '+fill(d.nominee_name,22)+' (Nominee), having read and understood the above, hereby consent to being nominated as Nominee for this Loan and acknowledge the responsibilities stated herein.'
+    ]],
+    ['O. DECLARATIONS BY THE BORROWER', [
+      'All information and documents provided are true, genuine, and correct; the Borrower does not violate any existing agreement by availing this Loan; and shall not terminate this Agreement until the entire outstanding balance is repaid.',
+      'The Borrower consents to communication by phone, SMS, WhatsApp, or email (not governed by TRAI DND) between 07:00 AM and 07:00 PM, Monday to Sunday, and shall inform the Lender within 7 days of any change in address, employment, or contact details.'
+    ]],
+    ['P. OTHER CONDITIONS', [
+      'If any provision becomes unenforceable, the remaining provisions remain valid. The Lender may amend this Agreement with prospective effect by notifying the Borrower. In case of discrepancy, this Agreement prevails, and the English version shall be final and binding.'
+    ]],
+    ['Q. DISPUTE RESOLUTION AND JURISDICTION', [
+      'Any dispute shall be referred to a sole arbitrator appointed by the Lender under the Arbitration and Conciliation Act, 1996, conducted in English at Thanjavur, Tamil Nadu. This Agreement is governed by the laws of India, subject to the exclusive jurisdiction of the courts at Thanjavur, Tamil Nadu.'
+    ]],
+    ['R. ACCEPTANCE', [
+      'The Borrower confirms having read, understood, and agreed to this entire Agreement, including all loan details, instalment calculation methods, and applicable charges. The terms were translated and interpreted to the Borrower in the native language, and the Borrower has fully internalised the rights and liabilities mentioned herein.'
+    ]]
+  ];
+  AG.forEach(function(sec){
+    y = heading(doc, sec[0], y);
+    sec[1].forEach(function(t){ y = bullet(doc, t, y, {size:7.8}); });
+    y += 1;
+  });
+  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+
+  /* ---------- 3. DEMAND PROMISSORY NOTE ---------- */
+  doc.addPage(); y = letterhead(doc, 'DEMAND PROMISSORY NOTE');
+  y = para(doc, 'On demand, I/We, '+fill(d.name,22)+', S/o | D/o | W/o: '+fill(d.father_name,20)+', residing at '+fill(addrFull+(V(d.pincode)?' - '+d.pincode:''),40)+', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of '+rs(d.loan_amount)+'/- (Rupees '+BLANK(26)+' Only), for value received, together with interest thereon at the rate agreed upon under the Loan Disbursement Letter, together with overdue charges, costs, and all expenses due and payable by the Borrower to the Lender.', y, {size:8.2, lh:4.4, gap:2});
+  y = para(doc, 'This Demand Promissory Note is executed pursuant to the Negotiable Instruments Act, 1881, and is enforceable under the laws of India.', y, {size:8.2, gap:1.5});
+  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {italic:true, size:8, gap:2});
+  y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
+  y = para(doc, 'Date: '+BLANK(16)+'   Place: Thanjavur', y, {gap:2});
+  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  y = para(doc, 'Revenue Stamp affixed and signed across by the Borrower as required under the Indian Stamp Act, 1899.', y+2, {italic:true, size:7.6});
+
+  /* ---------- 4. LETTER OF CONTINUITY ---------- */
+  doc.addPage(); y = letterhead(doc, 'LETTER OF CONTINUITY');
+  y = para(doc, 'To,', y, {gap:0.5});
+  y = para(doc, 'THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true});
+  y = para(doc, '26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205', y, {size:8, gap:2});
+  y = para(doc, 'Dear Sir/Madam,', y, {gap:1});
+  y = para(doc, 'I, '+fill(d.name,22)+', enclose herewith a duly executed Demand Promissory Note dated '+BLANK(11)+' for '+rs(d.loan_amount)+'/- (Rupees '+BLANK(24)+' Only) executed by me, which is given to you as continuing security for the repayment of the Loan presently outstanding in my name, and also for the repayment of any further amounts of penalty, interest, and any re-loan facility that I may avail hereafter from you.', y, {size:8.2, lh:4.4, gap:1.5});
+  y = para(doc, 'The said Demand Promissory Note shall serve as continuing security for the repayment of the ultimate balance and all amounts remaining unpaid on the Loan, now or hereafter, including all interest to become payable, together with overdue charges, costs, expenses, and other charges due and payable by me to THENNAGAM FINANCE PRIVATE LIMITED. I shall remain liable on the said Demand Promissory Note notwithstanding any payments made from time to time.', y, {size:8.2, lh:4.4, gap:2});
+  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {italic:true, size:8, gap:2});
+  y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
+  y = para(doc, 'Date: '+BLANK(16)+'   Place: '+BLANK(16), y, {gap:2});
+  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+
+  /* ---------- 5. DISBURSEMENT & REPAYMENT SCHEDULE (Schedule B) ---------- */
+  doc.addPage(); y = letterhead(doc, 'LOAN DISBURSEMENT & REPAYMENT SCHEDULE');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.6); doc.setTextColor.apply(doc, NAVY);
+  doc.text('Schedule "B"', ML, y); doc.setTextColor.apply(doc, INK); y += 6;
+  y = para(doc, 'Loan Reference No.: '+BLANK(18)+'   Loan Application No.: '+fill(d.app_id,18), y);
+  y = para(doc, 'To,  Mr./Ms. '+fill(d.name,24), y);
+  y = para(doc, 'Address: '+fill(addrFull,40)+',  Pin: '+fill(d.pincode,7), y);
+  y = para(doc, 'Email: '+fill(d.email,22)+'   Mobile: '+fill(d.mobile,14), y, {gap:2});
+  y = para(doc, 'Dear Borrower, this Loan Disbursement & Repayment Schedule is issued in reference to your Loan Application. We are pleased to inform you that your Loan has been approved and the amount is being remitted to your account as per the following details:', y, {size:8.2, gap:2});
+  doc.autoTable({
+    startY:y, theme:'grid', margin:{left:ML,right:MR},
+    styles:{fontSize:7.9, cellPadding:1.8, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, valign:'middle'},
+    head:[[ 'Sl. No.', 'Particulars', 'Terms of Loan' ]],
+    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.9},
+    columnStyles:{0:{cellWidth:14,halign:'center'},1:{cellWidth:60,fontStyle:'bold'},2:{cellWidth:'auto'}},
+    body:[
+      ['1','Rate of Interest (ROI)', BLANK(4)+'% per annum (flat)'],
+      ['2','Penal Charges','0.1% per day on principal outstanding, from Due Date until date of payment'],
+      ['3','Processing Fee', rs('')],
+      ['4','Statutory Deductions / Taxes','As applicable under the CGST Act, 2017, and other statutes'],
+      ['5','Instalment Amount', rs('')],
+      ['6','Number of Instalments', BLANK(9)],
+      ['7','Instalment Frequency','Daily / Monthly'],
+      ['8','Loan Disbursement Amount', rs('')],
+      ['9','Disbursement Date', BLANK(16)],
+      ['10','Disbursement Bank Account','Bank: '+fill(d.bank_name,16)+'  A/c No.: '+fill(d.account_number,14)+'  IFSC: '+fill(d.ifsc_code,12)],
+      ['11','Loan Repayment Schedule','As per repayment table below']
+    ].concat(schedExtra)
+  });
+  y = doc.lastAutoTable.finalY + 3;
+  y = para(doc, 'Repayment Schedule:', y, {bold:true, gap:1});
+  var rep=[]; for(var i=1;i<=6;i++) rep.push([String(i),'','','','','']);
+  doc.autoTable({
+    startY:y, theme:'grid', margin:{left:ML,right:MR},
+    styles:{fontSize:7.8, cellPadding:2.2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, halign:'center', minCellHeight:7},
+    head:[[ 'Inst. No.','Due Date','Principal (Rs.)','Interest (Rs.)','Total Amount (Rs.)','Balance Outstanding (Rs.)' ]],
+    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.4},
+    body:rep
+  });
+  y = doc.lastAutoTable.finalY + 3;
+  y = para(doc, 'I/We have read, understood, and agreed to the above Loan Disbursement and Repayment Schedule.', y, {size:8, gap:1});
+  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {italic:true, size:7.8, gap:1});
+  signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+
+  footer(doc);
+  return doc;
+}
+
+/* ---- page footer w/ numbers (call once at end) ---- */
+function footer(doc){
+  var n = doc.getNumberOfPages();
+  for(var i=1;i<=n;i++){
+    doc.setPage(i);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.4); doc.setTextColor(140,135,125);
+    doc.text(CO.name+'  —  Confidential', ML, PH-6);
+    doc.text('Page '+i+' of '+n, PW-MR, PH-6, {align:'right'});
+  }
+}
+
+/* ---- group registry (A, B, C share the group-aware builders) ---- */
+function _app(g){ return function(doc,d){ return buildApplication(doc, d, g); }; }
+function _agr(g){ return function(doc,d){ return buildAgreement(doc, d, g); }; }
+var DOCS = {
+  A: { application: _app('A'), agreement: _agr('A') },
+  B: { application: _app('B'), agreement: _agr('B') },
+  C: { application: _app('C'), agreement: _agr('C') }
+};
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { DOCS: DOCS, buildApplication: buildApplication, buildAgreement: buildAgreement };
+}
+</script>
+<script>
+/* ===== js/pdf.js ===== */
+// Thennagam Finance LMS — pdf: document generation
+// Uses docgen.js (DOCS registry: Group A now; B & C add builders there later).
+// All existing PDF buttons route through genPDFForApp -> Application Form.
+
+function _pdfDoc(){
+  if(!window.jspdf || !window.jspdf.jsPDF){ toast('PDF engine not loaded — check your connection.','err',5000); return null; }
+  return new window.jspdf.jsPDF({unit:'mm', format:'a4'});
+}
+function _builders(g){ return (typeof DOCS!=='undefined' && DOCS && DOCS[g]) ? DOCS[g] : null; }
+
+// ── APPLICATION FORM ──────────────────────────────────────────
+async function genPDFForApp(d){
+  var b=_builders(d.group);
+  if(!b || !b.application){ toast('Application template for Group '+(d.group||'?')+' is coming soon.','info',4000); return; }
+  toast('Generating Application Form…','info',2500);
+  try{
+    var doc=_pdfDoc(); if(!doc) return;
+    b.application(doc, d);
+    doc.save((d.app_id||'application')+'_Group'+(d.group||'')+'_Application.pdf');
+    toast('✅ Application Form downloaded','ok');
+  }catch(e){ toast('PDF error: '+e.message,'err',6000); console.error(e); }
+}
+
+// ── AGREEMENT PACK ────────────────────────────────────────────
+async function genAgreementForApp(d){
+  var b=_builders(d.group);
+  if(!b || !b.agreement){ toast('Agreement pack for Group '+(d.group||'?')+' is coming soon.','info',4000); return; }
+  toast('Generating Agreement Pack…','info',2500);
+  try{
+    var doc=_pdfDoc(); if(!doc) return;
+    b.agreement(doc, d);
+    doc.save((d.app_id||'agreement')+'_Group'+(d.group||'')+'_AgreementPack.pdf');
+    toast('✅ Agreement Pack downloaded','ok');
+  }catch(e){ toast('PDF error: '+e.message,'err',6000); console.error(e); }
+}
+
+// ── UI wrappers (called from inline onclick) ──────────────────
+function genPDF(){        var a=S.apps.find(function(x){return x.app_id===S.viewId;}); if(a) genPDFForApp(a); }
+function genPDFFromLast(){ if(S.lastData) genPDFForApp(S.lastData); }
+function quickPDF(id){    var a=S.apps.find(function(x){return x.app_id===id;}); if(a) genPDFForApp(a); }
+
+function genAgreement(){         var a=S.apps.find(function(x){return x.app_id===S.viewId;}); if(a) genAgreementForApp(a); }
+function genAgreementFromLast(){ if(S.lastData) genAgreementForApp(S.lastData); }
+</script>
+<script>
+/* ===== js/app.js ===== */
+// Thennagam Finance LMS — app bootstrap (window.onload)
+// (split from index.html; functions are global by design — called from inline onclick handlers)
+
+window.onload=function(){
+  // Nothing from localStorage — all data comes from Google Sheet on login
+};
+</script>
+</body>
+</html>
