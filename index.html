@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Thennagam Finance — Loan Management</title>
 <link rel="stylesheet" href="styles.css">
+<!-- <link rel="stylesheet" href="css/responsive.css"> -->
 </head>
 <body>
 
@@ -47,10 +48,12 @@
       <a href="#" onclick="logout()" style="color:var(--gold-l)">Logout</a>
     </div>
   </div>
+<div class="overlay" onclick="closeSidebar()"></div>
 
   <div class="main">
     <div class="topbar">
       <h2 id="tbtitle">Dashboard</h2>
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:.76rem;color:var(--muted)" id="tbdate"></span>
         <button class="btn btn-o btn-sm" onclick="loadApps()">🔄 Refresh</button>

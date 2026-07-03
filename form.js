@@ -280,21 +280,21 @@ function renderForm(){
 
   '<div class="fgrid">'+
     '<div class="fg">'+
-      '<label>Reference Name<span class="req">*</span></label>'+
+      '<label>Reference Name</label>'+
       '<input type="text" id="fr1name">'+
-      '<div class="ferr" id="e-fr1name">Required</div>'+
+
     '</div>'+
 
     '<div class="fg">'+
-      '<label>Mobile Number<span class="req">*</span></label>'+
+      '<label>Mobile Number</label>'+
       '<input type="tel" id="fr1mob" maxlength="10">'+
-      '<div class="ferr" id="e-fr1mob">Valid 10-digit number required</div>'+
+
     '</div>'+
   '</div>'+
 
   '<div class="fgrid">'+
     '<div class="fg">'+
-      '<label>Relationship<span class="req">*</span></label>'+
+      '<label>Relationship</label>'+
       '<select id="fr1rel">'+
         '<option value="">Select</option>'+
         '<option>Father</option>'+
@@ -309,7 +309,7 @@ function renderForm(){
         '<option>Village Leader</option>'+
         '<option>Other</option>'+
       '</select>'+
-      '<div class="ferr" id="e-fr1rel">Required</div>'+
+
     '</div>'+
 
     '<div class="fg">'+
@@ -329,13 +329,13 @@ function renderForm(){
 
   '<div class="fgrid">'+
     '<div class="fg">'+
-      '<label>Reference Name<span class="req">*</span></label>'+
+      '<label>Reference Name</label>'+
       '<input type="text" id="fr2name">'+
-      '<div class="ferr" id="e-fr2name">Required</div>'+
+
     '</div>'+
 
     '<div class="fg">'+
-      '<label>Mobile Number<span class="req">*</span></label>'+
+      '<label>Mobile Number</label>'+
       '<input type="tel" id="fr2mob" maxlength="10">'+
       '<div class="ferr" id="e-fr2mob">Valid 10-digit number required</div>'+
     '</div>'+
@@ -343,7 +343,7 @@ function renderForm(){
 
   '<div class="fgrid">'+
     '<div class="fg">'+
-      '<label>Relationship<span class="req">*</span></label>'+
+      '<label>Relationship</label>'+
       '<select id="fr2rel">'+
         '<option value="">Select</option>'+
         '<option>Father</option>'+
@@ -358,7 +358,7 @@ function renderForm(){
         '<option>Village Leader</option>'+
         '<option>Other</option>'+
       '</select>'+
-      '<div class="ferr" id="e-fr2rel">Required</div>'+
+
     '</div>'+
 
     '<div class="fg">'+
@@ -650,25 +650,59 @@ if(step===4){
         ok=false;
     } else clearE('e-fnmob');
 }
+// if(step===5){
+//   if(!req('fr1name','e-fr1name','Required')) ok=false;
+//   if(!req('fr1rel','e-fr1rel','Required')) ok=false;
+
+//   var r1=gv('fr1mob');
+//   if(!r1 || r1.length!==10 || !/^\d+$/.test(r1)){
+//     showE('e-fr1mob','Valid 10-digit number required');
+//     ok=false;
+//   } else clearE('e-fr1mob');
+
+//   if(!req('fr2name','e-fr2name','Required')) ok=false;
+//   if(!req('fr2rel','e-fr2rel','Required')) ok=false;
+
+//   var r2=gv('fr2mob');
+//   if(!r2 || r2.length!==10 || !/^\d+$/.test(r2)){
+//     showE('e-fr2mob','Valid 10-digit number required');
+//     ok=false;
+//   } else clearE('e-fr2mob');
+// }
+
 if(step===5){
-  if(!req('fr1name','e-fr1name','Required')) ok=false;
-  if(!req('fr1rel','e-fr1rel','Required')) ok=false;
 
-  var r1=gv('fr1mob');
-  if(!r1 || r1.length!==10 || !/^\d+$/.test(r1)){
-    showE('e-fr1mob','Valid 10-digit number required');
-    ok=false;
-  } else clearE('e-fr1mob');
 
-  if(!req('fr2name','e-fr2name','Required')) ok=false;
-  if(!req('fr2rel','e-fr2rel','Required')) ok=false;
+    // Reference 1 Mobile (optional)
+    var r1 = gv('fr1mob');
 
-  var r2=gv('fr2mob');
-  if(!r2 || r2.length!==10 || !/^\d+$/.test(r2)){
-    showE('e-fr2mob','Valid 10-digit number required');
-    ok=false;
-  } else clearE('e-fr2mob');
+    if(r1){
+        if(r1.length!==10 || !/^\d+$/.test(r1)){
+            showE('e-fr1mob','Valid 10-digit number required');
+            ok=false;
+        }else{
+            clearE('e-fr1mob');
+        }
+    }else{
+        clearE('e-fr1mob');
+    }
+
+    // Reference 2 Mobile (optional)
+    var r2 = gv('fr2mob');
+
+    if(r2){
+        if(r2.length!==10 || !/^\d+$/.test(r2)){
+            showE('e-fr2mob','Valid 10-digit number required');
+            ok=false;
+        }else{
+            clearE('e-fr2mob');
+        }
+    }else{
+        clearE('e-fr2mob');
+    }
+
 }
+
 if(step===6){
   if(!req('fvrecommend','e-fvrecommend','Required'))
       ok=false;

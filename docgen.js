@@ -8,9 +8,18 @@
 /* ---- company constants ---- */
 var CO = {
   name: 'THENNAGAM FINANCE PRIVATE LIMITED',
-  cin:  'CIN: U64990TN2025PTC179499  |  Certificate of Registration No. B-14.00700 (RBI)',
+  cin:  'CIN: U64990TN2025PTC179499  |  A private limited company lending from its own funds (not a Reserve Bank of India-registered NBFC)',
+  mle:  'Registered as a Money Lending Entity under the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025 — Registration No.: ___________________',
   addr: '26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205'
 };
+
+/* ---- the four permitted charge heads (Section 9(2), TN Act 40 of 2025) ----
+   Centralised here so a rate change only needs editing in one place. */
+var ROI_PA = 12;                          // interest, reducing balance, % per annum
+var PROCESSING_CHARGE_LABEL = 'Nil — not charged';
+var INSURANCE_LABEL = 'Not Applicable';
+var PENAL_RATE_LABEL = '0.1% per day on the overdue instalment amount only';
+
 var NAVY = [26, 35, 126], GOLD = [201, 168, 76], LBL = [244, 242, 235], INK = [28, 25, 20];
 var PW = 210, PH = 297, ML = 14, MR = 14, CW = PW - ML - MR;
 
@@ -36,15 +45,17 @@ var _G = 'A';  // current group — set at the top of each builder; read by lett
 
 /* ---- letterhead: draws company block + group + doc title, returns y below it ---- */
 function letterhead(doc, docTitle){
-  doc.setFillColor.apply(doc, NAVY); doc.rect(0, 0, PW, 26, 'F');
+  doc.setFillColor.apply(doc, NAVY); doc.rect(0, 0, PW, 30, 'F');
   doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(12.5);
-  doc.text(CO.name, PW/2, 9, {align:'center'});
-  doc.setFont('helvetica','normal'); doc.setFontSize(6.6);
-  doc.text(CO.cin, PW/2, 14, {align:'center'});
-  doc.setFontSize(6.2);
-  doc.text(doc.splitTextToSize(CO.addr, CW), PW/2, 18, {align:'center'});
-  doc.setDrawColor.apply(doc, GOLD); doc.setLineWidth(1.1); doc.line(0, 26, PW, 26);
-  var y = 33;
+  doc.text(CO.name, PW/2, 8, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(6.2);
+  doc.text(doc.splitTextToSize(CO.cin, CW), PW/2, 12.5, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(6.2);
+  doc.text(doc.splitTextToSize(CO.mle, CW), PW/2, 17.5, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(6.0);
+  doc.text(doc.splitTextToSize(CO.addr, CW), PW/2, 22.5, {align:'center'});
+  doc.setDrawColor.apply(doc, GOLD); doc.setLineWidth(1.1); doc.line(0, 30, PW, 30);
+  var y = 37;
   doc.setTextColor.apply(doc, GOLD); doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
   doc.text(GROUPS[_G].label, PW/2, y, {align:'center'});
   y += 6.5;
@@ -118,21 +129,75 @@ function heading(doc, text, y){
 }
 
 /* ---- three-column signature block (Borrower / Nominee / Lender) ---- */
-function signatures(doc, y, names){
-  names = names || {};
-  y = pagebreak(doc, y, 30) + 3;
+
+function signatures(doc, y, names, opts){
+  names = names || {}; opts = opts || {};
+  var compact = !!opts.compact;
+  var borrowerOnly = !!opts.borrowerOnly;
+  var rowH = compact ? 24 : 42;
+  var headH = compact ? 8 : 11;
+  y = pagebreak(doc, y, rowH + headH + 3) + (compact ? 1.5 : 3);
+
+  var allRows = [
+    { title:'Borrower Signature', name:'Name: ' + fill(names.borrower,14) },
+    { title:'Nominee Signature', name:'Name: ' + fill(names.nominee,14) },
+    { title:'Authorised Signatory (Lender)', name:'Name: ______________' }
+  ];
+  var sigRows = borrowerOnly ? [allRows[0]] : allRows;
+  var nCols = sigRows.length;
+  var colW = CW / nCols;
+  var columnStyles = {};
+  for(var ci=0; ci<nCols; ci++) columnStyles[ci] = {cellWidth: colW};
+
   doc.autoTable({
-    startY: y, theme: 'grid', margin:{left:ML,right:MR},
-    styles:{fontSize:7.8, cellPadding:2, lineColor:[208,203,193], lineWidth:0.2, minCellHeight:13, valign:'top', textColor:INK},
-    head:[[ 'Borrower Signature', 'Nominee Signature', 'Authorised Signatory (Lender)' ]],
-    headStyles:{fillColor:LBL, textColor:NAVY, fontStyle:'bold', halign:'center', fontSize:7.8},
-    columnStyles:{0:{cellWidth:CW/3},1:{cellWidth:CW/3},2:{cellWidth:CW/3}},
-    body:[[
-      'Name: '+fill(names.borrower,14)+'\nDate: ______________\nPlace: _____________',
-      'Name: '+fill(names.nominee,14)+'\nDate: ______________\nPlace: _____________',
-      'Name: ______________\nDate: ______________\nPlace: _____________'
-    ]]
+    startY:y,
+    theme:'grid',
+    margin:{left:ML,right:MR},
+
+    styles:{
+      fontSize: compact ? 7.2 : 7.8,
+      cellPadding: compact ? 1.4 : 2,
+      lineColor:[208,203,193],
+      lineWidth:0.2,
+      minCellHeight:rowH,
+      valign:'top',
+      textColor:INK
+    },
+
+    head:[ sigRows.map(function(r){ return r.title; }) ],
+
+    headStyles:{
+      fillColor:LBL,
+      textColor:NAVY,
+      fontStyle:'bold',
+      halign:'center',
+      fontSize: compact ? 7.2 : 7.8,
+      minCellHeight:headH
+    },
+
+    columnStyles: columnStyles,
+
+    body:[ sigRows.map(function(){ return ''; }) ],
+
+    didDrawCell:function(data){
+      if(data.section !== 'body') return;
+
+      var i = data.column.index;
+      var x = data.cell.x + 3;
+      var y0 = data.cell.y + (compact ? 5 : 7);
+      var lineGap = compact ? 9 : 19;
+
+      doc.setFontSize(compact ? 7.4 : 8);
+      doc.setTextColor(20);
+      doc.setFont(undefined,'normal');
+
+      doc.text(sigRows[i].name, x, y0);
+
+      doc.text('Date:   ______________', x, y0 + lineGap);
+      doc.text('Place:  _____________', x, y0 + lineGap + (compact ? 6 : 10));
+    }
   });
+
   return doc.lastAutoTable.finalY;
 }
 
@@ -232,7 +297,7 @@ function buildApplication(doc, d, g){
   [
     'All information provided in this Application Form is true, correct, and complete to the best of my/our knowledge.',
     'I/We authorise THENNAGAM FINANCE PRIVATE LIMITED to verify the information provided, contact my employer and references, and conduct field verification.',
-    'I/We authorise the Lender to access my credit information from any credit bureau registered under the Credit Information Companies (Regulation) Act, 2005.',
+    'I/We authorise the Lender to access and share my/our credit-relevant information through any lawful credit information mechanism the Lender is eligible to use.',
     'I/We understand that loan approval is at the sole discretion of the Lender and submission of this Application does not guarantee sanction.',
     'The applicable rate of interest may differ based on various factors including the borrower\'s credit score, repayment history, income level, loan tenure, financial strength, and risk assessment carried out by the Lender.',
     'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.',
@@ -270,59 +335,52 @@ function buildAgreement(doc, d, g){
     g==='C' ? [ ['12','MOD / Property Details', 'Property offered as security: '+fill(d.property_details,20)] ] :
     g==='B' ? [ ['12','Document Registration (if applicable)', 'Registration No.: '+fill(d.doc_reg_no,20)+' / Not Applicable'] ] : [];
 
-  /* ---------- 1. LOAN SANCTION LETTER (Schedule A) ---------- */
+  /* ---------- 1. LOAN SANCTION LETTER (Schedule A) — kept to a single page ---------- */
   var y = letterhead(doc, 'LOAN SANCTION LETTER');
   doc.setFont('helvetica','bold'); doc.setFontSize(8.6); doc.setTextColor.apply(doc, NAVY);
-  doc.text('SCHEDULE "A"', ML, y); doc.setTextColor.apply(doc, INK); y += 6;
-  y = para(doc, 'To,', y, {size:8.4, gap:0.5});
-  y = para(doc, 'Mr./Ms. '+fill(d.name,26), y, {size:8.4});
-  y = para(doc, 'S/o | D/o | W/o: '+fill(d.father_name,24), y);
-  y = para(doc, 'Application No.: '+fill(d.app_id,18)+'      Reference No.: '+BLANK(18), y);
-  y = para(doc, 'Address: '+fill(addrFull,40)+',  Pin: '+fill(d.pincode,7), y);
-  y = para(doc, 'Email: '+fill(d.email,22)+'      Mobile: '+fill(d.mobile,14), y, {gap:2});
-  y = para(doc, 'Dear Borrower,', y, {gap:1});
-  y = para(doc, 'This Loan Sanction Letter is issued in reference to your Loan Application dated '+fill(fdate(d.submitted_at),12)+'. The sanction is based on the information provided by you in your application. We are pleased to inform you that your loan application has been approved subject to the following terms and conditions:', y, {size:8.2, gap:2});
+  doc.text('SCHEDULE "A"', ML, y); doc.setTextColor.apply(doc, INK); y += 5.5;
+  y = para(doc, 'To, Mr./Ms. '+fill(d.name,26)+',  S/o | D/o | W/o: '+fill(d.father_name,20), y, {size:8, lh:3.9, gap:0.5});
+  y = para(doc, 'Application No.: '+fill(d.app_id,16)+'   Address: '+fill(addrFull,32)+', Pin: '+fill(d.pincode,7), y, {size:8, lh:3.9, gap:0.5});
+  y = para(doc, 'Email: '+fill(d.email,20)+'   Mobile: '+fill(d.mobile,14), y, {size:8, lh:3.9, gap:1.5});
+  y = para(doc, 'Dear Borrower, this Loan Sanction Letter is issued with reference to your Loan Application dated '+fill(fdate(d.submitted_at),12)+'. We are pleased to inform you that your loan application has been approved subject to the terms below.', y, {size:7.8, lh:3.8, gap:1.5});
 
+  y = heading(doc, 'A. LENDER\'S REGULATORY STATUS', y);
+  y = para(doc, 'Thennagam Finance Private Limited lends its own funds and is NOT a bank and NOT a Non-Banking Financial Company registered with the Reserve Bank of India. This loan is governed by the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025 and general contract law, not by RBI regulations.', y, {size:7.4, lh:3.5, gap:1.5});
+
+  y = heading(doc, 'B. CORE TERMS AND CHARGES — ONLY 4 CHARGE HEADS APPLY (Section 9(2), TN Act 40/2025)', y);
   doc.autoTable({
     startY: y, theme:'grid', margin:{left:ML,right:MR},
-    styles:{fontSize:7.6, cellPadding:1.2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, valign:'middle'},
-    head:[[ 'Sl. No.', 'Particulars', 'Terms / Details' ]],
-    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:8},
-    columnStyles:{0:{cellWidth:14,halign:'center'},1:{cellWidth:70,fontStyle:'bold'},2:{cellWidth:'auto'}},
+    styles:{fontSize:7.0, cellPadding:1.0, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, valign:'middle'},
+    head:[[ 'Sl.', 'Particulars', 'Terms / Details' ]],
+    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.4},
+    columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:70,fontStyle:'bold'},2:{cellWidth:'auto'}},
     body:[
       ['1','Loan Group', GROUPS[g].label],
       ['2','Loan Sanctioned Amount', rs(d.loan_amount)],
-      ['3','Loan Date', BLANK(11)],
-      ['4','Rate of Interest (ROI)', BLANK(4)+'% per annum (flat)'],
-      ['5','Loan Tenure', fill(d.tenure,10)],
-      ['6','Processing Fee + GST (18%)', rs('')],
-      ['7','Instalment Amount', rs('')],
-      ['8','Number of Instalments', BLANK(9)],
-      ['9','Instalment Due Date', fill(d.emi_date,9)],
-      ['10','Instalment Frequency','Daily / Monthly'],
-      ['11','Disbursal Amount (after deductions)', rs('')],
-      ['12','Repayment Schedule','As prescribed in the Loan Agreement'],
-      ['13','Penal Charges','0.1% per day on principal outstanding'],
-      ['14','Bounce / Dishonour Charge','Rs. 590/- (GST Inclusive)'],
-      ['15','Annual Percentage Rate (APR)', BLANK(10)+'%']
+      ['3','Loan Date / Tenure', BLANK(9)+' / '+fill(d.tenure,8)],
+      ['4','Instalment Amount / Count', rs('')+' / '+BLANK(6)],
+      ['5','Instalment Due Date / Frequency', fill(d.emi_date,8)+' / Daily/Monthly'],
+      ['6','Disbursal Amount (after deductions)', rs('')],
+      ['7','Rate of Interest (reducing balance, p.a.)', ROI_PA+'% p.a.'],
+      ['8','Processing Charge', PROCESSING_CHARGE_LABEL],
+      ['9','Insurance Premium', INSURANCE_LABEL],
+      ['10','Delayed Payment / Penal Charge', PENAL_RATE_LABEL],
     ]
   });
-  doc.addPage(); y = 16;
-  y = para(doc, 'Terms & Conditions:', y, {bold:true, gap:1});
+  y = doc.lastAutoTable.finalY + 5;
+
+  y = para(doc, 'Terms & Conditions:', y, {bold:true, size:7.6, gap:1.8});
   [
-    'Loan disbursement will be made to the bank account provided in the Loan Agreement.',
-    'Processing fees (including GST at 18% under the Central Goods and Services Tax Act, 2017) will be deducted from the Loan Amount before disbursal.',
-    'This sanction may be revoked or cancelled at the sole discretion of the Company at any time before disbursal.',
-    'The repayment schedule shall depend upon the actual date of disbursement of the Loan.',
-    'Penal charges @0.1% per day on principal outstanding shall be levied in case of repayment overdue, calculated from the date of default under the Indian Contract Act, 1872.',
-    'The Borrower may make pre-payment or foreclose the Loan without any penalty by giving 30 days\' prior written notice to the Lender.',
-    'Applicable stamp duty and all statutory charges under the Indian Stamp Act, 1899, and the Tamil Nadu Stamp Act, 2018, shall be borne by the Borrower.',
-    'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.',
-    'Once the disbursement is made to the Borrower\'s bank account, the Loan cannot be withdrawn or reversed.'
-  ].forEach(function(t){ y = bullet(doc, t, y, {size:7.3, lh:3.85, gap:0.6}); });
-  y += 1;
-  y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:8, gap:3});
-  y = para(doc, '__________________________   Authorised Signatory', y, {size:8, gap:1});
+    'Disbursement is made only to the bank account in the Loan Agreement; no charge other than the four heads above applies, by whatever name.',
+    'This sanction may be revoked at the Company\'s discretion any time before disbursal; the Loan cannot be withdrawn once disbursed.',
+    'The Delayed Payment Charge applies only to the overdue instalment, not the full principal, and is not capitalised or compounded (Indian Contract Act, 1872).',
+    'The Borrower may prepay or foreclose without penalty on 30 days\' prior written notice.',
+    'A Loan Statement is furnished one day before disbursal, and a Loan Card is issued and updated at every repayment (Sections 9(4), 9(6), TN Act 40/2025).',
+    'This Letter, the Loan Agreement, and the Loan Card are available in Tamil on request (Section 9(9), TN Act 40/2025).',
+    'Stamp duty and statutory charges under the Indian Stamp Act, 1899 and Tamil Nadu Stamp Act, 2018 are borne by the Borrower; terms were translated and interpreted in the Borrower\'s native language.'
+  ].forEach(function(t){ y = bullet(doc, t, y, {size:6.9, lh:3.3, gap:1.1}); });
+  y += 3;
+  y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:7.8, gap:2.5});
   signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
 
   /* ---------- 2. LOAN AGREEMENT ---------- */
@@ -330,92 +388,102 @@ function buildAgreement(doc, d, g){
   doc.setTextColor(150,120,30); doc.setFont('helvetica','bold'); doc.setFontSize(8);
   doc.text('Loan Category: '+GROUPS[g].cat, PW/2, y-1, {align:'center'}); y+=3;
   doc.setTextColor.apply(doc, INK);
-  y = para(doc, 'This Loan Agreement is made and executed at Thanjavur on the date mentioned in Schedule "A" by THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), a Non-Banking Financial Company registered under the Reserve Bank of India Act, 1934, bearing CIN U64990TN2025PTC179499, Certificate of Registration No. B-14.00700, having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205; and', y, {size:8.1, gap:1.5});
+  y = para(doc, 'This Loan Agreement is made and executed at Thanjavur on the date mentioned in Schedule "A" by THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), a private limited company incorporated under the Companies Act, 2013, bearing CIN U64990TN2025PTC179499, having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, and registered as a Money Lending Entity under the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025 vide Registration No. ___________________; and', y, {size:8.1, gap:1.5});
   y = para(doc, 'Mr./Ms. '+fill(d.name,24)+' (hereinafter the "Borrower"), whose details are mentioned in Schedule "A" and "B" of this Agreement.', y, {size:8.1, gap:1.5});
   y = para(doc, 'The Lender and the Borrower are hereinafter collectively referred to as the "Parties", which expressions shall include their respective heirs, executors, administrators, legal representatives, successors, and permitted assigns.', y, {size:8.1, gap:1.5});
-  y = para(doc, 'WHEREAS, the Lender is an RBI-approved Non-Banking Financial Company engaged in the business of providing loans under the Reserve Bank of India (Non-Banking Financial Company) Directions, 2016; and WHEREAS, the Borrower has applied for a loan facility and the Lender, after due diligence, KYC verification, and credit assessment, has agreed to provide the Loan subject to the terms and conditions of this Agreement; NOW, THEREFORE, the Parties agree as follows:', y, {size:8.1, gap:2});
+  y = para(doc, 'The Lender confirms that it lends from its own funds, does not accept public deposits, and is not a Non-Banking Financial Company registered with the Reserve Bank of India. This Agreement is not governed by RBI regulations applicable to banks or NBFCs; it is governed by the Indian Contract Act, 1872, the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025, and other applicable Tamil Nadu State law. WHEREAS the Borrower has applied for a loan facility and the Lender, after due diligence, KYC verification, and credit assessment, has agreed to provide the Loan subject to the terms and conditions of this Agreement; NOW, THEREFORE, the Parties agree as follows:', y, {size:8.1, gap:2});
 
   var AG = [
     ['A. DEFINITIONS AND INTERPRETATION', [
-      '"Applicable Law" means any statute, regulation, notification, circular, ordinance, court order, decree, or direction having the force of law in India, including the Reserve Bank of India Act, 1934; Indian Contract Act, 1872; Transfer of Property Act, 1882; Limitation Act, 1963; SARFAESI Act, 2002; Information Technology Act, 2000; Payment and Settlement Systems Act, 2007; and all applicable Tamil Nadu State enactments.',
+      '"Applicable Law" means the Indian Contract Act, 1872; the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025; the Tamil Nadu Money-Lenders Act, 1957 (to the extent applicable); the Information Technology Act, 2000; the Limitation Act, 1963; the Indian Stamp Act, 1899; the Tamil Nadu Stamp Act, 2018; and other applicable Tamil Nadu State enactments.',
       '"Automated Fund Transfer" means transfer of funds through ECS, NACH, UPI, or any other permissible digital payment mode.',
       '"Due Date" means the date on or before which the Instalment(s) become due and repayable as specified in the Loan Documents.',
       '"Effective Date" means the date on which the Borrower consents to obtain the Loan from the Lender.',
-      '"Loan Documents" means this Agreement, the Loan Application, the Sanction Letter, the Demand Promissory Note, the Letter of Continuity, the Repayment Schedule, and all other documents executed in connection with the Loan.',
-      '"Outstanding Balance" means the total amount outstanding, including principal, interest, fees, costs, and charges payable by the Borrower to the Lender.'
+      '"Loan Documents" means this Agreement, the Loan Application, the Sanction Letter, the Loan Card, the Demand Promissory Note, the Letter of Continuity, the Repayment Schedule, and all other documents executed in connection with the Loan.',
+      '"Outstanding Balance" means the total amount outstanding, including principal, interest, and the permitted charges under Clause E, payable by the Borrower to the Lender.',
+      '"Overdue Amount" means, on any date, the instalment(s) that have fallen due and remain unpaid on that date — this is the only amount on which a Delayed Payment Charge under Clause E may be calculated.'
     ]],
     ['B. LOAN AMOUNT', [
       'The Lender shall provide the Loan strictly in accordance with the terms of this Agreement and other Loan Documents. The Loan amount shall be as stated in the Sanction Letter.',
       'The Lender may disburse the Loan in one lump sum or in such instalments as decided at its sole discretion.',
-      'The Lender reserves the right to recall the entire Loan and all monies due if any information supplied by the Borrower is found to be incorrect or false, or if the Borrower commits any default.',
+      'The Lender reserves the right to recall the entire Loan and all monies due if any information supplied by the Borrower is found to be incorrect or false, or if the Borrower commits any default, subject to Clause K1 (Fair Recovery) below.',
       'The Borrower has confirmed the following Bank Account details for receipt of Loan disbursement:  Bank Name: '+fill(d.bank_name,20)+' ;  Account Number: '+fill(d.account_number,18)+' ;  IFSC Code: '+fill(d.ifsc_code,14)+' .'
     ]],
     ['C. RATE OF INTEREST', [
-      'The applicable rate of interest may differ based on various factors including the borrower\'s credit score, repayment history, income level, loan tenure, financial strength, and risk assessment carried out by the Lender.',
-      'The Interest Amount shall be calculated on a flat rate basis and shall remain fixed during the Loan tenure as stated in the Loan Documents.',
-      'Interest shall accrue from the Effective Date until full repayment of all amounts due and shall be computed on a daily, monthly, or yearly basis as applicable.'
+      'Interest is charged on a reducing-balance basis at '+ROI_PA+'% (twelve percent) per annum, as stated in the Sanction Letter, within the ceiling notified for unsecured loans under Section 7 of the Tamil Nadu Money-Lenders Act, 1957 (G.O.Ms.No.406, Cooperation Department, dated 5 July 1979 — to be reconfirmed as the currently applicable notification).',
+      'The rate shall be disclosed transparently and shall not be revised upward after disbursement without the Borrower\'s written consent.',
+      'Interest shall accrue from the Effective Date until full repayment of all amounts due.'
     ]],
     ['D. LOAN REPAYMENT', [
       'The Borrower undertakes to repay the Loan together with the Interest Amount in the number of Instalments specified in the Loan Documents, not later than the respective Due Dates.',
-      'The Lender is entitled to present NACH/e-Mandate for collection of Loan/EMI amounts without prior intimation. The Borrower shall continue to pay Instalments on the respective Due Dates regardless of any dispute.',
-      'The Borrower shall maintain sufficient balance in the linked bank account and shall neither close the account nor stop payments without prior written consent of the Lender. Bounce/dishonour and late payment charges shall be borne by the Borrower.',
+      'Where repayment is by NACH/e-Mandate, the mandate shall not be invoked in a manner inconsistent with Clause K1 (Fair Recovery).',
+      'The Borrower shall maintain sufficient balance in the linked bank account and shall neither close the account nor stop payments without prior written consent of the Lender.',
       'NACH/ECS Mandate shall not be withdrawn without at least 30 days\' prior written notice and shall remain valid until complete repayment.',
-      'Any amount paid shall be adjusted first towards penalties and charges, then overdue instalments, then interest, and finally the principal outstanding. Payments shall only be made to the Lender\'s official accounts.'
+      'Any amount paid shall be adjusted first towards overdue Delayed Payment Charges, then overdue interest, then overdue principal, then current dues. Payments shall only be made to the Lender\'s official accounts.'
     ]],
-    ['E. FEES AND CHARGES', [
-      'The Borrower shall pay Processing Fee, Documentation Fee, Credit Assessment Fee, or any other applicable charges as specified in the Loan Documents, on time and without default.',
-      'Late Payment Charges, Direct Debit Bounce Fee, and other charges shall be borne by the Borrower. The Lender reserves the right to revise such charges from time to time by notifying the Borrower on its official website.'
+    ['E. FEES AND CHARGES — CLOSED LIST', [
+      'The Lender shall charge the Borrower only the following, and no other fee or charge by any name, under Section 9(2) of the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025: (1) Rate of Interest — '+ROI_PA+'% p.a., as above; (2) Processing Charge — '+PROCESSING_CHARGE_LABEL+' on this loan; (3) Insurance Premium — '+INSURANCE_LABEL+', unless an actual policy is procured on the Borrower\'s life/asset, passed through at actuals with supporting proof; (4) Delayed Payment/Penal Charge, as described below.',
+      'Delayed Payment/Penal Charge shall be levied only on the Overdue Amount (not the full outstanding principal), at '+PENAL_RATE_LABEL+', shall not be capitalised or added to principal for further interest computation, and shall be applied from the Due Date until the date of actual payment.',
+      'The Lender shall not introduce any new charge, or increase an existing one, during the currency of the loan without the Borrower\'s prior written consent.'
     ]],
     ['F. PRE-PAYMENT OF LOAN', [
       'The Borrower shall give at least 30 days\' prior written notice before making any pre-payment of the Loan.',
-      'Pre-payment shall include all due instalments, applicable penalties, charges, and the outstanding principal balance as on the date of pre-payment.',
-      'The Loan is repayable on demand made by the Lender, including upon any regulatory or court order.'
+      'Pre-payment shall include all due instalments, applicable Delayed Payment Charges, and the outstanding principal balance as on the date of pre-payment, without any pre-payment penalty.'
     ]],
     ['G. DEMAND PROMISSORY NOTE', [
-      'Where the Borrower has executed a Demand Promissory Note (DPN), the Lender shall be entitled to negotiate the DPN under the Negotiable Instruments Act, 1881.',
-      'The Borrower waives presentment and notice of dishonour of the Demand Promissory Note.'
+      'Where the Borrower has executed a Demand Promissory Note (DPN), the Lender shall be entitled to negotiate the DPN under the Negotiable Instruments Act, 1881. This is a standard commercial-paper right available to any lender under general law and does not depend on any RBI registration.'
     ]],
     ['H. MODE OF COMMUNICATIONS', [
-      'All communications through telephone, email, SMS, WhatsApp, mobile applications, or online portal shall be valid and binding as per the Information Technology Act, 2000.',
+      'Communications by phone, email, SMS, WhatsApp, or online portal shall be valid and binding as per the Information Technology Act, 2000, provided they are also made available in Tamil on request.',
       'The Borrower irrevocably consents to the Lender recording all electronic communications, which may be used as evidence under the Bharatiya Sakshya Adhiniyam, 2023.',
       'Only the Borrower shall communicate instructions to the Lender. Instructions from any other person shall not be binding.'
     ]],
-    ['I. ASSIGNMENT AND TRANSFER', [
-      'The Lender may sell, transfer, assign, or securitise any of its rights and obligations to any person without the consent of the Borrower, under the SARFAESI Act, 2002.',
-      'The Borrower shall not assign or transfer any rights or obligations without prior written consent of the Lender.',
-      'The Lender may share all information relating to the Borrower and the Loan with any transferee or assignee.'
+    ['I. LOAN CARD, LOAN STATEMENT AND RECEIPTS', [
+      'The Lender shall furnish a Loan Statement to the Borrower at least one day before disbursal, showing principal, applicable charges under Clause E, and effective cost of credit, under Section 9(4) of the 2025 Act.',
+      'The Lender shall issue and maintain a Loan Card recording the interest rate, all charges, and every repayment, and shall provide a signed receipt for every payment received, under Sections 9(6) and 9(7) of the 2025 Act.'
     ]],
-    ['J. EVENTS OF DEFAULT', [
-      'Misrepresentation or provision of false information; utilisation of the Loan for any illegal, anti-social, or speculative purpose; failure to comply with any covenant; commencement of insolvency proceedings under the IBC, 2016; prosecution for any criminal offence; failure to pay any instalment, interest, or penal charge on the Due Date; or any event that in the Lender\'s opinion jeopardises its interests.'
+    ['J. LANGUAGE', [
+      'This Agreement, the Sanction Letter, and the Loan Card shall be made available to the Borrower in Tamil in addition to English, as required under Section 9(9) of the 2025 Act. For consumer-protection purposes, the version the Borrower confirms in writing as understood by them shall prevail in case of conflict; for all other purposes the English version is the reference text.'
     ]],
-    ['K. REMEDIES IN CASE OF DEFAULT', [
-      'The Lender may demand penal charges on delayed payment, recall the entire Outstanding Balance, exercise a paramount lien and right of set-off, require salary deduction by the employer, and initiate proceedings before an arbitrator or courts under the Arbitration and Conciliation Act, 1996.',
-      'The Borrower shall reimburse all costs of legal proceedings. In default, the Lender and/or RBI may disclose the Borrower\'s information to banks, financial institutions, and credit information companies under the CIC (Regulation) Act, 2005.'
+    ['K. EVENTS OF DEFAULT', [
+      'Misrepresentation of material information; utilisation of the Loan for any illegal purpose; failure to comply with a material covenant after written notice; or failure to pay an instalment by its Due Date after notice and a reasonable cure period.'
+    ]],
+    ['K1. FAIR RECOVERY — NO COERCIVE ACTION (Section 20, TN Act 40 of 2025)', [
+      'The Lender shall not use, and shall not permit any employee or recovery agent to use, coercive action against the Borrower or the Borrower\'s family, including: threats or intimidation; harassment at the Borrower\'s workplace or residence; contacting the Borrower or family outside 7:00 AM–7:00 PM; public shaming; seizing identity documents; or using force to take possession of any asset without due legal process.',
+      'The Lender shall not require or request any third party, including an employer, to deduct or withhold the Borrower\'s salary or dues as a means of recovery.',
+      'Recovery of overdue amounts shall be pursued only through written notice, permitted communication channels, and, if necessary, legal process before a court or the Ombudsperson/dispute-resolution mechanism under the 2025 Act.'
+    ]],
+    ['L. REMEDIES ON DEFAULT', [
+      'On default, the Lender may, after written notice and subject to Clause K1 (Fair Recovery): levy the Delayed Payment Charge on the Overdue Amount; recall the Outstanding Balance; and pursue recovery through civil suit or arbitration as set out in Clause Q.',
+      'The Borrower shall bear reasonable, actual, and documented legal costs of recovery proceedings that the Lender is required to initiate due to the Borrower\'s default.'
     ].concat(kExtra)],
-    ['L. NOTICE & COOLING-OFF', [
+    ['M. NOTICE & COOLING-OFF', [
       'Any notice by the Lender is deemed served if delivered personally (immediately), by post/courier (two days), or by email/WhatsApp/SMS (immediately). Notice by the Borrower is deemed delivered only when actually received by the Lender.',
       'Cooling-Off / Look-Up Period: one (1) day for loan tenor of 7 days or less; three (3) days for tenor of more than 7 days. No penalty for repayment of principal and proportionate interest during the cooling-off period.'
     ]],
-    ['M. USE OF LOAN', [
+    ['N. USE OF LOAN', [
       'No part of the Loan shall be used for any illegal, immoral, gambling, lottery, or speculative activity. Any dispute relating to goods purchased with the Loan shall not entitle the Borrower to withhold payment to the Lender.'
     ]],
-    ['N. NOMINEE — ROLE, RESPONSIBILITIES AND CONSENT', [
-      'The Nominee shall be informed by the Lender in the event of default, death, or incapacity of the Borrower, and shall facilitate settlement of the outstanding loan from the Borrower\'s estate or insurance proceeds.',
-      'The Nominee does not assume personal liability unless a separate guarantee has been executed, and shall cooperate with the Lender\'s representatives in any default proceedings.',
+    ['O. NOMINEE', [
+      'The Nominee is an emergency contact only, to be informed by the Lender in the event of the Borrower\'s default, death, or incapacity, and does not assume personal liability for the Loan unless a separate guarantee is executed.',
       'Nominee Consent: I, '+fill(d.nominee_name,22)+' (Nominee), having read and understood the above, hereby consent to being nominated as Nominee for this Loan and acknowledge the responsibilities stated herein.'
     ]],
-    ['O. DECLARATIONS BY THE BORROWER', [
-      'All information and documents provided are true, genuine, and correct; the Borrower does not violate any existing agreement by availing this Loan; and shall not terminate this Agreement until the entire outstanding balance is repaid.',
-      'The Borrower consents to communication by phone, SMS, WhatsApp, or email (not governed by TRAI DND) between 07:00 AM and 07:00 PM, Monday to Sunday, and shall inform the Lender within 7 days of any change in address, employment, or contact details.'
+    ['P. DECLARATIONS BY THE BORROWER', [
+      'All information and documents provided are true, genuine, and correct, and the Borrower does not violate any existing agreement by availing this Loan.',
+      'The Borrower consents to communication by phone, SMS, WhatsApp, or email between 07:00 AM and 07:00 PM, Monday to Sunday, and shall inform the Lender within 7 days of any change in address, employment, or contact details.'
     ]],
-    ['P. OTHER CONDITIONS', [
-      'If any provision becomes unenforceable, the remaining provisions remain valid. The Lender may amend this Agreement with prospective effect by notifying the Borrower. In case of discrepancy, this Agreement prevails, and the English version shall be final and binding.'
+    ['Q. OTHER CONDITIONS', [
+      'If any provision becomes unenforceable, the remaining provisions remain valid.',
+      'The Lender may amend this Agreement only with the Borrower\'s prior written consent, and not unilaterally.',
+      'In case of discrepancy between the English and Tamil versions, Clause J (Language) governs which version prevails.'
     ]],
-    ['Q. DISPUTE RESOLUTION AND JURISDICTION', [
-      'Any dispute shall be referred to a sole arbitrator appointed by the Lender under the Arbitration and Conciliation Act, 1996, conducted in English at Thanjavur, Tamil Nadu. This Agreement is governed by the laws of India, subject to the exclusive jurisdiction of the courts at Thanjavur, Tamil Nadu.'
+    ['R. DISPUTE RESOLUTION AND JURISDICTION', [
+      'Any dispute shall first be referred to the Ombudsperson/grievance mechanism under the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025, if available and applicable.',
+      'Failing resolution, disputes shall be referred to a sole arbitrator appointed by mutual written consent of both Parties within 30 days of a dispute arising; if the Parties cannot agree, the arbitrator shall be appointed by the jurisdictional court under Section 11 of the Arbitration and Conciliation Act, 1996. The Lender shall not unilaterally appoint the arbitrator.',
+      'This Agreement is governed by the laws of India and the State of Tamil Nadu, subject to the exclusive jurisdiction of the courts at Thanjavur, Tamil Nadu.'
     ]],
-    ['R. ACCEPTANCE', [
-      'The Borrower confirms having read, understood, and agreed to this entire Agreement, including all loan details, instalment calculation methods, and applicable charges. The terms were translated and interpreted to the Borrower in the native language, and the Borrower has fully internalised the rights and liabilities mentioned herein.'
+    ['S. ACCEPTANCE', [
+      'The Borrower confirms having read, understood, and agreed to this entire Agreement, including all loan details, instalment calculation methods, and the four applicable charge heads, in a language the Borrower understands.'
     ]]
   ];
   AG.forEach(function(sec){
@@ -427,13 +495,14 @@ function buildAgreement(doc, d, g){
 
   /* ---------- 3. DEMAND PROMISSORY NOTE ---------- */
   doc.addPage(); y = letterhead(doc, 'DEMAND PROMISSORY NOTE');
-  y = para(doc, 'On demand, I/We, '+fill(d.name,22)+', S/o | D/o | W/o: '+fill(d.father_name,20)+', residing at '+fill(addrFull+(V(d.pincode)?' - '+d.pincode:''),40)+', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of '+rs(d.loan_amount)+'/- (Rupees '+BLANK(26)+' Only), for value received, together with interest thereon at the rate agreed upon under the Loan Disbursement Letter, together with overdue charges, costs, and all expenses due and payable by the Borrower to the Lender.', y, {size:8.2, lh:4.4, gap:2});
-  y = para(doc, 'This Demand Promissory Note is executed pursuant to the Negotiable Instruments Act, 1881, and is enforceable under the laws of India.', y, {size:8.2, gap:1.5});
-  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {italic:true, size:8, gap:2});
+  y = para(doc, 'On demand, I/We, '+fill(d.name,22)+', S/o | D/o | W/o: '+fill(d.father_name,20)+', residing at '+fill(addrFull+(V(d.pincode)?' - '+d.pincode:''),40)+', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of '+rs(d.loan_amount)+'/- (Rupees '+BLANK(26)+' Only), together with interest thereon at '+ROI_PA+'% (twelve percent) per annum from the date hereof until payment, for value received.', y, {size:8.2, lh:4.4, gap:2});
+  y = para(doc, 'This Note is complete and certain on its face and does not depend on any other document for the sum payable. It is executed pursuant to the Negotiable Instruments Act, 1881, and is enforceable under the laws of India, including by way of summary suit under Order 37 of the Code of Civil Procedure, 1908. Delayed Payment Charges arising on default are dealt with separately under the Loan Agreement and do not form part of the sum promised in this Note.', y, {size:8.2, lh:4.4, gap:1.5});
+  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to the Borrower in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
   y = para(doc, 'Date: '+BLANK(16)+'   Place: Thanjavur', y, {gap:2});
-  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
-  y = para(doc, 'Revenue Stamp affixed and signed across by the Borrower as required under the Indian Stamp Act, 1899.', y+2, {italic:true, size:7.6});
+  y = signatures(doc, y, {borrower: d.name}, {borrowerOnly:true});
+  y = para(doc, 'This Note must be stamped BEFORE the Borrower signs it, not afterward — under Section 35 of the Indian Stamp Act, 1899, an instrument stamped after execution is inadmissible in evidence until the deficient duty and a penalty are paid. As a demand promissory note, this instrument attracts the fixed/nominal duty under Article 49(a) of the Indian Stamp Act (as amended for Tamil Nadu) — not the ad valorem duty that applies to notes payable at a future date. Confirm the exact current rupee value with a stamp vendor or Sub-Registrar before execution.', y+8, {italic:true, size:7.4, lh:3.7, gap:2});
+  y = para(doc, 'Execution Checklist (complete before the Borrower signs): all blank fields filled in — none left blank for later completion; Borrower has initialled next to every filled entry; adhesive stamp of the correct value affixed and cancelled BEFORE the Borrower signs; signature obtained only on the fully completed Note.', y, {size:7.4, lh:3.7, bold:true});
 
   /* ---------- 4. LETTER OF CONTINUITY ---------- */
   doc.addPage(); y = letterhead(doc, 'LETTER OF CONTINUITY');
@@ -441,9 +510,9 @@ function buildAgreement(doc, d, g){
   y = para(doc, 'THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true});
   y = para(doc, '26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205', y, {size:8, gap:2});
   y = para(doc, 'Dear Sir/Madam,', y, {gap:1});
-  y = para(doc, 'I, '+fill(d.name,22)+', enclose herewith a duly executed Demand Promissory Note dated '+BLANK(11)+' for '+rs(d.loan_amount)+'/- (Rupees '+BLANK(24)+' Only) executed by me, which is given to you as continuing security for the repayment of the Loan presently outstanding in my name, and also for the repayment of any further amounts of penalty, interest, and any re-loan facility that I may avail hereafter from you.', y, {size:8.2, lh:4.4, gap:1.5});
-  y = para(doc, 'The said Demand Promissory Note shall serve as continuing security for the repayment of the ultimate balance and all amounts remaining unpaid on the Loan, now or hereafter, including all interest to become payable, together with overdue charges, costs, expenses, and other charges due and payable by me to THENNAGAM FINANCE PRIVATE LIMITED. I shall remain liable on the said Demand Promissory Note notwithstanding any payments made from time to time.', y, {size:8.2, lh:4.4, gap:2});
-  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {italic:true, size:8, gap:2});
+  y = para(doc, 'I, '+fill(d.name,22)+', enclose herewith a duly executed Demand Promissory Note dated '+BLANK(11)+' for '+rs(d.loan_amount)+'/- (Rupees '+BLANK(24)+' Only) executed by me, which is given to you as continuing security for the repayment of the Loan presently outstanding in my name, and also for the repayment of interest and Delayed Payment Charges calculated as set out in the Loan Agreement, and of any further re-loan facility that I may avail hereafter from you.', y, {size:8.2, lh:4.4, gap:1.5});
+  y = para(doc, 'The said Demand Promissory Note shall serve as continuing security for the repayment of the ultimate balance and all amounts remaining unpaid on the Loan, now or hereafter, including interest and Delayed Payment Charges as defined in the Loan Agreement. I shall remain liable on the said Demand Promissory Note notwithstanding any payments made from time to time.', y, {size:8.2, lh:4.4, gap:2});
+  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to me in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
   y = para(doc, 'Date: '+BLANK(16)+'   Place: '+BLANK(16), y, {gap:2});
   y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
@@ -452,7 +521,7 @@ function buildAgreement(doc, d, g){
   doc.addPage(); y = letterhead(doc, 'LOAN DISBURSEMENT & REPAYMENT SCHEDULE');
   doc.setFont('helvetica','bold'); doc.setFontSize(8.6); doc.setTextColor.apply(doc, NAVY);
   doc.text('Schedule "B"', ML, y); doc.setTextColor.apply(doc, INK); y += 6;
-  y = para(doc, 'Loan Reference No.: '+BLANK(18)+'   Loan Application No.: '+fill(d.app_id,18), y);
+  y = para(doc, 'Loan Application No.: '+fill(d.app_id,18), y);
   y = para(doc, 'To,  Mr./Ms. '+fill(d.name,24), y);
   y = para(doc, 'Address: '+fill(addrFull,40)+',  Pin: '+fill(d.pincode,7), y);
   y = para(doc, 'Email: '+fill(d.email,22)+'   Mobile: '+fill(d.mobile,14), y, {gap:2});
@@ -464,32 +533,22 @@ function buildAgreement(doc, d, g){
     headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.9},
     columnStyles:{0:{cellWidth:14,halign:'center'},1:{cellWidth:60,fontStyle:'bold'},2:{cellWidth:'auto'}},
     body:[
-      ['1','Rate of Interest (ROI)', BLANK(4)+'% per annum (flat)'],
-      ['2','Penal Charges','0.1% per day on principal outstanding, from Due Date until date of payment'],
-      ['3','Processing Fee', rs('')],
-      ['4','Statutory Deductions / Taxes','As applicable under the CGST Act, 2017, and other statutes'],
+      ['1','Rate of Interest (reducing balance, per annum)', ROI_PA+'% p.a.'],
+      ['2','Processing Charge', PROCESSING_CHARGE_LABEL],
+      ['3','Insurance Premium (if any)', INSURANCE_LABEL],
+      ['4','Delayed Payment / Penal Charge', PENAL_RATE_LABEL+', from Due Date until date of payment'],
       ['5','Instalment Amount', rs('')],
       ['6','Number of Instalments', BLANK(9)],
       ['7','Instalment Frequency','Daily / Monthly'],
       ['8','Loan Disbursement Amount', rs('')],
       ['9','Disbursement Date', BLANK(16)],
       ['10','Disbursement Bank Account','Bank: '+fill(d.bank_name,16)+'  A/c No.: '+fill(d.account_number,14)+'  IFSC: '+fill(d.ifsc_code,12)],
-      ['11','Loan Repayment Schedule','As per repayment table below']
+      ['11','Loan Repayment Schedule','As per the Loan Card issued with this Agreement']
     ].concat(schedExtra)
   });
   y = doc.lastAutoTable.finalY + 3;
-  y = para(doc, 'Repayment Schedule:', y, {bold:true, gap:1});
-  var rep=[]; for(var i=1;i<=6;i++) rep.push([String(i),'','','','','']);
-  doc.autoTable({
-    startY:y, theme:'grid', margin:{left:ML,right:MR},
-    styles:{fontSize:7.8, cellPadding:2.2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, halign:'center', minCellHeight:7},
-    head:[[ 'Inst. No.','Due Date','Principal (Rs.)','Interest (Rs.)','Total Amount (Rs.)','Balance Outstanding (Rs.)' ]],
-    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.4},
-    body:rep
-  });
-  y = doc.lastAutoTable.finalY + 3;
   y = para(doc, 'I/We have read, understood, and agreed to the above Loan Disbursement and Repayment Schedule.', y, {size:8, gap:1});
-  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {italic:true, size:7.8, gap:1});
+  y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to me/us in Tamil on request.', y, {italic:true, size:7.8, gap:1});
   signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
 
   footer(doc);
