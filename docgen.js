@@ -201,6 +201,623 @@ function signatures(doc, y, names, opts){
   return doc.lastAutoTable.finalY;
 }
 
+  function borrowerSignatureFullWidth(doc, y, d) {
+  const x = 14;
+  const w = 182;
+  const h = 48;
+  const headerH = 10;
+
+  const blue = [26, 35, 126];
+  const light = [245, 242, 235];
+  const border = [190, 190, 190];
+
+  // Outer box
+  doc.setDrawColor(...border);
+  doc.setLineWidth(0.2);
+  doc.rect(x, y, w, h);
+
+  // Header background
+  doc.setFillColor(...light);
+  doc.rect(x, y, w, headerH, "F");
+
+  // Header border
+  doc.setDrawColor(...border);
+  doc.rect(x, y, w, headerH);
+
+  // Header text
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(...blue);
+  doc.text("Borrower Signature", x + w / 2, y + 6.5, {
+    align: "center",
+  });
+
+  // Body content
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(8);
+
+  let ty = y + headerH + 12;
+
+  // Name
+  doc.setFont("helvetica", "normal");
+  doc.text("Name:", x + 8, ty);
+
+  doc.setFont("helvetica", "bold");
+  doc.text(String(d.name || "").toUpperCase(), x + 23, ty);
+
+  // Blank space for signature
+  ty += 18;
+
+  // Date and Place in same row
+  doc.setFont("helvetica", "normal");
+  doc.text("Date:", x + 8, ty);
+  doc.line(x + 23, ty + 1, x + 58, ty + 1);
+
+  doc.text("Place:", x + 95, ty);
+  doc.line(x + 112, ty + 1, x + 150, ty + 1);
+
+  return y + h + 4;
+}
+
+
+function applicantPhotoBorrowerSignature(doc, y, d) {
+  const x = ML;
+  const w = CW;
+  const h = 64; // increased height so Date & Place stay inside outer box
+
+  const photoW = 70;
+  const signW = w - photoW;
+
+  const headerH = 11;
+  const bodyH = h - headerH;
+
+  const blue = [26, 35, 126];
+  const light = [245, 242, 235];
+  const border = [190, 190, 190];
+
+  y = pagebreak(doc, y, h + 8);
+
+  // Outer border
+  doc.setDrawColor(...border);
+  doc.setLineWidth(0.2);
+  doc.rect(x, y, w, h);
+
+  // Vertical separator
+  doc.line(x + photoW, y, x + photoW, y + h);
+
+  // Header backgrounds
+  doc.setFillColor(...light);
+  doc.rect(x, y, photoW, headerH, "F");
+  doc.rect(x + photoW, y, signW, headerH, "F");
+
+  // Header borders
+  doc.setDrawColor(...border);
+  doc.rect(x, y, photoW, headerH);
+  doc.rect(x + photoW, y, signW, headerH);
+
+  // Header text
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...blue);
+  doc.setFontSize(9);
+
+  doc.text("Applicant Photo", x + photoW / 2, y + 7, {
+    align: "center",
+  });
+
+  doc.text("Borrower Signature", x + photoW + signW / 2, y + 7, {
+    align: "center",
+  });
+
+  // Photo placeholder box
+  const phW = photoW - 20;
+  const phH = 38;
+  const phX = x + 10;
+  const phY = y + headerH + ((bodyH - phH) / 2);
+
+  doc.setDrawColor(150, 150, 150);
+  doc.setLineDashPattern([2, 2], 0);
+  doc.rect(phX, phY, phW, phH);
+  doc.setLineDashPattern([], 0);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(120, 120, 120);
+  doc.setFontSize(8);
+  doc.text("Paste Applicant", phX + phW / 2, phY + phH / 2 - 3, {
+    align: "center",
+  });
+  doc.text("Photo Here", phX + phW / 2, phY + phH / 2 + 4, {
+    align: "center",
+  });
+
+  // Borrower signature side
+  const sx = x + photoW + 10;
+  const sw = signW - 20;
+
+  // Signature box
+  const sigY = y + headerH + 8;
+  const sigH = 17;
+
+  doc.setDrawColor(170, 170, 170);
+  doc.rect(sx, sigY, sw, sigH);
+
+  // Name row
+  const nameY = sigY + sigH + 10;
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(8);
+  doc.text("Name:", sx, nameY);
+
+  doc.setFont("helvetica", "bold");
+  doc.text(String(d.name || "").toUpperCase(), sx + 17, nameY, {
+    maxWidth: sw - 17,
+  });
+
+  // Date and Place same row - inside outer box
+  // const rowY = y + h - 8;
+
+  // doc.setFont("helvetica", "normal");
+  // doc.setFontSize(8);
+  // doc.setTextColor(0, 0, 0);
+
+  // // Date
+  // doc.text("Date:", sx, rowY);
+  // doc.setDrawColor(170, 170, 170);
+  // doc.line(sx + 17, rowY + 1, sx + 58, rowY + 1);
+
+  // // Place
+  // const placeX = sx + 70;
+  // doc.text("Place:", placeX, rowY);
+  // doc.line(placeX + 18, rowY + 1, x + w - 10, rowY + 1);
+
+  // Date and Place same row - inside outer box
+  const rowY = y + h - 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.setDrawColor(170, 170, 170);
+
+  const gap = 8;
+  const colW = (sw - gap) / 2;
+
+  const dateX = sx;
+  const placeX = sx + colW + gap;
+
+  doc.text("Date:", dateX, rowY);
+  doc.line(dateX + 17, rowY + 1, dateX + colW, rowY + 1);
+
+  doc.text("Place:", placeX, rowY);
+  doc.line(placeX + 18, rowY + 1, placeX + colW, rowY + 1);
+
+  return y + h + 4;
+}
+
+
+// function applicantPhotoBorrowerSignature(doc, y, d) {
+//   const x = 14;
+//   const w = 182;
+//   const h = 64;
+
+//   const photoW = 70;
+//   const signW = w - photoW;
+
+//   const headerH = 11;
+//   const bodyH = h - headerH;
+
+//   const blue = [26, 35, 126];
+//   const light = [245, 242, 235];
+//   const border = [190, 190, 190];
+
+//   // Outer border
+//   doc.setDrawColor(...border);
+//   doc.setLineWidth(0.2);
+//   doc.rect(x, y, w, h);
+
+//   // Vertical separator
+//   doc.line(x + photoW, y, x + photoW, y + h);
+
+//   // Header backgrounds
+//   doc.setFillColor(...light);
+//   doc.rect(x, y, photoW, headerH, "F");
+//   doc.rect(x + photoW, y, signW, headerH, "F");
+
+//   // Header borders
+//   doc.setDrawColor(...border);
+//   doc.rect(x, y, photoW, headerH);
+//   doc.rect(x + photoW, y, signW, headerH);
+
+//   // Header text
+//   doc.setFont("helvetica", "bold");
+//   doc.setTextColor(...blue);
+//   doc.setFontSize(9);
+
+//   doc.text("Applicant Photo", x + photoW / 2, y + 7, { align: "center" });
+//   doc.text("Borrower Signature", x + photoW + signW / 2, y + 7, { align: "center" });
+
+//   // Photo placeholder box
+//   const phX = x + 10;
+//   const phY = y + headerH + 7;
+//   const phW = photoW - 20;
+//   const phH = bodyH - 14;
+
+//   doc.setDrawColor(150, 150, 150);
+//   doc.setLineDashPattern([2, 2], 0);
+//   doc.rect(phX, phY, phW, phH);
+//   doc.setLineDashPattern([], 0);
+
+//   doc.setFont("helvetica", "normal");
+//   doc.setTextColor(120, 120, 120);
+//   doc.setFontSize(8);
+//   doc.text("Paste Applicant", phX + phW / 2, phY + phH / 2 - 2, { align: "center" });
+//   doc.text("Photo Here", phX + phW / 2, phY + phH / 2 + 4, { align: "center" });
+
+//   // Signature box
+//   const sx = x + photoW + 10;
+//   const sy = y + headerH + 7;
+//   const sw = signW - 20;
+//   const sh = 17;
+
+//   doc.setDrawColor(170, 170, 170);
+//   doc.rect(sx, sy, sw, sh);
+
+//   // Borrower details
+//   doc.setFont("helvetica", "normal");
+//   doc.setTextColor(0, 0, 0);
+//   doc.setFontSize(8);
+
+//   let ty = sy + sh + 9;
+
+//   doc.text("Name:", sx, ty);
+//   doc.setFont("helvetica", "bold");
+//   doc.text(String(d.name || "").toUpperCase(), sx + 18, ty);
+
+//   doc.setFont("helvetica", "normal");
+//   ty += 9;
+//   doc.text("Date:", sx, ty);
+//   doc.line(sx + 18, ty + 1, sx + 55, ty + 1);
+
+//   ty += 9;
+//   doc.text("Place:", sx, ty);
+//   doc.line(sx + 18, ty + 1, sx + 55, ty + 1);
+
+//   return y + h + 3;
+// }
+
+// function revenueStampBorrowerSignature(doc, y, d) {
+//   const x = 14;
+//   const w = 182;
+//   const h = 46;
+
+//   const stampW = 48;
+//   const signW = w - stampW;
+//   const headerH = 9;
+
+//   const blue = [26, 35, 126];
+//   const light = [245, 242, 235];
+//   const border = [190, 190, 190];
+
+//   doc.setDrawColor(...border);
+//   doc.setLineWidth(0.2);
+//   doc.rect(x, y, w, h);
+
+//   doc.setFillColor(...light);
+//   doc.rect(x, y, w, headerH, "F");
+//   doc.rect(x, y, w, headerH);
+
+//   doc.line(x + stampW, y + headerH, x + stampW, y + h);
+
+//   doc.setFont("helvetica", "bold");
+//   doc.setFontSize(8);
+//   doc.setTextColor(...blue);
+//   doc.text("Demand Promissory Note Execution", x + w / 2, y + 6, {
+//     align: "center",
+//   });
+
+//   // Revenue stamp box
+//   const stampX = x + 9;
+//   const stampY = y + headerH + 7;
+//   const stampBoxW = 30;
+//   const stampBoxH = 22;
+
+//   doc.setDrawColor(150, 150, 150);
+//   doc.setLineDashPattern([2, 2], 0);
+//   doc.rect(stampX, stampY, stampBoxW, stampBoxH);
+//   doc.setLineDashPattern([], 0);
+
+//   doc.setFont("helvetica", "bold");
+//   doc.setFontSize(7);
+//   doc.setTextColor(90, 90, 90);
+//   doc.text("Revenue", stampX + stampBoxW / 2, stampY + 10, { align: "center" });
+//   doc.text("Stamp", stampX + stampBoxW / 2, stampY + 16, { align: "center" });
+
+//   // Borrower side
+//   const sx = x + stampW + 8;
+//   const sy = y + headerH + 6;
+//   const sw = signW - 16;
+
+//   doc.setFont("helvetica", "bold");
+//   doc.setFontSize(7.8);
+//   doc.setTextColor(...blue);
+//   doc.text("Borrower Signature", sx + sw / 2, sy, { align: "center" });
+
+//   doc.setDrawColor(170, 170, 170);
+//   doc.rect(sx, sy + 3, sw, 13);
+
+//   doc.setFont("helvetica", "normal");
+//   doc.setTextColor(0, 0, 0);
+//   doc.setFontSize(7.8);
+
+//   let ty = sy + 23;
+
+//   doc.text("Name:", sx, ty);
+//   doc.setFont("helvetica", "bold");
+//   doc.text(String(d.name || "").toUpperCase(), sx + 16, ty);
+
+//   doc.setFont("helvetica", "normal");
+
+//   ty += 7;
+//   doc.text("Date:", sx, ty);
+//   doc.line(sx + 16, ty + 1, sx + 52, ty + 1);
+
+//   ty += 7;
+//   doc.text("Place:", sx, ty);
+//   doc.line(sx + 16, ty + 1, sx + 52, ty + 1);
+
+//   return y + h + 4;
+// }
+
+// function revenueStampBorrowerSignature(doc, y, d) {
+//   const x = 14;
+//   const w = 182;
+//   const h = 52;
+
+//   const stampW = 48;
+//   const signW = w - stampW;
+//   const headerH = 9;
+
+//   const blue = [26, 35, 126];
+//   const light = [245, 242, 235];
+//   const border = [190, 190, 190];
+
+//   // Outer box
+//   doc.setDrawColor(...border);
+//   doc.setLineWidth(0.2);
+//   doc.rect(x, y, w, h);
+
+//   // Header
+//   doc.setFillColor(...light);
+//   doc.rect(x, y, w, headerH, "F");
+//   doc.setDrawColor(...border);
+//   doc.rect(x, y, w, headerH);
+
+//   doc.setFont("helvetica", "bold");
+//   doc.setFontSize(8);
+//   doc.setTextColor(...blue);
+//   doc.text("Demand Promissory Note Execution", x + w / 2, y + 6, {
+//     align: "center",
+//   });
+
+//   // Vertical line between stamp and signature
+//   doc.setDrawColor(...border);
+//   doc.line(x + stampW, y + headerH, x + stampW, y + h);
+
+//   // Revenue stamp box
+//   const stampX = x + 10;
+//   const stampY = y + headerH + 9;
+//   const stampBoxW = 30;
+//   const stampBoxH = 24;
+
+//   doc.setDrawColor(150, 150, 150);
+//   doc.setLineDashPattern([2, 2], 0);
+//   doc.rect(stampX, stampY, stampBoxW, stampBoxH);
+//   doc.setLineDashPattern([], 0);
+
+//   doc.setFont("helvetica", "bold");
+//   doc.setFontSize(7);
+//   doc.setTextColor(90, 90, 90);
+//   doc.text("Revenue", stampX + stampBoxW / 2, stampY + 11, {
+//     align: "center",
+//   });
+//   doc.text("Stamp", stampX + stampBoxW / 2, stampY + 17, {
+//     align: "center",
+//   });
+
+//   // Borrower signature side
+//   const sx = x + stampW + 10;
+//   const sy = y + headerH + 7;
+//   const sw = signW - 20;
+
+//   doc.setFont("helvetica", "bold");
+//   doc.setFontSize(8);
+//   doc.setTextColor(...blue);
+//   doc.text("Borrower Signature", sx + sw / 2, sy, {
+//     align: "center",
+//   });
+
+//   // Signature empty box
+//   doc.setDrawColor(170, 170, 170);
+//   doc.rect(sx, sy + 4, sw, 15);
+
+//   // Name row
+//   let ty = sy + 28;
+
+//   doc.setFont("helvetica", "normal");
+//   doc.setFontSize(8);
+//   doc.setTextColor(0, 0, 0);
+//   doc.text("Name:", sx, ty);
+
+//   doc.setFont("helvetica", "bold");
+//   doc.text(String(d.name || "").toUpperCase(), sx + 17, ty);
+
+//   // Date and Place same row
+//   ty += 10;
+
+//   doc.setFont("helvetica", "normal");
+//   doc.text("Date:", sx, ty);
+//   doc.line(sx + 17, ty + 1, sx + 55, ty + 1);
+
+//   doc.text("Place:", sx + 70, ty);
+//   doc.line(sx + 88, ty + 1, sx + 128, ty + 1);
+
+//   return y + h + 4;
+// }
+
+function revenueStampBorrowerSignature(doc, y, d) {
+  const x = ML;
+  const w = CW;
+  const h = 64; // increased height so Date & Place stay inside outer box
+
+  const stampW = 48;
+  const signW = w - stampW;
+  const headerH = 9;
+
+  const blue = [26, 35, 126];
+  const light = [245, 242, 235];
+  const border = [190, 190, 190];
+
+  y = pagebreak(doc, y, h + 8);
+
+  // Outer box
+  doc.setDrawColor(...border);
+  doc.setLineWidth(0.2);
+  doc.rect(x, y, w, h);
+
+  // Header background
+  doc.setFillColor(...light);
+  doc.rect(x, y, w, headerH, "F");
+
+  // Header border
+  doc.setDrawColor(...border);
+  doc.rect(x, y, w, headerH);
+
+  // Header title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(...blue);
+  doc.text("Demand Promissory Note Execution", x + w / 2, y + 6, {
+    align: "center",
+  });
+
+  // Vertical line between revenue stamp and borrower signature area
+  doc.setDrawColor(...border);
+  doc.line(x + stampW, y + headerH, x + stampW, y + h);
+
+  // Revenue stamp dashed box
+  const stampBoxW = 30;
+  const stampBoxH = 28;
+  const stampX = x + (stampW - stampBoxW) / 2;
+  const stampY = y + headerH + ((h - headerH - stampBoxH) / 2);
+
+  doc.setDrawColor(150, 150, 150);
+  doc.setLineDashPattern([2, 2], 0);
+  doc.rect(stampX, stampY, stampBoxW, stampBoxH);
+  doc.setLineDashPattern([], 0);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.setTextColor(90, 90, 90);
+  doc.text("Revenue", stampX + stampBoxW / 2, stampY + 12, {
+    align: "center",
+  });
+  doc.text("Stamp", stampX + stampBoxW / 2, stampY + 19, {
+    align: "center",
+  });
+
+  // Borrower signature side
+  const sx = x + stampW + 10;
+  const sw = signW - 20;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(...blue);
+  doc.text("Borrower Signature", sx + sw / 2, y + headerH + 8, {
+    align: "center",
+  });
+
+  // Signature empty box
+  const sigY = y + headerH + 13;
+  const sigH = 16;
+
+  doc.setDrawColor(170, 170, 170);
+  doc.rect(sx, sigY, sw, sigH);
+
+  // Name row
+  const nameY = sigY + sigH + 10;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Name:", sx, nameY);
+
+  doc.setFont("helvetica", "bold");
+  doc.text(String(d.name || "").toUpperCase(), sx + 17, nameY, {
+    maxWidth: sw - 17,
+  });
+
+  // Date and Place same row - inside outer box
+  const rowY = y + h - 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+
+  // Date
+  doc.text("Date:", sx, rowY);
+  doc.setDrawColor(170, 170, 170);
+  doc.line(sx + 17, rowY + 1, sx + 58, rowY + 1);
+
+  // Place
+  const placeX = sx + 70;
+  doc.text("Place:", placeX, rowY);
+  doc.line(placeX + 18, rowY + 1, x + w - 10, rowY + 1);
+
+  return y + h + 4;
+}
+
+function borrowerSignaturePlainRight(doc, y, d) {
+  const x = 125;          // right side starting point
+  const lineW = 55;       // signature line width
+
+  doc.setTextColor(0, 0, 0);
+
+  // Name first
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Name  :", x, y);
+
+  doc.setFont("helvetica", "bold");
+  doc.text(String(d.name || "").toUpperCase(), x + 17, y);
+
+  // Signature line
+  y += 16;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.line(x, y, x + lineW, y);
+
+  // Borrower Signature label
+  y += 5;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.8);
+  doc.text("Borrower Signature", x + lineW / 2, y, {
+    align: "center",
+  });
+
+  // Date
+  y += 9;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Date  :", x, y);
+  doc.line(x + 17, y + 1, x + lineW, y + 1);
+
+  // Place
+  y += 8;
+  doc.text("Place :", x, y);
+  doc.line(x + 17, y + 1, x + lineW, y + 1);
+
+  return y + 6;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    GROUP A — APPLICATION FORM
    ════════════════════════════════════════════════════════════════════════ */
@@ -304,8 +921,8 @@ function buildApplication(doc, d, g){
     'I/We understand that providing false information is an offence under the Bharatiya Nyaya Sanhita, 2023.'
   ].forEach(function(t){ y = bullet(doc, t, y, {size:7.9, gap:1}); });
 
-  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
-
+  //y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  y = applicantPhotoBorrowerSignature(doc, y, d);
   y = section(doc, 'FOR OFFICE USE ONLY', y);
   y = grid(doc, y, [
     [ L('Received By'), '', L('Branch / Area'), '' ],
@@ -314,6 +931,8 @@ function buildApplication(doc, d, g){
   footer(doc);
   return doc;
 }
+
+
 
 /* ══════════════════════════════════════════════════════════════════════
    GROUP A — AGREEMENT PACK  (Sanction Letter → Agreement → DPN → Continuity → Schedule B)
@@ -380,8 +999,11 @@ function buildAgreement(doc, d, g){
     'Stamp duty and statutory charges under the Indian Stamp Act, 1899 and Tamil Nadu Stamp Act, 2018 are borne by the Borrower; terms were translated and interpreted in the Borrower\'s native language.'
   ].forEach(function(t){ y = bullet(doc, t, y, {size:6.9, lh:3.3, gap:1.1}); });
   y += 3;
-  y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:7.8, gap:2.5});
-  signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  // y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:7.8, gap:2.5});
+  // signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+
+  //y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:7.8, gap:2.5});
+  y = borrowerSignaturePlainRight(doc, y, d);
 
   /* ---------- 2. LOAN AGREEMENT ---------- */
   doc.addPage(); y = letterhead(doc, 'LOAN AGREEMENT');
@@ -491,7 +1113,8 @@ function buildAgreement(doc, d, g){
     sec[1].forEach(function(t){ y = bullet(doc, t, y, {size:7.8}); });
     y += 1;
   });
-  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  //y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  y = borrowerSignaturePlainRight(doc, y, d);
 
   /* ---------- 3. DEMAND PROMISSORY NOTE ---------- */
   doc.addPage(); y = letterhead(doc, 'DEMAND PROMISSORY NOTE');
@@ -500,9 +1123,10 @@ function buildAgreement(doc, d, g){
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to the Borrower in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
   y = para(doc, 'Date: '+BLANK(16)+'   Place: Thanjavur', y, {gap:2});
-  y = signatures(doc, y, {borrower: d.name}, {borrowerOnly:true});
-  y = para(doc, 'This Note must be stamped BEFORE the Borrower signs it, not afterward — under Section 35 of the Indian Stamp Act, 1899, an instrument stamped after execution is inadmissible in evidence until the deficient duty and a penalty are paid. As a demand promissory note, this instrument attracts the fixed/nominal duty under Article 49(a) of the Indian Stamp Act (as amended for Tamil Nadu) — not the ad valorem duty that applies to notes payable at a future date. Confirm the exact current rupee value with a stamp vendor or Sub-Registrar before execution.', y+8, {italic:true, size:7.4, lh:3.7, gap:2});
-  y = para(doc, 'Execution Checklist (complete before the Borrower signs): all blank fields filled in — none left blank for later completion; Borrower has initialled next to every filled entry; adhesive stamp of the correct value affixed and cancelled BEFORE the Borrower signs; signature obtained only on the fully completed Note.', y, {size:7.4, lh:3.7, bold:true});
+ // y = signatures(doc, y, {borrower: d.name}, {borrowerOnly:true});
+y = revenueStampBorrowerSignature(doc, y, d); 
+y = para(doc, 'This Note must be stamped BEFORE the Borrower signs it, not afterward — under Section 35 of the Indian Stamp Act, 1899, an instrument stamped after execution is inadmissible in evidence until the deficient duty and a penalty are paid. As a demand promissory note, this instrument attracts the fixed/nominal duty under Article 49(a) of the Indian Stamp Act (as amended for Tamil Nadu) — not the ad valorem duty that applies to notes payable at a future date. Confirm the exact current rupee value with a stamp vendor or Sub-Registrar before execution.', y+8, {italic:true, size:7.4, lh:3.7, gap:2});
+y = para(doc, 'Execution Checklist (complete before the Borrower signs): all blank fields filled in — none left blank for later completion; Borrower has initialled next to every filled entry; adhesive stamp of the correct value affixed and cancelled BEFORE the Borrower signs; signature obtained only on the fully completed Note.', y, {size:7.4, lh:3.7, bold:true});
 
   /* ---------- 4. LETTER OF CONTINUITY ---------- */
   doc.addPage(); y = letterhead(doc, 'LETTER OF CONTINUITY');
@@ -515,7 +1139,8 @@ function buildAgreement(doc, d, g){
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to me in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
   y = para(doc, 'Date: '+BLANK(16)+'   Place: '+BLANK(16), y, {gap:2});
-  y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  //y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+y = borrowerSignaturePlainRight(doc, y, d);
 
   /* ---------- 5. DISBURSEMENT & REPAYMENT SCHEDULE (Schedule B) ---------- */
   doc.addPage(); y = letterhead(doc, 'LOAN DISBURSEMENT & REPAYMENT SCHEDULE');
@@ -549,7 +1174,7 @@ function buildAgreement(doc, d, g){
   y = doc.lastAutoTable.finalY + 3;
   y = para(doc, 'I/We have read, understood, and agreed to the above Loan Disbursement and Repayment Schedule.', y, {size:8, gap:1});
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to me/us in Tamil on request.', y, {italic:true, size:7.8, gap:1});
-  signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
+  y = borrowerSignaturePlainRight(doc, y, d);
 
   footer(doc);
   return doc;
