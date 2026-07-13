@@ -27,11 +27,451 @@ function V(v){ return (v === 0 || v) ? String(v).trim() : ''; }
 function BLANK(n){ var s=''; for(var i=0;i<(n||24);i++) s+='_'; return s; }
 function fill(v, n){ v = V(v); return v ? v : BLANK(n||20); }               // form value OR underscores
 function rs(v){ v = V(v); return v ? 'Rs. ' + Number(String(v).replace(/[^\d.]/g,'')||0).toLocaleString('en-IN') : 'Rs. ' + BLANK(11); }
+
+/* ---- Indian currency amount in words ---- */
+function integerToIndianWords(n){
+  n = Math.floor(Number(n) || 0);
+
+  var ones = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+    'Seventeen', 'Eighteen', 'Nineteen'
+  ];
+  var tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  if(n === 0) return 'Zero';
+  if(n < 20) return ones[n];
+  if(n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+  if(n < 1000){
+    return ones[Math.floor(n / 100)] + ' Hundred' +
+      (n % 100 ? ' ' + integerToIndianWords(n % 100) : '');
+  }
+  if(n < 100000){
+    return integerToIndianWords(Math.floor(n / 1000)) + ' Thousand' +
+      (n % 1000 ? ' ' + integerToIndianWords(n % 1000) : '');
+  }
+  if(n < 10000000){
+    return integerToIndianWords(Math.floor(n / 100000)) + ' Lakh' +
+      (n % 100000 ? ' ' + integerToIndianWords(n % 100000) : '');
+  }
+
+  return integerToIndianWords(Math.floor(n / 10000000)) + ' Crore' +
+    (n % 10000000 ? ' ' + integerToIndianWords(n % 10000000) : '');
+}
+
+function amountInWords(v){
+  var raw = V(v).replace(/[^\d.]/g, '');
+  if(!raw) return BLANK(26);
+
+  var amount = Number(raw);
+  if(!isFinite(amount)) return BLANK(26);
+
+  var rupees = Math.floor(amount);
+  var paise = Math.round((amount - rupees) * 100);
+  if(paise === 100){ rupees += 1; paise = 0; }
+
+  var words = integerToIndianWords(rupees);
+  if(paise) words += ' and ' + integerToIndianWords(paise) + ' Paise';
+  return words;
+}
+
 function fdate(s){
-  s = V(s); if(!s) return '';
-  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
-  var d = new Date(s); if(isNaN(d.getTime())) return s;
-  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+  s = V(s);
+  if(!s) return '';
+
+  // Keep only the date when the stored value also contains a time,
+  // for example: "13/07/2026 11:53" -> "13/07/2026".
+  var dmy = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  if(dmy){
+    return ('0' + dmy[1]).slice(-2) + '/' +
+           ('0' + dmy[2]).slice(-2) + '/' +
+           dmy[3];
+  }
+
+  // Handle ISO values such as "2026-07-13T11:53:00".
+  var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(iso){
+    return ('0' + iso[3]).slice(-2) + '/' +
+           ('0' + iso[2]).slice(-2) + '/' +
+           iso[1];
+  }
+
+  var d = new Date(s);
+  if(isNaN(d.getTime())) return s;
+
+  return ('0'+d.getDate()).slice(-2)+'/' +
+         ('0'+(d.getMonth()+1)).slice(-2)+'/' +
+         d.getFullYear();
+}
+
+
+/* ---- normalise application data keys used by different form/save versions ----
+   Bank fields have existed under a few names in older application records.
+   This converts those aliases to the canonical keys expected by this generator. */
+function normalizeApplicationData(input){
+  var source = (input && typeof input === 'object') ? input : {};
+  var d = {};
+  Object.keys(source).forEach(function(key){ d[key] = source[key]; });
+
+  function normalKey(key){
+    return String(key == null ? '' : key).toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function objectValue(obj, aliases){
+    if(!obj || typeof obj !== 'object' || Array.isArray(obj)) return '';
+
+    // First use exact property names.
+    for(var i=0; i<aliases.length; i++){
+      if(Object.prototype.hasOwnProperty.call(obj, aliases[i])){
+        var exactValue = obj[aliases[i]];
+        if(exactValue !== null && typeof exactValue !== 'object' && V(exactValue)){
+          return exactValue;
+        }
+      }
+    }
+
+    // Then accept labels/casing such as "Bank Name", "bankName" or "BANK_NAME".
+    var wanted = {};
+    aliases.forEach(function(alias){ wanted[normalKey(alias)] = true; });
+    var keys = Object.keys(obj);
+    for(var j=0; j<keys.length; j++){
+      var value = obj[keys[j]];
+      if(value !== null && typeof value !== 'object' && wanted[normalKey(keys[j])] && V(value)) return value;
+    }
+    return '';
+  }
+
+  var nestedObjects = [];
+  [
+    'bank_details', 'bankDetails', 'bank_account', 'bankAccount',
+    'bank_account_details', 'bankAccountDetails', 'account_details',
+    'accountDetails', 'disbursement_bank', 'disbursementBank'
+  ].forEach(function(key){
+    if(source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])){
+      nestedObjects.push(source[key]);
+    }
+  });
+
+  // Some versions store a complete bank object directly under `bank`.
+  if(source.bank && typeof source.bank === 'object' && !Array.isArray(source.bank)){
+    nestedObjects.push(source.bank);
+  }
+
+  function pick(aliases, nestedAliases){
+    var value = objectValue(source, aliases);
+    if(V(value)) return value;
+    var insideAliases = nestedAliases || aliases;
+    for(var i=0; i<nestedObjects.length; i++){
+      value = objectValue(nestedObjects[i], insideAliases);
+      if(V(value)) return value;
+    }
+    return '';
+  }
+
+  d.bank_name = V(d.bank_name) || V(pick([
+    'bank_name', 'bankName', 'bank', 'name_of_bank', 'nameOfBank',
+    'disbursement_bank_name', 'disbursementBankName'
+  ], [
+    'bank_name', 'bankName', 'name', 'bank', 'name_of_bank', 'nameOfBank',
+    'disbursement_bank_name', 'disbursementBankName'
+  ]));
+
+  d.branch = V(d.branch) || V(pick([
+    'branch', 'branch_name', 'branchName', 'bank_branch', 'bankBranch',
+    'disbursement_branch', 'disbursementBranch'
+  ]));
+
+  d.account_number = V(d.account_number) || V(pick([
+    'account_number', 'accountNumber', 'account_no', 'accountNo', 'bank_account_no',
+    'bankAccountNo', 'bank_account_number', 'bankAccountNumber', 'ac_no', 'acNo',
+    'acct_no', 'acctNo', 'disbursement_account_number', 'disbursementAccountNumber'
+  ]));
+
+  d.account_type = V(d.account_type) || V(pick([
+    'account_type', 'accountType', 'bank_account_type', 'bankAccountType',
+    'type_of_account', 'typeOfAccount'
+  ]));
+
+  d.ifsc_code = V(d.ifsc_code) || V(pick([
+    'ifsc_code', 'ifscCode', 'ifsc', 'bank_ifsc', 'bankIfsc', 'bank_ifsc_code',
+    'bankIfscCode', 'disbursement_ifsc', 'disbursementIfsc'
+  ]));
+
+  return d;
+}
+
+
+/* ---- automatically bold values received from the application form ---- */
+var _FORM_DATA_BOLD_VALUES = [];   // safe values used inside narrative paragraphs
+var _FORM_DATA_TABLE_VALUES = [];  // all values used for autoTable cells
+
+function setFormDataBoldValues(d){
+  var paragraphValues = [];
+  var tableValues = [];
+  var paragraphSeen = {};
+  var tableSeen = {};
+  var excludedFromParagraphs = {
+    'india':true, 'tamil nadu':true, 'thanjavur':true,
+    'daily':true, 'monthly':true, 'male':true, 'female':true,
+    'yes':true, 'no':true, 'other':true, 'n/a':true,
+    'not applicable':true
+  };
+
+  function addTable(v){
+    var s = V(v);
+    if(!s || /^_+$/.test(s)) return;
+    if(!tableSeen[s]){ tableSeen[s] = true; tableValues.push(s); }
+  }
+
+  function addParagraph(v, force){
+    var s = V(v);
+    if(!s || /^_+$/.test(s)) return;
+    if(!force){
+      if(s.length < 3 && !/^\d{3,}$/.test(s)) return;
+      if(excludedFromParagraphs[s.toLowerCase()]) return;
+
+      // Do not auto-match a standalone year inside statutory references such as
+      // "Act, 2025". Full form dates (for example 13/07/2026) are still bold.
+      if(/^(18|19|20)\d{2}$/.test(s)) return;
+    }
+    if(!paragraphSeen[s]){ paragraphSeen[s] = true; paragraphValues.push(s); }
+  }
+
+  function addValue(key, v){
+    var raw = V(v);
+    if(!raw) return;
+
+    addTable(raw);
+    addTable(raw.toUpperCase());
+    addParagraph(raw, false);
+    addParagraph(raw.toUpperCase(), false);
+
+    if(/date|dob|submitted|visit/i.test(key)){
+      var asDate = fdate(raw);
+      if(asDate && asDate !== raw){
+        addTable(asDate);
+        addParagraph(asDate, true);
+      }
+    }
+
+    if(/amount|income|emi|salary|principal|loan/i.test(key) && /^\s*[₹,\d.]+\s*$/.test(raw)){
+      var num = Number(raw.replace(/[^\d.]/g,''));
+      if(!isNaN(num)){
+        var formatted = num.toLocaleString('en-IN');
+        [formatted, 'Rs. ' + formatted, 'Rs. ' + formatted + '/-'].forEach(function(item){
+          addTable(item);
+          addParagraph(item, true);
+        });
+
+        // Amount words generated from form-fed currency values must also be bold.
+        var words = amountInWords(raw);
+        if(words && !/^_+$/.test(words)){
+          addTable(words);
+          addParagraph(words, true);
+        }
+      }
+    }
+  }
+
+  Object.keys(d || {}).forEach(function(key){ addValue(key, d[key]); });
+
+  // Composite address strings are inserted into several agreement paragraphs.
+  // Keeping the whole composite as one bold run prevents only part of the address
+  // from becoming bold when city/state names also occur in the legal wording.
+  [
+    [d.address, d.city, d.district, d.state].filter(Boolean).map(V).join(', '),
+    [d.address, d.city, d.district, d.state, d.pincode].filter(Boolean).map(V).join(', '),
+    [d.guarantor_address, d.guarantor_city, d.guarantor_district, d.guarantor_state, d.guarantor_pincode].filter(Boolean).map(V).join(', ')
+  ].forEach(function(composite){
+    if(composite){
+      addTable(composite);
+      addParagraph(composite, true);
+    }
+  });
+
+  _FORM_DATA_BOLD_VALUES = paragraphValues.sort(function(a,b){ return b.length - a.length; });
+  _FORM_DATA_TABLE_VALUES = tableValues.sort(function(a,b){ return b.length - a.length; });
+}
+
+function formDataRanges(line){
+  var matches = [];
+  var occupied = [];
+
+  _FORM_DATA_BOLD_VALUES.forEach(function(value){
+    var from = 0;
+    while(from < line.length){
+      var at = line.indexOf(value, from);
+      if(at === -1) break;
+
+      var end = at + value.length;
+      var first = value.charAt(0);
+      var last = value.charAt(value.length - 1);
+      var before = at > 0 ? line.charAt(at - 1) : '';
+      var after = end < line.length ? line.charAt(end) : '';
+
+      // Require boundaries for values beginning/ending with letters or digits.
+      // This prevents, for example, a short numeric form value from partially
+      // matching and visually splitting the statutory year "2025".
+      var badLeft = /[A-Za-z0-9]/.test(first) && /[A-Za-z0-9]/.test(before);
+      var badRight = /[A-Za-z0-9]/.test(last) && /[A-Za-z0-9]/.test(after);
+      if(!badLeft && !badRight){
+        matches.push({start:at, end:end});
+      }
+
+      from = at + Math.max(value.length, 1);
+    }
+  });
+
+  matches.sort(function(a,b){
+    if(a.start !== b.start) return a.start - b.start;
+    return (b.end - b.start) - (a.end - a.start);
+  });
+
+  matches.forEach(function(m){
+    var overlaps = occupied.some(function(r){ return m.start < r.end && m.end > r.start; });
+    if(!overlaps) occupied.push(m);
+  });
+
+  return occupied.sort(function(a,b){ return a.start - b.start; });
+}
+
+function measureLineWithBoldFormData(doc, line, o){
+  o = o || {};
+  var normalStyle = o.bold ? (o.italic ? 'bolditalic' : 'bold') : (o.italic ? 'italic' : 'normal');
+  var boldStyle = o.italic ? 'bolditalic' : 'bold';
+  var ranges = (o.bold || o.autoBold === false) ? [] : formDataRanges(line);
+
+  if(!ranges.length){
+    doc.setFont('helvetica', normalStyle);
+    return doc.getTextWidth(line);
+  }
+
+  var width = 0;
+  var pos = 0;
+  ranges.forEach(function(r){
+    if(r.start > pos){
+      doc.setFont('helvetica', normalStyle);
+      width += doc.getTextWidth(line.slice(pos, r.start));
+    }
+    doc.setFont('helvetica', boldStyle);
+    width += doc.getTextWidth(line.slice(r.start, r.end));
+    pos = r.end;
+  });
+
+  if(pos < line.length){
+    doc.setFont('helvetica', normalStyle);
+    width += doc.getTextWidth(line.slice(pos));
+  }
+  return width;
+}
+
+/*
+ * jsPDF's splitTextToSize measures the complete sentence using only the
+ * current font. Our form values are drawn in bold, so a line that appears to
+ * fit in normal text can become wider after rendering and run into the PIN or
+ * page margin. This wrapper measures every proposed line using the same mixed
+ * normal/bold fonts that will actually be drawn.
+ */
+function splitTextWithBoldFormData(doc, text, maxWidth, o){
+  o = o || {};
+  text = String(text == null ? '' : text);
+  var output = [];
+
+  function pushWrappedParagraph(paragraph){
+    if(paragraph === ''){
+      output.push('');
+      return;
+    }
+
+    var tokens = paragraph.match(/\S+\s*/g) || [''];
+    var line = '';
+
+    function pushLine(){
+      output.push(line.replace(/\s+$/g, ''));
+      line = '';
+    }
+
+    tokens.forEach(function(token){
+      var cleanToken = line ? token : token.replace(/^\s+/g, '');
+      var candidate = line + cleanToken;
+      var candidateForMeasure = candidate.replace(/\s+$/g, '');
+
+      if(line && measureLineWithBoldFormData(doc, candidateForMeasure, o) > maxWidth){
+        pushLine();
+        cleanToken = token.replace(/^\s+/g, '');
+      }
+
+      // Handle an unusually long unbroken value such as an email address.
+      if(!line && measureLineWithBoldFormData(doc, cleanToken.replace(/\s+$/g, ''), o) > maxWidth){
+        var chars = cleanToken.split('');
+        var piece = '';
+        chars.forEach(function(ch){
+          var test = piece + ch;
+          if(piece && measureLineWithBoldFormData(doc, test, o) > maxWidth){
+            output.push(piece);
+            piece = ch;
+          } else {
+            piece = test;
+          }
+        });
+        line = piece;
+      } else {
+        line += cleanToken;
+      }
+    });
+
+    if(line || !output.length) pushLine();
+  }
+
+  text.split(/\r?\n/).forEach(pushWrappedParagraph);
+  return output;
+}
+
+function drawLineWithBoldFormData(doc, line, x, y, o){
+  o = o || {};
+  var normalStyle = o.bold ? (o.italic ? 'bolditalic' : 'bold') : (o.italic ? 'italic' : 'normal');
+  var boldStyle = o.italic ? 'bolditalic' : 'bold';
+  var ranges = (o.bold || o.autoBold === false) ? [] : formDataRanges(line);
+
+  if(!ranges.length){
+    doc.setFont('helvetica', normalStyle);
+    doc.text(line, x, y);
+    return;
+  }
+
+  var cursorX = x;
+  var pos = 0;
+
+  ranges.forEach(function(r){
+    if(r.start > pos){
+      var normalText = line.slice(pos, r.start);
+      doc.setFont('helvetica', normalStyle);
+      doc.text(normalText, cursorX, y);
+      cursorX += doc.getTextWidth(normalText);
+    }
+
+    var boldText = line.slice(r.start, r.end);
+    doc.setFont('helvetica', boldStyle);
+    doc.text(boldText, cursorX, y);
+    cursorX += doc.getTextWidth(boldText);
+    pos = r.end;
+  });
+
+  if(pos < line.length){
+    var tail = line.slice(pos);
+    doc.setFont('helvetica', normalStyle);
+    doc.text(tail, cursorX, y);
+  }
+}
+
+function tableCellContainsFormData(h){
+  if(!h || h.section !== 'body' || !_FORM_DATA_TABLE_VALUES.length) return false;
+  var text = Array.isArray(h.cell.text) ? h.cell.text.join(' ') : V(h.cell.text);
+  return _FORM_DATA_TABLE_VALUES.some(function(value){ return text.indexOf(value) !== -1; });
+}
+
+function boldFormDataTableCell(h){
+  if(tableCellContainsFormData(h)) h.cell.styles.fontStyle = 'bold';
 }
 
 /* ---- per-group labels & loan-category strings ---- */
@@ -93,7 +533,16 @@ function grid(doc, y, rows){
       2: {cellWidth: 40, fontStyle: 'bold', fillColor: LBL},
       3: {cellWidth: 'auto'}
     },
-    didParseCell: function(h){ if(h.cell.raw && h.cell.raw.label){ h.cell.styles.fontStyle='bold'; h.cell.styles.fillColor=LBL; } }
+    didParseCell: function(h){
+      if(h.cell.raw && h.cell.raw.label){
+        h.cell.styles.fontStyle='bold';
+        h.cell.styles.fillColor=LBL;
+      } else if(h.section === 'body'){
+        // Every non-label grid cell contains a value supplied by the form
+        // (or a calculated value derived from it), so keep it bold.
+        h.cell.styles.fontStyle='bold';
+      }
+    }
   });
   return doc.lastAutoTable.finalY;
 }
@@ -103,13 +552,16 @@ function FULL(v){ return {content: V(v), colSpan: 3}; }            // value span
 /* ---- wrapped paragraph / bullet ---- */
 function para(doc, text, y, o){
   o = o || {};
-  doc.setFont('helvetica', o.bold ? 'bold' : (o.italic ? 'italic' : 'normal'));
+  var baseStyle = o.bold ? (o.italic ? 'bolditalic' : 'bold') : (o.italic ? 'italic' : 'normal');
+  doc.setFont('helvetica', baseStyle);
   doc.setFontSize(o.size || 8.4); doc.setTextColor.apply(doc, o.color || INK);
-  var indent = o.indent || 0, w = CW - indent;
-  var lines = doc.splitTextToSize(text, w);
+  var indent = o.indent || 0, w = CW - indent - (o.wrapReserve === 0 ? 0 : 2);
+  var lines = (!o.bold && o.autoBold !== false)
+    ? splitTextWithBoldFormData(doc, text, w, o)
+    : doc.splitTextToSize(text, w);
   for(var i=0;i<lines.length;i++){
     y = pagebreak(doc, y, 5);
-    doc.text(lines[i], ML + indent, y);
+    drawLineWithBoldFormData(doc, lines[i], ML + indent, y, o);
     y += (o.lh || 4.3);
   }
   return y + (o.gap || 0);
@@ -118,13 +570,183 @@ function bullet(doc, text, y, o){
   o = o || {}; y = pagebreak(doc, y, 5);
   doc.setFont('helvetica','normal'); doc.setFontSize(o.size||8.4); doc.setTextColor.apply(doc, INK);
   doc.text('•', ML+2, y);
-  return para(doc, text, y, {size:o.size||8.4, indent:6, lh:o.lh||4.3, gap:o.gap||1});
+  return para(doc, text, y, {
+    size:o.size||8.4,
+    indent:6,
+    lh:o.lh||4.3,
+    gap:o.gap||1,
+    autoBold:o.autoBold,
+    wrapReserve:o.wrapReserve
+  });
 }
 function heading(doc, text, y){
   y = pagebreak(doc, y, 9) + 2;
   doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor.apply(doc, NAVY);
   doc.text(text, ML, y); doc.setTextColor.apply(doc, INK);
   return y + 4.5;
+}
+
+
+/* ---- compact, fixed two-page layout used only by the Loan Application ---- */
+var APP_LAYOUT = {
+  sectionGap: 1.2,
+  sectionHeight: 5.8,
+  sectionFont: 8.0,
+  tableFont: 7.25,
+  tablePaddingY: 1.15,
+  tablePaddingX: 1.45,
+  paragraphFont: 7.35,
+  paragraphLineHeight: 3.45
+};
+
+function applicationSection(doc, title, y){
+  y += APP_LAYOUT.sectionGap;
+  doc.setFillColor.apply(doc, NAVY);
+  doc.rect(ML, y, CW, APP_LAYOUT.sectionHeight, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(APP_LAYOUT.sectionFont);
+  doc.text(title, ML + 2.3, y + 4.05);
+  doc.setTextColor.apply(doc, INK);
+  return y + APP_LAYOUT.sectionHeight;
+}
+
+function applicationGrid(doc, y, rows){
+  doc.autoTable({
+    startY: y,
+    theme: 'grid',
+    tableWidth: CW,
+    margin: {left: ML, right: MR},
+    pageBreak: 'avoid',
+    rowPageBreak: 'avoid',
+    body: rows,
+    styles: {
+      fontSize: APP_LAYOUT.tableFont,
+      cellPadding: {
+        top: APP_LAYOUT.tablePaddingY,
+        right: APP_LAYOUT.tablePaddingX,
+        bottom: APP_LAYOUT.tablePaddingY,
+        left: APP_LAYOUT.tablePaddingX
+      },
+      minCellHeight: 6.0,
+      lineColor: [208,203,193],
+      lineWidth: 0.2,
+      valign: 'middle',
+      textColor: INK,
+      overflow: 'linebreak'
+    },
+    columnStyles: {
+      0: {cellWidth: 39, fontStyle: 'bold', fillColor: LBL},
+      1: {cellWidth: 52},
+      2: {cellWidth: 39, fontStyle: 'bold', fillColor: LBL},
+      3: {cellWidth: 52}
+    },
+    didParseCell: function(h){
+      if(h.cell.raw && h.cell.raw.label){
+        h.cell.styles.fontStyle = 'bold';
+        h.cell.styles.fillColor = LBL;
+      } else if(h.section === 'body'){
+        h.cell.styles.fontStyle = 'bold';
+      }
+    }
+  });
+  return doc.lastAutoTable.finalY;
+}
+
+function applicationPara(doc, text, y, o){
+  o = o || {};
+  return para(doc, text, y, {
+    size: o.size || APP_LAYOUT.paragraphFont,
+    lh: o.lh || APP_LAYOUT.paragraphLineHeight,
+    gap: o.gap == null ? 0.8 : o.gap,
+    bold: !!o.bold,
+    italic: !!o.italic,
+    indent: o.indent || 0,
+    autoBold: o.autoBold
+  });
+}
+
+function applicationBullet(doc, text, y){
+  return bullet(doc, text, y, {
+    size: 7.15,
+    lh: 3.35,
+    gap: 0.45,
+    autoBold: false
+  });
+}
+
+function applicantPhotoBorrowerSignatureCompact(doc, y, d){
+  var x = ML;
+  var w = CW;
+  var h = 50;
+  var photoW = 64;
+  var signW = w - photoW;
+  var headerH = 9;
+  var border = [190,190,190];
+
+  y += 1.4;
+
+  doc.setDrawColor.apply(doc, border);
+  doc.setLineWidth(0.2);
+  doc.rect(x, y, w, h);
+  doc.line(x + photoW, y, x + photoW, y + h);
+
+  doc.setFillColor.apply(doc, LBL);
+  doc.rect(x, y, photoW, headerH, 'F');
+  doc.rect(x + photoW, y, signW, headerH, 'F');
+  doc.setDrawColor.apply(doc, border);
+  doc.rect(x, y, photoW, headerH);
+  doc.rect(x + photoW, y, signW, headerH);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.2);
+  doc.setTextColor.apply(doc, NAVY);
+  doc.text('Applicant Photo', x + photoW / 2, y + 6.1, {align:'center'});
+  doc.text('Borrower Signature', x + photoW + signW / 2, y + 6.1, {align:'center'});
+
+  var phW = 42;
+  var phH = 30;
+  var phX = x + (photoW - phW) / 2;
+  var phY = y + headerH + 5.5;
+  doc.setDrawColor(150,150,150);
+  doc.setLineDashPattern([2,2], 0);
+  doc.rect(phX, phY, phW, phH);
+  doc.setLineDashPattern([], 0);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7.2);
+  doc.setTextColor(120,120,120);
+  doc.text('Paste Applicant', phX + phW/2, phY + 13, {align:'center'});
+  doc.text('Photo Here', phX + phW/2, phY + 19, {align:'center'});
+
+  var sx = x + photoW + 9;
+  var sw = signW - 18;
+  var sigY = y + headerH + 5;
+  var sigH = 12;
+  doc.setDrawColor(170,170,170);
+  doc.rect(sx, sigY, sw, sigH);
+
+  var nameY = sigY + sigH + 7;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(0,0,0);
+  doc.text('Name:', sx, nameY);
+  doc.setFont('helvetica','bold');
+  doc.text(String(d.name || '').toUpperCase(), sx + 15, nameY, {maxWidth: sw - 15});
+
+  var rowY = y + h - 6.5;
+  var gap = 8;
+  var colW = (sw - gap) / 2;
+  var dateX = sx;
+  var placeX = sx + colW + gap;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7.5);
+  doc.setDrawColor(170,170,170);
+  doc.text('Date:', dateX, rowY);
+  doc.line(dateX + 15, rowY + 0.8, dateX + colW, rowY + 0.8);
+  doc.text('Place:', placeX, rowY);
+  doc.line(placeX + 16, rowY + 0.8, placeX + colW, rowY + 0.8);
+
+  return y + h;
 }
 
 /* ---- three-column signature block (Borrower / Nominee / Lender) ---- */
@@ -190,7 +812,7 @@ function signatures(doc, y, names, opts){
       doc.setTextColor(20);
       doc.setFont(undefined,'normal');
 
-      doc.text(sigRows[i].name, x, y0);
+      drawLineWithBoldFormData(doc, sigRows[i].name, x, y0, {size: compact ? 7.4 : 8});
 
       doc.text('Date:   ______________', x, y0 + lineGap);
       doc.text('Place:  _____________', x, y0 + lineGap + (compact ? 6 : 10));
@@ -822,16 +1444,25 @@ function borrowerSignaturePlainRight(doc, y, d) {
    ════════════════════════════════════════════════════════════════════════ */
 function buildApplication(doc, d, g){
   _G = g;
+  d = normalizeApplicationData(d);
+  setFormDataBoldValues(d);
+
+  /* ========================= PAGE 1 OF 2 ========================= */
   var y = letterhead(doc, 'LOAN APPLICATION FORM');
-  doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
   doc.setTextColor(150,120,30);
-  doc.text('Loan Category: '+GROUPS[g].cat, PW/2, y-1, {align:'center'}); y += 3;
+  doc.text('Loan Category: ' + GROUPS[g].cat, PW/2, y-1, {align:'center'});
+  y += 2.8;
   doc.setTextColor.apply(doc, INK);
 
-  y = grid(doc, y, [[ L('Application Serial No.'), V(d.app_id), L('Application Date'), fdate(d.submitted_at) ]]);
+  y = applicationGrid(doc, y, [[
+    L('Application Serial No.'), V(d.app_id),
+    L('Application Date'), fdate(d.submitted_at)
+  ]]);
 
-  y = section(doc, 'SECTION 1 — BORROWER DETAILS', y);
-  y = grid(doc, y, [
+  y = applicationSection(doc, 'SECTION 1 — BORROWER DETAILS', y);
+  y = applicationGrid(doc, y, [
     [ L('Full Name (as per Aadhaar)'), FULL(d.name) ],
     [ L('Date of Birth'), fdate(d.dob), L('Gender'), V(d.gender) ],
     [ L("Father's / Spouse's Name"), FULL(d.father_name) ],
@@ -844,62 +1475,112 @@ function buildApplication(doc, d, g){
     [ L('Residence'), FULL(d.residence_type) ]
   ]);
 
-  y = section(doc, 'SECTION 2 — EMPLOYMENT & INCOME DETAILS', y);
-  y = grid(doc, y, [
+  y = applicationSection(doc, 'SECTION 2 — EMPLOYMENT & INCOME DETAILS', y);
+  y = applicationGrid(doc, y, [
     [ L('Occupation Type'), V(d.occupation), L('Employer / Business Name'), V(d.employer_name) ],
-    [ L('Monthly Net Income'), rs(d.income), L('Other Monthly Income'), (V(d.other_income)?rs(d.other_income):'') ],
+    [ L('Monthly Net Income'), rs(d.income), L('Other Monthly Income'), V(d.other_income) ? rs(d.other_income) : '' ],
     [ L('Employer / Business Address'), FULL(d.work_address) ],
-    [ L('Total Work Experience'), V(d.work_experience), L('Years w/ Current Employer'), V(d.current_employer_years) ]
+    [ L('Total Work Experience'), V(d.work_experience), L('Years with Current Employer'), V(d.current_employer_years) ]
   ]);
 
-  y = section(doc, 'SECTION 3 — BANK ACCOUNT DETAILS (FOR DISBURSEMENT)', y);
-  y = grid(doc, y, [
+  y = applicationSection(doc, 'SECTION 3 — BANK ACCOUNT DETAILS (FOR DISBURSEMENT)', y);
+  y = applicationGrid(doc, y, [
     [ L('Bank Name'), V(d.bank_name), L('Branch Name'), V(d.branch) ],
     [ L('Account Number'), V(d.account_number), L('Account Type'), V(d.account_type) ],
-    [ L('IFSC Code'), V(d.ifsc_code), L('Existing Loan EMI'), (V(d.existing_emi)?rs(d.existing_emi):'') ]
+    [ L('IFSC Code'), V(d.ifsc_code), L('Existing Loan EMI'), V(d.existing_emi) ? rs(d.existing_emi) : '' ]
   ]);
 
-  y = section(doc, 'SECTION 4 — LOAN REQUEST DETAILS', y);
+  y = applicationSection(doc, 'SECTION 4 — LOAN REQUEST DETAILS', y);
   var s4 = [
     [ L('Loan Amount Requested'), rs(d.loan_amount), L('Purpose of Loan'), V(d.purpose) ],
     [ L('Preferred Tenure'), V(d.tenure), L('Preferred Instalment Date'), V(d.emi_date) ]
   ];
-  if(g==='B') s4.push([ L('Document Registration No.'), V(d.doc_reg_no), L('Registration Date'), fdate(d.reg_date) ]);
-  if(g==='C'){
+  if(g === 'B'){
+    s4.push([ L('Document Registration No.'), V(d.doc_reg_no), L('Registration Date'), fdate(d.reg_date) ]);
+  }
+  if(g === 'C'){
     s4.push([ L('Property / Security Details'), FULL(d.property_details) ]);
     s4.push([ L('Title Document Reference'), V(d.title_doc_ref), L('MOD Status'), V(d.mod_status) ]);
   }
-  y = grid(doc, y, s4);
+  y = applicationGrid(doc, y, s4);
 
-  y = section(doc, 'SECTION 5 — NOMINEE DETAILS', y);
-  y = grid(doc, y, [
+  y = applicationSection(doc, 'SECTION 5 — NOMINEE DETAILS', y);
+  y = applicationGrid(doc, y, [
     [ L('Nominee Full Name'), V(d.nominee_name), L('Relationship'), V(d.nominee_rel) ],
     [ L('Nominee Aadhaar Number'), V(d.nominee_aadhar), L('Nominee Mobile'), V(d.nominee_mobile) ],
     [ L('Nominee Residential Address'), FULL(d.nominee_address) ]
   ]);
-  y = pagebreak(doc, y + 2, 34);
-  y = para(doc, 'Nominee Consent & Declaration:', y, {bold:true, size:8.4, gap:1});
-  y = para(doc, 'I, '+fill(d.nominee_name,22)+' (Nominee), hereby consent to being appointed as Nominee for this Loan Account. I acknowledge: (a) I shall be informed by the Lender in the event of default, death, or incapacity of the Borrower; (b) I shall facilitate settlement of the outstanding loan in the event of the Borrower\'s death; (c) I do not assume personal liability for the Loan unless I have separately executed a guarantee; (d) I shall cooperate with the Lender\'s representatives in default proceedings. The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.', y, {size:7.9, lh:4, gap:2});
 
-  /* ---- continues (page 2 of the printed form) ---- */
-  y += 4;
+  /*
+   * Keep the consent text clear of the nominee table.
+   * The Y coordinate is the text baseline, so adequate baseline clearance
+   * is required below the final table border.
+   */
+  y += 4.2;
+  y = applicationPara(doc, 'Nominee Consent & Declaration:', y, {
+    bold:true,
+    size:7.55,
+    lh:3.5,
+    gap:1.0,
+    autoBold:false
+  });
+  y = applicationPara(doc,
+    'I, ' + fill(d.nominee_name,22) + ' (Nominee), hereby consent to being appointed as Nominee for this Loan Account. I acknowledge: (a) I shall be informed by the Lender in the event of default, death, or incapacity of the Borrower; (b) I shall facilitate settlement of the outstanding loan in the event of the Borrower\'s death; (c) I do not assume personal liability for the Loan unless I have separately executed a guarantee; and (d) I shall cooperate with the Lender\'s representatives in default proceedings. The terms were translated and interpreted to me in my native language, and I have fully understood the rights and responsibilities stated above.',
+    y,
+    {size:7.15, lh:3.45, gap:0, autoBold:true}
+  );
 
-  y = section(doc, 'SECTION 6 — REFERENCES', y);
+  /* Force the printed application to continue on exactly page 2. */
+  doc.addPage();
+
+  /* ========================= PAGE 2 OF 2 ========================= */
+  y = letterhead(doc, 'LOAN APPLICATION FORM - CONTINUED');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(150,120,30);
+  doc.text('Loan Category: ' + GROUPS[g].cat, PW/2, y-1, {align:'center'});
+  y += 2.8;
+  doc.setTextColor.apply(doc, INK);
+
+  y = applicationSection(doc, 'SECTION 6 — REFERENCES', y);
   doc.autoTable({
-    startY: y, theme:'grid', margin:{left:ML,right:MR},
-    styles:{fontSize:7.8, cellPadding:2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, valign:'middle'},
+    startY: y,
+    theme:'grid',
+    tableWidth:CW,
+    margin:{left:ML,right:MR},
+    pageBreak:'avoid',
+    rowPageBreak:'avoid',
+    styles:{
+      fontSize:7.1,
+      cellPadding:{top:1.2,right:1.35,bottom:1.2,left:1.35},
+      minCellHeight:6.5,
+      lineColor:[208,203,193],
+      lineWidth:0.2,
+      textColor:INK,
+      valign:'middle',
+      overflow:'linebreak'
+    },
     head:[[ 'Ref.', 'Full Name', 'Relationship', 'Mobile No.', 'Residential Address' ]],
-    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.8},
-    columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:38},2:{cellWidth:30},3:{cellWidth:28},4:{cellWidth:'auto'}},
+    headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.15, halign:'center'},
+    columnStyles:{
+      0:{cellWidth:10,halign:'center'},
+      1:{cellWidth:38},
+      2:{cellWidth:30},
+      3:{cellWidth:28},
+      4:{cellWidth:76}
+    },
     body:[
       ['1', V(d.ref1_name), V(d.ref1_relationship), V(d.ref1_mobile), V(d.ref1_address)],
       ['2', V(d.ref2_name), V(d.ref2_relationship), V(d.ref2_mobile), V(d.ref2_address)]
-    ]
+    ],
+    didParseCell:function(h){
+      if(h.section === 'body' && h.column.index > 0) h.cell.styles.fontStyle = 'bold';
+    }
   });
   y = doc.lastAutoTable.finalY;
 
-  y = section(doc, "SECTION 7 — FIELD VISIT & VERIFICATION  (Completed by Lender's Officer)", y);
-  y = grid(doc, y, [
+  y = applicationSection(doc, "SECTION 7 — FIELD VISIT & VERIFICATION (Completed by Lender's Officer)", y);
+  y = applicationGrid(doc, y, [
     [ L('Verification Officer Name'), V(d.verification_officer), L('Designation'), V(d.verification_designation) ],
     [ L('Date of Visit'), fdate(d.visit_date), L('Time of Visit'), V(d.visit_time) ],
     [ L('Residence Verification'), V(d.residence_verification), L('Business Verification'), V(d.business_verification) ],
@@ -908,29 +1589,39 @@ function buildApplication(doc, d, g){
     [ L('Recommendation'), V(d.recommendation), L('Supervisor Approval'), V(d.supervisor_approval) ]
   ]);
 
-  y = section(doc, 'SECTION 8 — BORROWER DECLARATION', y);
-  y = para(doc, 'I/We hereby declare and confirm the following:', y, {size:8, gap:1});
+  y = applicationSection(doc, 'SECTION 8 — BORROWER DECLARATION', y);
+
+  // Start the declaration safely below the section bar.
+  y += 3.6;
+  y = applicationPara(doc, 'I/We hereby declare and confirm the following:', y, {
+    size:7.25,
+    lh:3.45,
+    gap:0.75,
+    autoBold:false
+  });
   [
     'All information provided in this Application Form is true, correct, and complete to the best of my/our knowledge.',
     'I/We authorise THENNAGAM FINANCE PRIVATE LIMITED to verify the information provided, contact my employer and references, and conduct field verification.',
     'I/We authorise the Lender to access and share my/our credit-relevant information through any lawful credit information mechanism the Lender is eligible to use.',
     'I/We understand that loan approval is at the sole discretion of the Lender and submission of this Application does not guarantee sanction.',
-    'The applicable rate of interest may differ based on various factors including the borrower\'s credit score, repayment history, income level, loan tenure, financial strength, and risk assessment carried out by the Lender.',
-    'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein.',
+    'The applicable rate of interest may differ based on the borrower\'s credit score, repayment history, income, loan tenure, financial strength, and the Lender\'s risk assessment.',
+    'The terms were translated and interpreted to me in my native language, and I have fully understood the rights and liabilities stated herein.',
     'I/We understand that providing false information is an offence under the Bharatiya Nyaya Sanhita, 2023.'
-  ].forEach(function(t){ y = bullet(doc, t, y, {size:7.9, gap:1}); });
+  ].forEach(function(t){ y = applicationBullet(doc, t, y); });
 
-  //y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
-  y = applicantPhotoBorrowerSignature(doc, y, d);
-  y = section(doc, 'FOR OFFICE USE ONLY', y);
-  y = grid(doc, y, [
+  // Clear space after the final declaration bullet.
+  y += 1.2;
+  y = applicantPhotoBorrowerSignatureCompact(doc, y, d);
+
+  y = applicationSection(doc, 'FOR OFFICE USE ONLY', y);
+  y = applicationGrid(doc, y, [
     [ L('Received By'), '', L('Branch / Area'), '' ],
     [ L('Verification Status'), '', L('Credit Decision'), '' ]
   ]);
+
   footer(doc);
   return doc;
 }
-
 
 
 
@@ -1066,7 +1757,8 @@ function buildGuaranteeDeed(doc, d, g){
         'Witness 1\n\nName / Signature: __________________________\nAddress: __________________________________',
         'Witness 2\n\nName / Signature: __________________________\nAddress: __________________________________'
       ]
-    ]
+    ],
+    didParseCell: boldFormDataTableCell
   });
   y = doc.lastAutoTable.finalY + 4;
 
@@ -1083,6 +1775,8 @@ function buildGuaranteeDeed(doc, d, g){
    ════════════════════════════════════════════════════════════════════════ */
 function buildAgreement(doc, d, g){
   _G = g;
+  d = normalizeApplicationData(d);
+  setFormDataBoldValues(d);
   var addrFull = [V(d.address), V(d.city), V(d.district), V(d.state)].filter(Boolean).join(', ');
 
   // group-specific additions (RBI/registration/MOD) — appended where the templates place them
@@ -1103,7 +1797,9 @@ function buildAgreement(doc, d, g){
   doc.setFont('helvetica','bold'); doc.setFontSize(8.6); doc.setTextColor.apply(doc, NAVY);
   doc.text('SCHEDULE "A"', ML, y); doc.setTextColor.apply(doc, INK); y += 5.5;
   y = para(doc, 'To, Mr./Ms. '+fill(d.name,26)+',  S/o | D/o | W/o: '+fill(d.father_name,20), y, {size:8, lh:3.9, gap:0.5});
-  y = para(doc, 'Application No.: '+fill(d.app_id,16)+'   Address: '+fill(addrFull,32)+', Pin: '+fill(d.pincode,7), y, {size:8, lh:3.9, gap:0.5});
+  y = para(doc, 'Application No.: '+fill(d.app_id,16), y, {size:8, lh:3.9, gap:0.5});
+  y = para(doc, 'Address: '+fill(addrFull,40), y, {size:8, lh:3.9, gap:0.5});
+  y = para(doc, 'Pin Code: '+fill(d.pincode,7), y, {size:8, lh:3.9, gap:0.5});
   y = para(doc, 'Email: '+fill(d.email,20)+'   Mobile: '+fill(d.mobile,14), y, {size:8, lh:3.9, gap:1.5});
   y = para(doc, 'Dear Borrower, this Loan Sanction Letter is issued with reference to your Loan Application dated '+fill(fdate(d.submitted_at),12)+'. We are pleased to inform you that your loan application has been approved subject to the terms below.', y, {size:7.8, lh:3.8, gap:1.5});
 
@@ -1128,7 +1824,8 @@ function buildAgreement(doc, d, g){
       ['8','Processing Charge', PROCESSING_CHARGE_LABEL],
       ['9','Insurance Premium', INSURANCE_LABEL],
       ['10','Delayed Payment / Penal Charge', PENAL_RATE_LABEL],
-    ]
+    ],
+    didParseCell: boldFormDataTableCell
   });
   y = doc.lastAutoTable.finalY + 5;
 
@@ -1141,7 +1838,9 @@ function buildAgreement(doc, d, g){
     'A Loan Statement is furnished one day before disbursal, and a Loan Card is issued and updated at every repayment (Sections 9(4), 9(6), TN Act 40/2025).',
     'This Letter, the Loan Agreement, and the Loan Card are available in Tamil on request (Section 9(9), TN Act 40/2025).',
     'Stamp duty and statutory charges under the Indian Stamp Act, 1899 and Tamil Nadu Stamp Act, 2018 are borne by the Borrower; terms were translated and interpreted in the Borrower\'s native language.'
-  ].forEach(function(t){ y = bullet(doc, t, y, {size:6.9, lh:3.3, gap:1.1}); });
+  ].forEach(function(t){
+    y = bullet(doc, t, y, {size:7.0, lh:3.5, gap:1.1, autoBold:false});
+  });
   y += 3;
   // y = para(doc, 'Yours faithfully,   For THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true, size:7.8, gap:2.5});
   // signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
@@ -1154,7 +1853,7 @@ function buildAgreement(doc, d, g){
   doc.setTextColor(150,120,30); doc.setFont('helvetica','bold'); doc.setFontSize(8);
   doc.text('Loan Category: '+GROUPS[g].cat, PW/2, y-1, {align:'center'}); y+=3;
   doc.setTextColor.apply(doc, INK);
-  y = para(doc, 'This Loan Agreement is made and executed at Thanjavur on the date mentioned in Schedule "A" by THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), a private limited company incorporated under the Companies Act, 2013, bearing CIN U64990TN2025PTC179499, having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, and registered as a Money Lending Entity under the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025 vide Registration No. ___________________; and', y, {size:8.1, gap:1.5});
+  y = para(doc, 'This Loan Agreement is made and executed at Thanjavur on the date mentioned in Schedule "A" by THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), a private limited company incorporated under the Companies Act, 2013, bearing CIN U64990TN2025PTC179499, having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, and registered as a Money Lending Entity under the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025 and', y, {size:8.1, gap:1.5});
   y = para(doc, 'Mr./Ms. '+fill(d.name,24)+' (hereinafter the "Borrower"), whose details are mentioned in Schedule "A" and "B" of this Agreement.', y, {size:8.1, gap:1.5});
   y = para(doc, 'The Lender and the Borrower are hereinafter collectively referred to as the "Parties", which expressions shall include their respective heirs, executors, administrators, legal representatives, successors, and permitted assigns.', y, {size:8.1, gap:1.5});
   y = para(doc, 'The Lender confirms that it lends from its own funds, does not accept public deposits, and is not a Non-Banking Financial Company registered with the Reserve Bank of India. This Agreement is not governed by RBI regulations applicable to banks or NBFCs; it is governed by the Indian Contract Act, 1872, the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025, and other applicable Tamil Nadu State law. WHEREAS the Borrower has applied for a loan facility and the Lender, after due diligence, KYC verification, and credit assessment, has agreed to provide the Loan subject to the terms and conditions of this Agreement; NOW, THEREFORE, the Parties agree as follows:', y, {size:8.1, gap:2});
@@ -1176,7 +1875,7 @@ function buildAgreement(doc, d, g){
       'The Borrower has confirmed the following Bank Account details for receipt of Loan disbursement:  Bank Name: '+fill(d.bank_name,20)+' ;  Account Number: '+fill(d.account_number,18)+' ;  IFSC Code: '+fill(d.ifsc_code,14)+' .'
     ]],
     ['C. RATE OF INTEREST', [
-      'Interest is charged on a reducing-balance basis at ' + BLANK(8) + ' % per annum, as stated in the Sanction Letter, within the ceiling notified for unsecured loans under Section 7 of the Tamil Nadu Money-Lenders Act, 1957 (G.O.Ms.No.406, Cooperation Department, dated 5 July 1979 — to be reconfirmed as the currently applicable notification).',
+      'Interest is charged on a reducing-balance basis at ' + BLANK(8) + ' % per annum, as stated in the Sanction Letter, within the ceiling notified for unsecured loans under Section 7 of the Tamil Nadu Money-Lenders Act, 1957.\n(G.O.Ms.No.406, Cooperation Department, dated 5 July 1979 —\nto be reconfirmed as the currently applicable notification).',
       'The rate shall be disclosed transparently and shall not be revised upward after disbursement without the Borrower\'s written consent.',
       'Interest shall accrue from the Effective Date until full repayment of all amounts due.'
     ]],
@@ -1254,7 +1953,17 @@ function buildAgreement(doc, d, g){
   ];
   AG.forEach(function(sec){
     y = heading(doc, sec[0], y);
-    sec[1].forEach(function(t){ y = bullet(doc, t, y, {size:7.8}); });
+    sec[1].forEach(function(t){
+      // Keep the statutory notification as plain legal text. This prevents a
+      // short numeric form value (for example an EMI date of 5) from being
+      // auto-bolded inside "5 July 1979" and disturbing the line spacing.
+      var isInterestNotification = String(t).indexOf('G.O.Ms.No.406') !== -1;
+      y = bullet(doc, t, y, {
+        size:7.8,
+        autoBold: isInterestNotification ? false : undefined,
+        wrapReserve: isInterestNotification ? 4 : undefined
+      });
+    });
     y += 1;
   });
   //y = signatures(doc, y, {borrower: d.name, nominee: d.nominee_name});
@@ -1262,7 +1971,7 @@ function buildAgreement(doc, d, g){
 
   /* ---------- 3. DEMAND PROMISSORY NOTE ---------- */
   doc.addPage(); y = letterhead(doc, 'DEMAND PROMISSORY NOTE');
-  y = para(doc, 'On demand, I/We, ' + fill(d.name,22) + ', S/o | D/o | W/o: ' + fill(d.father_name,20) + ', residing at ' + fill(addrFull + (V(d.pincode) ? ' - ' + d.pincode : ''),40) + ', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of ' + rs(d.loan_amount) + '/- (Rupees ' + BLANK(26) + ' Only), together with interest thereon at ' + BLANK(8) + ' % per annum from the date hereof until payment, for value received.', y, {size:8.2, lh:4.4, gap:2});
+  y = para(doc, 'On demand, I/We, ' + fill(d.name,22) + ', S/o | D/o | W/o: ' + fill(d.father_name,20) + ', residing at ' + fill(addrFull + (V(d.pincode) ? ' - ' + d.pincode : ''),40) + ', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of ' + rs(d.loan_amount) + '/- (Rupees ' + amountInWords(d.loan_amount) + ' Only), together with interest thereon at ' + BLANK(8) + ' % per annum from the date hereof until payment, for value received.', y, {size:8.2, lh:4.4, gap:2});
   y = para(doc, 'This Note is complete and certain on its face and does not depend on any other document for the sum payable. It is executed pursuant to the Negotiable Instruments Act, 1881, and is enforceable under the laws of India, including by way of summary suit under Order 37 of the Code of Civil Procedure, 1908. Delayed Payment Charges arising on default are dealt with separately under the Loan Agreement and do not form part of the sum promised in this Note.', y, {size:8.2, lh:4.4, gap:1.5});
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to the Borrower in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
@@ -1278,7 +1987,7 @@ y = para(doc, 'Execution Checklist (complete before the Borrower signs): all bla
   y = para(doc, 'THENNAGAM FINANCE PRIVATE LIMITED', y, {bold:true});
   y = para(doc, '26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205', y, {size:8, gap:2});
   y = para(doc, 'Dear Sir/Madam,', y, {gap:1});
-  y = para(doc, 'I, '+fill(d.name,22)+', enclose herewith a duly executed Demand Promissory Note dated '+BLANK(11)+' for '+rs(d.loan_amount)+'/- (Rupees '+BLANK(24)+' Only) executed by me, which is given to you as continuing security for the repayment of the Loan presently outstanding in my name, and also for the repayment of interest and Delayed Payment Charges calculated as set out in the Loan Agreement, and of any further re-loan facility that I may avail hereafter from you.', y, {size:8.2, lh:4.4, gap:1.5});
+  y = para(doc, 'I, '+fill(d.name,22)+', enclose herewith a duly executed Demand Promissory Note dated '+BLANK(11)+' for '+rs(d.loan_amount)+'/- (Rupees '+amountInWords(d.loan_amount)+' Only) executed by me, which is given to you as continuing security for the repayment of the Loan presently outstanding in my name, and also for the repayment of interest and Delayed Payment Charges calculated as set out in the Loan Agreement, and of any further re-loan facility that I may avail hereafter from you.', y, {size:8.2, lh:4.4, gap:1.5});
   y = para(doc, 'The said Demand Promissory Note shall serve as continuing security for the repayment of the ultimate balance and all amounts remaining unpaid on the Loan, now or hereafter, including interest and Delayed Payment Charges as defined in the Loan Agreement. I shall remain liable on the said Demand Promissory Note notwithstanding any payments made from time to time.', y, {size:8.2, lh:4.4, gap:2});
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to me in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
@@ -1292,7 +2001,8 @@ y = borrowerSignaturePlainRight(doc, y, d);
   doc.text('Schedule "B"', ML, y); doc.setTextColor.apply(doc, INK); y += 6;
   y = para(doc, 'Loan Application No.: '+fill(d.app_id,18), y);
   y = para(doc, 'To,  Mr./Ms. '+fill(d.name,24), y);
-  y = para(doc, 'Address: '+fill(addrFull,40)+',  Pin: '+fill(d.pincode,7), y);
+  y = para(doc, 'Address: '+fill(addrFull,40), y);
+  y = para(doc, 'Pin Code: '+fill(d.pincode,7), y);
   y = para(doc, 'Email: '+fill(d.email,22)+'   Mobile: '+fill(d.mobile,14), y, {gap:2});
   y = para(doc, 'Dear Borrower, this Loan Disbursement & Repayment Schedule is issued in reference to your Loan Application. We are pleased to inform you that your Loan has been approved and the amount is being remitted to your account as per the following details:', y, {size:8.2, gap:2});
   doc.autoTable({
@@ -1312,8 +2022,9 @@ y = borrowerSignaturePlainRight(doc, y, d);
       ['8','Loan Disbursement Amount', rs('')],
       ['9','Disbursement Date', BLANK(16)],
       ['10','Disbursement Bank Account','Bank: '+fill(d.bank_name,16)+'  A/c No.: '+fill(d.account_number,14)+'  IFSC: '+fill(d.ifsc_code,12)],
-      ['11','Loan Repayment Schedule','As per the Loan Card issued with this Agreement']
-    ].concat(schedExtra)
+      ['11','Loan Repayment Schedule','As per the Loan Agreement']
+    ].concat(schedExtra),
+    didParseCell: boldFormDataTableCell
   });
   y = doc.lastAutoTable.finalY + 3;
   y = para(doc, 'I/We have read, understood, and agreed to the above Loan Disbursement and Repayment Schedule.', y, {size:8, gap:1});
