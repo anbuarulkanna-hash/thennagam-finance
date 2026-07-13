@@ -15,7 +15,6 @@ var CO = {
 
 /* ---- the four permitted charge heads (Section 9(2), TN Act 40 of 2025) ----
    Centralised here so a rate change only needs editing in one place. */
-var ROI_PA = 12;                          // interest, reducing balance, % per annum
 var PROCESSING_CHARGE_LABEL = 'Nil — not charged';
 var INSURANCE_LABEL = 'Not Applicable';
 var PENAL_RATE_LABEL = '0.1% per day on the overdue instalment amount only';
@@ -934,8 +933,153 @@ function buildApplication(doc, d, g){
 
 
 
+
+/* ---- Deed of Guarantee / Surety appended after Schedule B ---- */
+function buildGuaranteeDeed(doc, d, g){
+  var guarantorAddress = [
+    V(d.guarantor_address),
+    V(d.guarantor_city),
+    V(d.guarantor_district),
+    V(d.guarantor_state),
+    V(d.guarantor_pincode)
+  ].filter(Boolean).join(', ');
+
+  var borrowerAddress = [
+    V(d.address), V(d.city), V(d.district), V(d.state), V(d.pincode)
+  ].filter(Boolean).join(', ');
+
+  var executionPlace = V(d.guarantee_place) || 'Thanjavur';
+  var executionDate = fdate(d.guarantee_date || d.submitted_at);
+  var agreementDate = fdate(d.agreement_date || d.submitted_at);
+  var loanAccountNo = V(d.loan_account_no) || V(d.app_id);
+  var jurisdiction = V(d.jurisdiction) || 'Thanjavur';
+  var guarantorName = V(d.guarantor_name);
+  var guarantorRelationName = V(d.guarantor_father_name || d.guarantor_spouse_name);
+  var guarantorAge = V(d.guarantor_age);
+  var emiAmount = V(d.emi_amount) ? rs(d.emi_amount) : 'Rs. ' + BLANK(10);
+
+  function guaranteeClause(number, title, body, y){
+    y = para(doc, number + '. ' + title + ' - ' + body, y, {
+      size:8.25,
+      lh:4.75,
+      gap:2.15
+    });
+    return y;
+  }
+
+  /* ---------- 6. DEED OF GUARANTEE / SURETY - PAGE 1 ---------- */
+  doc.addPage();
+  var y = letterhead(doc, 'DEED OF GUARANTEE / SURETY');
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(8.1);
+  doc.setTextColor.apply(doc, INK);
+  doc.text('(Executed under Sections 126 to 147 of the Indian Contract Act, 1872)', PW/2, y-1, {align:'center'});
+  y += 5;
+
+  y = heading(doc, '1. RECITAL AND PARTIES', y + 1);
+  y = para(doc,
+    'This Deed of Guarantee ("Deed") is executed at ' + fill(executionPlace,18) +
+    ' on this ' + fill(executionDate,12) + '.',
+    y, {size:8.25, lh:4.7, gap:2.0}
+  );
+  y = para(doc,
+    'WHEREAS, at the request of the Guarantor, THENNAGAM FINANCE PRIVATE LIMITED ("Lender") has agreed to sanction and disburse a loan to the Principal Borrower, and in consideration thereof, the Guarantor has agreed to guarantee due repayment on the terms below.',
+    y, {size:8.25, lh:4.7, gap:2.0}
+  );
+
+  y = para(doc,
+    '(1) Guarantor/Surety: ' + fill(guarantorName,24) +
+    ' [Full Name], S/D/W/o ' + fill(guarantorRelationName,18) +
+    ', aged ' + fill(guarantorAge,3) + ' years, residing at ' +
+    fill(guarantorAddress,34) +
+    ' ("Guarantor", includes heirs, legal representatives, executors and administrators).',
+    y, {size:8.15, lh:4.6, gap:1.8}
+  );
+  y = para(doc,
+    '(2) Lender: THENNAGAM FINANCE PRIVATE LIMITED (CIN: U64990TN2025PTC179499), registered under the Tamil Nadu Money Lending Entities Act, 2025, having its registered office at ' + CO.addr + '.',
+    y, {size:8.15, lh:4.6, gap:1.8}
+  );
+  y = para(doc,
+    '(3) Principal Borrower: ' + fill(d.name,24) +
+    ' [Full Name], residing at ' + fill(borrowerAddress,36) + ' ("Borrower").',
+    y, {size:8.15, lh:4.6, gap:2.1}
+  );
+
+  y = heading(doc, '2. LOAN FACILITY DETAILS', y + 1.5);
+  y = grid(doc, y, [
+    [ L('Loan A/c No.'), loanAccountNo, L('Agreement Date'), agreementDate ],
+    [ L('Sanctioned Amount'), rs(d.loan_amount), L('Rate of Interest'), BLANK(8) + ' % p.a., reducing balance basis' ],
+    [ L('Tenure'), fill(d.tenure,8), L('EMI'), emiAmount + ', equal monthly instalments' ]
+  ]);
+
+  y = heading(doc, '3. TERMS, CONDITIONS AND UNDERTAKINGS', y + 2);
+  y = guaranteeClause('3.1', 'Joint and Several Liability',
+    'The Guarantor unconditionally and irrevocably guarantees repayment of principal, interest, default/penal charges and reasonable legal/recovery costs. The liability is co-extensive with that of the Borrower under Section 128 of the Indian Contract Act, 1872, and is capped at the Sanctioned Amount together with applicable interest and costs.', y);
+  y = guaranteeClause('3.2', 'Default',
+    'Default means non-payment of two or more consecutive EMIs, any sum remaining overdue for 60 days or more, or the occurrence of any event of default under the Loan Agreement.', y);
+  y = guaranteeClause('3.3', 'Unconditional Right to Recover',
+    'Upon Default, the Lender may demand payment directly from the Guarantor without first suing the Borrower or enforcing any other security.', y);
+  y = guaranteeClause('3.4', 'Duration',
+    'This Guarantee shall remain in force until the Loan and all dues are fully repaid and the Lender issues an NOC or closure letter. It is not a continuing guarantee under Section 129 of the Indian Contract Act, 1872; it is limited strictly to the Loan described in Clause 2 and does not extend to any future facility unless a fresh deed is executed.', y);
+
+  // Keep the complete Section 3 on the same page.
+  y = guaranteeClause('3.5', 'Consent to Variations',
+    'The Lender may, with the Borrower\'s consent, reasonably vary the repayment schedule, excluding any increase in the Sanctioned Amount, without discharging the Guarantor under Section 133 of the Indian Contract Act, 1872, provided that the Guarantor is notified in writing.', y);
+  y = guaranteeClause('3.6', 'Survival on Death',
+    'This Guarantee is not revoked by the Guarantor\'s death, insolvency or incapacity, notwithstanding Section 131 of the Indian Contract Act, 1872, and binds the Guarantor\'s estate to the extent of dues outstanding as on that date.', y);
+  y = guaranteeClause('3.7', 'Subrogation',
+    'Upon full payment of the guaranteed dues, the Guarantor shall be subrogated to the Lender\'s rights against the Borrower under Section 140 of the Indian Contract Act, 1872. The Borrower\'s indemnity obligation under Section 145 shall continue.', y);
+  y = guaranteeClause('3.8', 'Governing Law and Jurisdiction',
+    'This Deed shall be governed by Indian law and the Tamil Nadu Money Lending Entities Act, 2025. Courts at ' + jurisdiction + ' shall have exclusive jurisdiction.', y);
+
+  /* ---------- DEED OF GUARANTEE / SURETY - PAGE 2 ---------- */
+  doc.addPage();
+  y = letterhead(doc, 'DEED OF GUARANTEE / SURETY - CONTINUED');
+
+  y = heading(doc, '4. MANDATORY DOCUMENTS FROM GUARANTOR', y + 1);
+  [
+    'Aadhaar and PAN, self-attested, together with two passport-size photographs.',
+    'Income proof: last three months\' salary slips or two years\' Income-tax Returns for a self-employed Guarantor.',
+    'Last six months\' statement of the Guarantor\'s primary bank account.',
+    'Recommended: post-dated security cheque or e-mandate/NACH.'
+  ].forEach(function(t){ y = bullet(doc, t, y, {size:7.7, lh:3.9, gap:1}); });
+
+  y = heading(doc, '5. DECLARATION', y + 1);
+  y = para(doc,
+    'I have read, understood and voluntarily accepted the terms of this Deed, without coercion or undue influence, and accept liability as stated herein for the Borrower\'s Loan in the event of Default.',
+    y, {size:7.8, lh:4.1, gap:2}
+  );
+
+  y = heading(doc, '6. EXECUTION AND SIGNATURES', y);
+  doc.autoTable({
+    startY:y,
+    theme:'grid',
+    margin:{left:ML,right:MR},
+    styles:{fontSize:7.5, cellPadding:2.2, lineColor:[208,203,193], lineWidth:0.2, textColor:INK, minCellHeight:23, valign:'top'},
+    columnStyles:{0:{cellWidth:CW/2},1:{cellWidth:CW/2}},
+    body:[
+      [
+        'Guarantor Signature\n\nName: ' + fill(guarantorName,22) + '\nDate: ' + fill(executionDate,12) + '\nPlace: ' + fill(executionPlace,14),
+        'For THENNAGAM FINANCE PRIVATE LIMITED\n\nAuthorised Signatory\n\nName: __________________________\nDate: __________________________'
+      ],
+      [
+        'Witness 1\n\nName / Signature: __________________________\nAddress: __________________________________',
+        'Witness 2\n\nName / Signature: __________________________\nAddress: __________________________________'
+      ]
+    ]
+  });
+  y = doc.lastAutoTable.finalY + 4;
+
+  y = para(doc,
+    'Note: Execute this Deed on non-judicial stamp paper of the value applicable to a guarantee/surety bond under the Tamil Nadu Stamp Act. Confirm the current stamp duty with the Sub-Registrar or document writer. The stamp paper must be dated on or before the date of execution.',
+    y, {italic:true, bold:true, size:7.2, lh:3.7, gap:1}
+  );
+
+  return y;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
-   GROUP A — AGREEMENT PACK  (Sanction Letter → Agreement → DPN → Continuity → Schedule B)
+   GROUP A — AGREEMENT PACK  (Sanction Letter → Agreement → DPN → Continuity → Schedule B → Guarantee Deed)
    ════════════════════════════════════════════════════════════════════════ */
 function buildAgreement(doc, d, g){
   _G = g;
@@ -980,7 +1124,7 @@ function buildAgreement(doc, d, g){
       ['4','Instalment Amount / Count', rs('')+' / '+BLANK(6)],
       ['5','Instalment Due Date / Frequency', fill(d.emi_date,8)+' / Daily/Monthly'],
       ['6','Disbursal Amount (after deductions)', rs('')],
-      ['7','Rate of Interest (reducing balance, p.a.)', ROI_PA+'% p.a.'],
+      ['7','Rate of Interest (reducing balance, p.a.)', BLANK(8) + ' % p.a.'],
       ['8','Processing Charge', PROCESSING_CHARGE_LABEL],
       ['9','Insurance Premium', INSURANCE_LABEL],
       ['10','Delayed Payment / Penal Charge', PENAL_RATE_LABEL],
@@ -1032,7 +1176,7 @@ function buildAgreement(doc, d, g){
       'The Borrower has confirmed the following Bank Account details for receipt of Loan disbursement:  Bank Name: '+fill(d.bank_name,20)+' ;  Account Number: '+fill(d.account_number,18)+' ;  IFSC Code: '+fill(d.ifsc_code,14)+' .'
     ]],
     ['C. RATE OF INTEREST', [
-      'Interest is charged on a reducing-balance basis at '+ROI_PA+'% (twelve percent) per annum, as stated in the Sanction Letter, within the ceiling notified for unsecured loans under Section 7 of the Tamil Nadu Money-Lenders Act, 1957 (G.O.Ms.No.406, Cooperation Department, dated 5 July 1979 — to be reconfirmed as the currently applicable notification).',
+      'Interest is charged on a reducing-balance basis at ' + BLANK(8) + ' % per annum, as stated in the Sanction Letter, within the ceiling notified for unsecured loans under Section 7 of the Tamil Nadu Money-Lenders Act, 1957 (G.O.Ms.No.406, Cooperation Department, dated 5 July 1979 — to be reconfirmed as the currently applicable notification).',
       'The rate shall be disclosed transparently and shall not be revised upward after disbursement without the Borrower\'s written consent.',
       'Interest shall accrue from the Effective Date until full repayment of all amounts due.'
     ]],
@@ -1044,7 +1188,7 @@ function buildAgreement(doc, d, g){
       'Any amount paid shall be adjusted first towards overdue Delayed Payment Charges, then overdue interest, then overdue principal, then current dues. Payments shall only be made to the Lender\'s official accounts.'
     ]],
     ['E. FEES AND CHARGES — CLOSED LIST', [
-      'The Lender shall charge the Borrower only the following, and no other fee or charge by any name, under Section 9(2) of the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025: (1) Rate of Interest — '+ROI_PA+'% p.a., as above; (2) Processing Charge — '+PROCESSING_CHARGE_LABEL+' on this loan; (3) Insurance Premium — '+INSURANCE_LABEL+', unless an actual policy is procured on the Borrower\'s life/asset, passed through at actuals with supporting proof; (4) Delayed Payment/Penal Charge, as described below.',
+      'The Lender shall charge the Borrower only the following, and no other fee or charge by any name, under Section 9(2) of the Tamil Nadu Money Lending Entities (Prevention of Coercive Actions) Act, 2025: (1) Rate of Interest — ' + BLANK(8) + ' % p.a., as above; (2) Processing Charge — ' + PROCESSING_CHARGE_LABEL + ' on this loan; (3) Insurance Premium — ' + INSURANCE_LABEL + ', unless an actual policy is procured on the Borrower\'s life/asset, passed through at actuals with supporting proof; (4) Delayed Payment/Penal Charge, as described below.',
       'Delayed Payment/Penal Charge shall be levied only on the Overdue Amount (not the full outstanding principal), at '+PENAL_RATE_LABEL+', shall not be capitalised or added to principal for further interest computation, and shall be applied from the Due Date until the date of actual payment.',
       'The Lender shall not introduce any new charge, or increase an existing one, during the currency of the loan without the Borrower\'s prior written consent.'
     ]],
@@ -1118,7 +1262,7 @@ function buildAgreement(doc, d, g){
 
   /* ---------- 3. DEMAND PROMISSORY NOTE ---------- */
   doc.addPage(); y = letterhead(doc, 'DEMAND PROMISSORY NOTE');
-  y = para(doc, 'On demand, I/We, '+fill(d.name,22)+', S/o | D/o | W/o: '+fill(d.father_name,20)+', residing at '+fill(addrFull+(V(d.pincode)?' - '+d.pincode:''),40)+', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of '+rs(d.loan_amount)+'/- (Rupees '+BLANK(26)+' Only), together with interest thereon at '+ROI_PA+'% (twelve percent) per annum from the date hereof until payment, for value received.', y, {size:8.2, lh:4.4, gap:2});
+  y = para(doc, 'On demand, I/We, ' + fill(d.name,22) + ', S/o | D/o | W/o: ' + fill(d.father_name,20) + ', residing at ' + fill(addrFull + (V(d.pincode) ? ' - ' + d.pincode : ''),40) + ', (hereinafter the "Borrower") unconditionally promise to pay M/s THENNAGAM FINANCE PRIVATE LIMITED (hereinafter the "Lender"), having its Registered Office at 26/1, Thanjai Main Road, Vangarampettai, Uthamadhanapuram, Thanjavur, Papanasam, Tamil Nadu - 614205, the sum of ' + rs(d.loan_amount) + '/- (Rupees ' + BLANK(26) + ' Only), together with interest thereon at ' + BLANK(8) + ' % per annum from the date hereof until payment, for value received.', y, {size:8.2, lh:4.4, gap:2});
   y = para(doc, 'This Note is complete and certain on its face and does not depend on any other document for the sum payable. It is executed pursuant to the Negotiable Instruments Act, 1881, and is enforceable under the laws of India, including by way of summary suit under Order 37 of the Code of Civil Procedure, 1908. Delayed Payment Charges arising on default are dealt with separately under the Loan Agreement and do not form part of the sum promised in this Note.', y, {size:8.2, lh:4.4, gap:1.5});
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to the Borrower in Tamil on request.', y, {italic:true, size:8, gap:2});
   y = para(doc, 'Loan Application Number: '+fill(d.app_id,18), y);
@@ -1158,7 +1302,7 @@ y = borrowerSignaturePlainRight(doc, y, d);
     headStyles:{fillColor:NAVY, textColor:255, fontStyle:'bold', fontSize:7.9},
     columnStyles:{0:{cellWidth:14,halign:'center'},1:{cellWidth:60,fontStyle:'bold'},2:{cellWidth:'auto'}},
     body:[
-      ['1','Rate of Interest (reducing balance, per annum)', ROI_PA+'% p.a.'],
+      ['1','Rate of Interest (reducing balance, per annum)', BLANK(8) + ' % p.a.'],
       ['2','Processing Charge', PROCESSING_CHARGE_LABEL],
       ['3','Insurance Premium (if any)', INSURANCE_LABEL],
       ['4','Delayed Payment / Penal Charge', PENAL_RATE_LABEL+', from Due Date until date of payment'],
@@ -1175,6 +1319,9 @@ y = borrowerSignaturePlainRight(doc, y, d);
   y = para(doc, 'I/We have read, understood, and agreed to the above Loan Disbursement and Repayment Schedule.', y, {size:8, gap:1});
   y = para(doc, 'The terms were translated and interpreted to me in my native language, and I have fully internalised the rights and liabilities mentioned therein. This document is available to me/us in Tamil on request.', y, {italic:true, size:7.8, gap:1});
   y = borrowerSignaturePlainRight(doc, y, d);
+
+  // Append the Deed of Guarantee / Surety immediately after Schedule B.
+  buildGuaranteeDeed(doc, d, g);
 
   footer(doc);
   return doc;
